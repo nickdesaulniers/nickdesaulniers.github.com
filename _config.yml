@@ -3,11 +3,11 @@
 # ----------------------- #
 
 url: http://nickdesaulniers.github.com
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
+title: Nick Desaulniers
+subtitle: Around the net.
+author: Nick Desaulniers
 simple_search: http://google.com/search
-description:
+description: A collection of my findings, C, Ruby, JavaScript, Node.JS
 
 # Default date format is "ordinal" (resulting in "July 22nd 2007")
 # You can customize the format as defined in
@@ -58,8 +58,8 @@ default_asides: [asides/recent_posts.html, asides/github.html, asides/twitter.ht
 # ----------------------- #
 
 # Github repositories
-github_user:
-github_repo_count: 0
+github_user: nickdesaulniers
+github_repo_count: 20
 github_show_profile_link: true
 github_skip_forks: true
 
@@ -89,11 +89,11 @@ delicious_user:
 delicious_count: 3
 
 # Disqus Comments
-disqus_short_name:
-disqus_show_comment_count: false
+disqus_short_name: wangstabill
+disqus_show_comment_count: true
 
 # Google Analytics
 google_analytics_tracking_id:
 
 # Facebook Like
-facebook_like: false
+facebook_like: true
