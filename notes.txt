@@ -1,0 +1,19 @@
+# new post process:
+rake new_post["title"]
+# write post, change config => published: false
+rake generate
+rake watch
+rake preview
+# change config => published: true
+git commit -am "commit message"
+git push
+rake gen_deploy
+
+# update octopress
+git pull octopress master
+bundle install
+rake update_source
+rake update_style
+
+# More info:
+octopress.org
