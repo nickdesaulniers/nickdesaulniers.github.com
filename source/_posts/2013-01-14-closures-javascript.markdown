@@ -3,7 +3,7 @@ layout: post
 title: "Closures: JavaScript, Ruby, and Rust"
 date: 2013-01-14 20:28
 comments: true
-published: false
+published: true
 categories: [Closure, JavaScript, Ruby, Rust]
 ---
 
