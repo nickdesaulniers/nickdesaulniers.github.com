@@ -67,7 +67,7 @@ previous snippet more succinctly:
 
 It might seem obvious that my point about different languages having
 different syntaxes.  I guess a better stating of that point is that
-***closure definitions differ from vanilla function definitions like
+***closure definitions in Rust differ from vanilla function definitions like
 Ruby and as opposed to JavaScript***.
 
 Rust aims to be a systems level programming language to replace C and
