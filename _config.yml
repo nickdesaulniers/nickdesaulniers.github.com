@@ -4,7 +4,8 @@
 
 url: http://nickdesaulniers.github.com
 title: Nick Desaulniers
-subtitle: Around the net.
+subtitle: The enemie's gate is down
+blah: x's
 author: Nick Desaulniers
 simple_search: http://google.com/search
 description: A collection of my findings, C, Ruby, JavaScript, Node.JS
@@ -65,7 +66,7 @@ github_skip_forks: true
 
 # Twitter
 twitter_user: LostOracle
-twitter_tweet_count: 0
+twitter_tweet_count: 4
 twitter_show_replies: false
 twitter_follow_button: true
 twitter_show_follower_count: false
