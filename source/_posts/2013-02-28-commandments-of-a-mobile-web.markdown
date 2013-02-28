@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Commandments of a Mobile Web"
-date: 2013-03-01 22:43
+date: 2013-02-28 22:43
 comments: true
 categories: [Mobile, Web, Commandment, Advice, Tips, Tricks, Internet]
 published: true
