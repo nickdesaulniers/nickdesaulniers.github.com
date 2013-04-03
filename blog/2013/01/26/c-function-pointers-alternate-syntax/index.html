@@ -1,0 +1,367 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>C Function Pointers Alternate Syntax - Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="On an interview with Square, I made the mistake
+of stating that one of the benefits of working with JavaScript over C is
+that functions are first &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemie's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">C Function Pointers Alternate Syntax</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-26T17:49:00-08:00" pubdate data-updated="true">Jan 26<span>th</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>On an interview with <a href="https://squareup.com/">Square</a>, I made the mistake
+of stating that one of the benefits of working with JavaScript over C is
+that functions are <a href="http://en.wikipedia.org/wiki/First-class_function">first class</a>
+in JavaScript, therefore they may be <a href="http://eloquentjavascript.net/chapter6.html">passed around</a>.  To which the
+interviewer replied, &#8220;Well, C can do that, what about function pointers?&#8221;  What? Luckily, I
+was able to get out of that jam by guessing that JavaScript had a nicer
+syntax.</p>
+
+<p>While I was taught some C in university, we had never gone over function
+pointers or more in depth topics such as <a href="http://en.wikipedia.org/wiki/Static_library">static</a>
+or <a href="http://en.wikipedia.org/wiki/Dynamic_library">dynamic</a> <a href="http://www.yolinux.com/TUTORIALS/LibraryArchives-StaticAndDynamic.html">linkage</a>.
+I was so embarrassed that my expensive (read <a href="http://online.wsj.com/article/SB10001424127887324442304578231922159602676.html?mod=WSJ_hps_LEFTTopStories">overpriced</a>)
+degree had not taught me more about
+the C programming language, especially from the Computer Engineering
+department that focuses on software <strong>AND</strong> hardware.  On my exit
+interview with the dean, I was very opinionated on the amount of C that
+was (or wasn&#8217;t) taught at my university.  His argument was that there
+are only so much of so many languages you can cover in a university, which
+to some extent is valid.  My problem has been that I&#8217;ve enjoyed learning
+many different programming languages, though I didn&#8217;t really get it the
+first time around (with Java).  I think knowing many different languages
+and their respective paradigms makes you a better programmer in other
+languages, since you can bring a <a href="http://therubyway.org/">Ruby Way</a> to
+<a href="http://www.rust-lang.org/">Rust</a> or a <a href="http://www.ibm.com/developerworks/library/wa-javascript/index.html">JavaScript functional</a>
+<a href="http://interglacial.com/hoj/hoj.html">style</a> into C.</p>
+
+<p>I had read two books in the meantime that really flushed out more of the
+C language to me and I would definitely recommend them to those who want
+to learn more about the language. They are <a href="http://shop.oreilly.com/product/0636920015482.do">Head First C</a> by Dave and Dawn
+Griffiths and <a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a> by Ben Klemens.
+I&#8217;m also aware that <a href="http://en.wikipedia.org/wiki/The_C_Programming_Language">The C Programming Language</a> by
+Brian Kernighan and Dennis Ritchie is also known as the canonical text.
+The book is often referred to as &#8216;K&amp;R&#8217; after the authors&#8217; initials, and Dennis
+Ritchie was the original creators of the C language and co-developer of
+Unix.  I&#8217;d love to get a chance to read it someday.</p>
+
+<p><a href="http://blog.charlescary.com/?p=95">This article</a> appeared on
+<a href="http://news.ycombinator.com/">Hacker News</a> and really piqued my
+interest.  Defenitely a great read.  What really stuck out to me was one
+of the <a href="http://blog.charlescary.com/?p=95#comment-31">comments</a> though.
+The author of the comment mentioned a less ugly syntax for function
+pointers, with a <a href="http://pastebin.com/MsJLY22j">link to an example</a>.
+Now I&#8217;m not sure what the commenter meant by &#8220;these params decay
+naturally to function pointers&#8221; but I was skeptical about this different
+syntax.  Event the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
+used the syntax that I was familiar with.  So I wrote up a quick example
+to try it:</p>
+
+<div><script src='https://gist.github.com/4645944.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Sure enough we get:</p>
+
+<div><script src='https://gist.github.com/4645949.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>So the moral to the story I guess is that there&#8217;s always more to your
+favorite language.  From using <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/variadic_macros.c">variadic macros</a>
+with <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/compound_literal.c">compound literals</a>
+to enable a more <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/foreach.c">functional style</a>
+in C to reflecting upon a function&#8217;s <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/length">number of arguments</a>
+or <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/name">name</a>
+or <a href="http://taylodl.wordpress.com/2012/09/03/functional-javascript-memoization-part-ii/">adding attributes to a function</a>
+or the
+<a href="http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/">y-combinator</a>
+in JavaScript, I learn something new every day.  And I hope that you did
+too!  Thanks for reading!  If you have some other recommendations on
+good programming books, or design patterns, please leave a comment or
+write a reply blog post!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-26T17:49:00-08:00" pubdate data-updated="true">Jan 26<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/alternate/'>Alternate</a>, <a class='category' href='/blog/categories/c/'>C</a>, <a class='category' href='/blog/categories/function/'>Function</a>, <a class='category' href='/blog/categories/functor/'>Functor</a>, <a class='category' href='/blog/categories/pointer/'>Pointer</a>, <a class='category' href='/blog/categories/reference/'>Reference</a>, <a class='category' href='/blog/categories/syntax/'>Syntax</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/" data-via="LostOracle" data-counturl="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/01/19/internet-freedom-is-not-free/" title="Previous Post: [Internet] Freedom is Not Free">&laquo; [Internet] Freedom is Not Free</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/02/28/commandments-of-a-mobile-web/" title="Next Post: Commandments of a Mobile Web">Commandments of a Mobile Web &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/04/03/basic-jit/">Basic JIT</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/28/commandments-of-a-mobile-web/">Commandments of a Mobile Web</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/">C Function Pointers Alternate Syntax</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/19/internet-freedom-is-not-free/">[Internet] Freedom is Not Free</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/14/closures-javascript/">Closures: JavaScript, Ruby, and Rust</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/';
+        var disqus_url = 'http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

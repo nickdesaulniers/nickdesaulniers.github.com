@@ -1,120 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
 
-<!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <title>Nick Desaulniers</title>
-  <meta name="author" content="Nick Desaulniers">
-
-  
-  <meta name="description" content="Ever since I learned about
-Just In Time Compilation
-from the various
-Ruby VMs
-and
-JavaScript VMs,
-I&#8217;ve been inspired. I could tell you all &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="http://nickdesaulniers.github.com">
-  <link href="/favicon.png" rel="icon">
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-36993986-1']);
-    _gaq.push(['_trackPageview']);
-
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
-
-</head>
-
-<body   >
-  <header role="banner"><hgroup>
-  <h1><a href="/">Nick Desaulniers</a></h1>
-  
-    <h2>The enemie's gate is down</h2>
-  
-</hgroup>
-
-</header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
-  
-</ul>
-  
-<form action="http://google.com/search" method="get">
-  <fieldset role="search">
-    <input type="hidden" name="q" value="site:nickdesaulniers.github.com" />
-    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-  </fieldset>
-</form>
-  
-<ul class="main-navigation">
-  <li><a href="/">Blog</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
-</ul>
-
-</nav>
-  <div id="main">
-    <div id="content">
-      <div class="blog-index">
-  
-  
-  
-    <article>
-      
-  <header>
+  <title><![CDATA[Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.com/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.com/"/>
+  <updated>2013-04-03T01:42:21-07:00</updated>
+  <id>http://nickdesaulniers.github.com/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
     
-      <h1 class="entry-title"><a href="/blog/2013/04/03/basic-jit/">Basic JIT</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
 
   
-
-
-<time datetime="2013-04-03T00:05:00-07:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2013</time>
-        
-         | <a href="/blog/2013/04/03/basic-jit/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Ever since I learned about
+  <entry>
+    <title type="html"><![CDATA[Basic JIT]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit/"/>
+    <updated>2013-04-03T00:05:00-07:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit</id>
+    <content type="html"><![CDATA[<p>Ever since I learned about
 <a href="`http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
 from the various
 <a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations">Ruby VMs</a>
@@ -204,44 +108,15 @@ non-portable and dealing with memory in this fashion is generally unsafe.  But
 now I know the basics of JIT&#8217;ing code, and now so do you!</p>
 
 <p>Thanks Luke!</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/02/28/commandments-of-a-mobile-web/">Commandments of a Mobile Web</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-02-28T22:43:00-08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/02/28/commandments-of-a-mobile-web/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Over the past few years, there&#8217;s been certain
+  <entry>
+    <title type="html"><![CDATA[Commandments of a Mobile Web]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/02/28/commandments-of-a-mobile-web/"/>
+    <updated>2013-02-28T22:43:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/02/28/commandments-of-a-mobile-web</id>
+    <content type="html"><![CDATA[<p>Over the past few years, there&#8217;s been certain
 <a href="http://en.wikipedia.org/wiki/Paradigm_shift">paradigm shifts</a>
 in web development. When you think of milestones that really changed how
 development on the web was done, the two biggest were
@@ -542,44 +417,15 @@ my past work that contradicts some of my recommendations from this article.  But
 I&#8217;m a little smarter today than I was yesterday, and now so are you!  What are some
 tips that you have to share that you&#8217;ve found helpful developing for the
 mobile web?</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/">C Function Pointers Alternate Syntax</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-26T17:49:00-08:00" pubdate data-updated="true">Jan 26<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>On an interview with <a href="https://squareup.com/">Square</a>, I made the mistake
+  <entry>
+    <title type="html"><![CDATA[C Function Pointers Alternate Syntax]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/"/>
+    <updated>2013-01-26T17:49:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax</id>
+    <content type="html"><![CDATA[<p>On an interview with <a href="https://squareup.com/">Square</a>, I made the mistake
 of stating that one of the benefits of working with JavaScript over C is
 that functions are <a href="http://en.wikipedia.org/wiki/First-class_function">first class</a>
 in JavaScript, therefore they may be <a href="http://eloquentjavascript.net/chapter6.html">passed around</a>.  To which the
@@ -650,44 +496,15 @@ in JavaScript, I learn something new every day.  And I hope that you did
 too!  Thanks for reading!  If you have some other recommendations on
 good programming books, or design patterns, please leave a comment or
 write a reply blog post!</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/01/19/internet-freedom-is-not-free/">[Internet] Freedom Is Not Free</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-19T20:12:00-08:00" pubdate data-updated="true">Jan 19<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/01/19/internet-freedom-is-not-free/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Last week, the Internet community
+  <entry>
+    <title type="html"><![CDATA[[Internet] Freedom is Not Free]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/01/19/internet-freedom-is-not-free/"/>
+    <updated>2013-01-19T20:12:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/01/19/internet-freedom-is-not-free</id>
+    <content type="html"><![CDATA[<p>Last week, the Internet community
 <a href="http://tech.mit.edu/V132/N61/swartz.html">lost</a> a member in the on going war
 against the copyright industry.  While I&#8217;ve never met the deceased, or
 even heard of the deceased before his suicide, I&#8217;m horrified.  I&#8217;m
@@ -851,44 +668,15 @@ right, you have to do it yourself.</p>
 
 <blockquote><p>It has to start somewhere It has to start sometime<br/>What better place than here, what better time than now?</p><footer><strong>Rage Against the Machine</strong> <cite>Guerrilla Radio</cite></footer></blockquote>
 
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/01/14/closures-javascript/">Closures: JavaScript, Ruby, and Rust</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-14T20:28:00-08:00" pubdate data-updated="true">Jan 14<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/01/14/closures-javascript/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>It&#8217;s all about <a href="http://en.wikipedia.org/wiki/Closure_%28computer_science%29">closures</a>.  Understanding <a href="http://en.wikipedia.org/wiki/Scope_%28computer_science%29">scope</a> is paramount to coding.
+  <entry>
+    <title type="html"><![CDATA[Closures: JavaScript, Ruby, and Rust]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/01/14/closures-javascript/"/>
+    <updated>2013-01-14T20:28:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/01/14/closures-javascript</id>
+    <content type="html"><![CDATA[<p>It&#8217;s all about <a href="http://en.wikipedia.org/wiki/Closure_%28computer_science%29">closures</a>.  Understanding <a href="http://en.wikipedia.org/wiki/Scope_%28computer_science%29">scope</a> is paramount to coding.
 What can you access and what can&#8217;t you access.  Closures allow us to
 access variables that otherwise might be awkward to pass into a
 function.  Closures can help us out of tricky situations, but can
@@ -966,135 +754,7 @@ Ruby and as opposed to JavaScript</em></strong>.</p>
 <p>Rust aims to be a systems level programming language to replace C and
 C++.  With closures, type inference, and a syntax that faintly reminds
 me of Ruby&#8217;s block lambda syntax, I&#8217;ll take it!</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
-</div>
-<aside class="sidebar">
-  
-    <section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a href="/blog/2013/04/03/basic-jit/">Basic JIT</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/02/28/commandments-of-a-mobile-web/">Commandments of a Mobile Web</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/">C Function Pointers Alternate Syntax</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/01/19/internet-freedom-is-not-free/">[Internet] Freedom is Not Free</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/01/14/closures-javascript/">Closures: JavaScript, Ruby, and Rust</a>
-      </li>
-    
-  </ul>
-</section>
-
-<section>
-  <h1>GitHub Repos</h1>
-  <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
-  </ul>
-  
-  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
-  
-  <script type="text/javascript">
-    $(document).ready(function(){
-        if (!window.jXHR){
-            var jxhr = document.createElement('script');
-            jxhr.type = 'text/javascript';
-            jxhr.src = '/javascripts/libs/jXHR.js';
-            var s = document.getElementsByTagName('script')[0];
-            s.parentNode.insertBefore(jxhr, s);
-        }
-
-        github.showRepos({
-            user: 'nickdesaulniers',
-            count: 20,
-            skip_forks: true,
-            target: '#gh_repos'
-        });
-    });
-  </script>
-  <script src="/javascripts/github.js" type="text/javascript"> </script>
-</section>
-
-
-
-
-
-  
-</aside>
-
-    </div>
-  </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - Nick Desaulniers -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
-</p>
-
-</footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'wangstabill';
-      
-        
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) {return;}
-  js = d.createElement(s); js.id = id; js.async = true;
-  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
-
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
-</body>
-</html>
+</feed>

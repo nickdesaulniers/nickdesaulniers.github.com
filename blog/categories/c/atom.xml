@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: C | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.com/blog/categories/c/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.com/"/>
+  <updated>2013-04-03T01:42:21-07:00</updated>
+  <id>http://nickdesaulniers.github.com/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Basic JIT]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit/"/>
+    <updated>2013-04-03T00:05:00-07:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit</id>
+    <content type="html"><![CDATA[<p>Ever since I learned about
+<a href="`http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
+from the various
+<a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations">Ruby VMs</a>
+and
+<a href="http://www.slideshare.net/newmovie/know-yourengines-velocity2011">JavaScript VMs</a>,
+I've been inspired.  I could tell you all about how just in time (JIT)
+compilation worked, and how it could give your interpreted language a speed
+boost.  It was so cool.  Well, it still is!  There's a ton of research going on
+around JIT compilation.  But the problem for me is that I could never figure
+out, let alone guess, how it was being done.  How could you compile code at
+runtime, and then execute it?  I asked
+<a href="http://pybites.blogspot.com/">Benjamin Peterson</a>
+about how he had learned so much about JITs, and he referred me to
+<a href="http://pypy.org/">pypy</a> (a Python JIT)'s source.  But digging through source
+was too much; I just wanted a simple example I could grok quickly.  So I've
+always been left wondering.</p>
+
+<p>Luckily, I have an awesome job where I can meet face to face with the people
+who are doing the work on making awesome production JIT compilers.  I spent
+part of last week at <a href="http://www.gdconf.com/">GDC</a> demoing
+<a href="https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/">Unreal Engine 3</a>
+running in the browser.  The demo was actually the hard work of many, and I'll
+dive into it more in another post following up the events, but
+<a href="https://blog.mozilla.org/luke/">Luke Wagner</a>, a Mozillian working on the
+JavaScript engine, added OdinMonkey to SpiderMonkey to allow optimizations of
+<a href="https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/">asm.js</a>.</p>
+
+<p>Luke is super friendly, and just listening to him talk with Dave Herman and
+Alon Zakai is a treat.  I asked Luke the basics of JIT'ing at tonight's Mozilla
+Research Party and he explained clearly. <em>Compile a simple object file, use
+objdump to get the resulting platform specific assembly, use the mmap system
+call to allocate some memory that you can write to <strong>AND</strong> execute, copy the
+instructions into that buffer, typecast it to a function pointer and finally
+call that.</em></p>
+
+<p>So my goal was to at runtime, create a function that for simplicity's sake
+multiplied two integers.  The first thing I did was write up a simple .c file,
+then compile that to an object file with the -c flag.</p>
+
+<p><div><script src='https://gist.github.com/5299131.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>As a heads up, I'm on 64bit OSX.  So the generated assembly may differ on your
+platform.  Obviously, the production JIT maintainers have abstracted away the
+platform dependency, taking into account what platform you're on.  My example
+doesn't, but that why I'm walking you through the steps I took to find out the
+x86_64 instructions.  The next step is to grab binutils, which is not installed
+by default in OSX.  I used homebrew to install it: <code>brew install binutils</code>.
+Homebrew installs gobjdump but it works with the same flags.</p>
+
+<p>Once you have binutils and [g]objdump, the next step is to read out the machine
+code from your object file, which is represented in hexadecimal.  By running
+<code>gobjdump -j .text -d mul.o -M intel</code> you should get something similar
+(remember, architecture dependent).</p>
+
+<p><div><script src='https://gist.github.com/5299169.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>Ok, so those instructions vary in size.  I don't know any x86 so I can't
+comment too much on that particular
+<a href="http://en.wikipedia.org/wiki/Instruction_set">Instruction Set Architecture</a>
+but they're obviously in pairs of hexadecimal digits.  16<sup>2</sup> == 2<sup>8</sup> meaning that
+each pair of hex digits can be represented by a single byte (or char of memory).
+So these can all be thrown in an unsigned char [].  The man page for mmap explains
+all of the fun flags, but the important point is that this way of allocating
+memory makes it executable, so it can do bad things that memory allocated from
+malloc can't.  I'm sure the JavaScript engine guys have fun with that.  Once
+memory is copied in, you can typecast the memory to a function pointer.
+Make sure to check out the syntax that reminds me of a function pointer in an
+argument list, but being used as an L-value.  Of course, you could just put the
+cast right in front of the memory before you use it, but I find this as neat,
+not so common C syntax.  I kind of
+<a href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/">have a thing</a>
+for stuff like that.  Then we can call it!  The resulting code looks like this.</p>
+
+<p><div><script src='https://gist.github.com/5299272.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>Voila!  How neat is that!  It works!  Luke's directions, an hour of working on
+this, and
+<a href="http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html">this article</a>
+in particular, and we have a simple JIT working. Again, this simple example is super
+non-portable and dealing with memory in this fashion is generally unsafe.  But
+now I know the basics of JIT'ing code, and now so do you!</p>
+
+<p>Thanks Luke!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[C Function Pointers Alternate Syntax]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/"/>
+    <updated>2013-01-26T17:49:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax</id>
+    <content type="html"><![CDATA[<p>On an interview with <a href="https://squareup.com/">Square</a>, I made the mistake
+of stating that one of the benefits of working with JavaScript over C is
+that functions are <a href="http://en.wikipedia.org/wiki/First-class_function">first class</a>
+in JavaScript, therefore they may be <a href="http://eloquentjavascript.net/chapter6.html">passed around</a>.  To which the
+interviewer replied, "Well, C can do that, what about function pointers?"  What? Luckily, I
+was able to get out of that jam by guessing that JavaScript had a nicer
+syntax.</p>
+
+<p>While I was taught some C in university, we had never gone over function
+pointers or more in depth topics such as <a href="http://en.wikipedia.org/wiki/Static_library">static</a>
+or <a href="http://en.wikipedia.org/wiki/Dynamic_library">dynamic</a> <a href="http://www.yolinux.com/TUTORIALS/LibraryArchives-StaticAndDynamic.html">linkage</a>.
+I was so embarrassed that my expensive (read <a href="http://online.wsj.com/article/SB10001424127887324442304578231922159602676.html?mod=WSJ_hps_LEFTTopStories">overpriced</a>)
+degree had not taught me more about
+the C programming language, especially from the Computer Engineering
+department that focuses on software <strong>AND</strong> hardware.  On my exit
+interview with the dean, I was very opinionated on the amount of C that
+was (or wasn't) taught at my university.  His argument was that there
+are only so much of so many languages you can cover in a university, which
+to some extent is valid.  My problem has been that I've enjoyed learning
+many different programming languages, though I didn't really get it the
+first time around (with Java).  I think knowing many different languages
+and their respective paradigms makes you a better programmer in other
+languages, since you can bring a <a href="http://therubyway.org/">Ruby Way</a> to
+<a href="http://www.rust-lang.org/">Rust</a> or a <a href="http://www.ibm.com/developerworks/library/wa-javascript/index.html">JavaScript functional</a>
+<a href="http://interglacial.com/hoj/hoj.html">style</a> into C.</p>
+
+<p>I had read two books in the meantime that really flushed out more of the
+C language to me and I would definitely recommend them to those who want
+to learn more about the language. They are <a href="http://shop.oreilly.com/product/0636920015482.do">Head First C</a> by Dave and Dawn
+Griffiths and <a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a> by Ben Klemens.
+I'm also aware that <a href="http://en.wikipedia.org/wiki/The_C_Programming_Language">The C Programming Language</a> by
+Brian Kernighan and Dennis Ritchie is also known as the canonical text.
+The book is often referred to as 'K&amp;R' after the authors' initials, and Dennis
+Ritchie was the original creators of the C language and co-developer of
+Unix.  I'd love to get a chance to read it someday.</p>
+
+<p><a href="http://blog.charlescary.com/?p=95">This article</a> appeared on
+<a href="http://news.ycombinator.com/">Hacker News</a> and really piqued my
+interest.  Defenitely a great read.  What really stuck out to me was one
+of the <a href="http://blog.charlescary.com/?p=95#comment-31">comments</a> though.
+The author of the comment mentioned a less ugly syntax for function
+pointers, with a <a href="http://pastebin.com/MsJLY22j">link to an example</a>.
+Now I'm not sure what the commenter meant by "these params decay
+naturally to function pointers" but I was skeptical about this different
+syntax.  Event the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
+used the syntax that I was familiar with.  So I wrote up a quick example
+to try it:</p>
+
+<p><div><script src='https://gist.github.com/4645944.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>Sure enough we get:</p>
+
+<p><div><script src='https://gist.github.com/4645949.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>So the moral to the story I guess is that there's always more to your
+favorite language.  From using <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/variadic_macros.c">variadic macros</a>
+with <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/compound_literal.c">compound literals</a>
+to enable a more <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/foreach.c">functional style</a>
+in C to reflecting upon a function's <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/length">number of arguments</a>
+or <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/name">name</a>
+or <a href="http://taylodl.wordpress.com/2012/09/03/functional-javascript-memoization-part-ii/">adding attributes to a function</a>
+or the
+<a href="http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/">y-combinator</a>
+in JavaScript, I learn something new every day.  And I hope that you did
+too!  Thanks for reading!  If you have some other recommendations on
+good programming books, or design patterns, please leave a comment or
+write a reply blog post!</p>
+]]></content>
+  </entry>
+  
+</feed>

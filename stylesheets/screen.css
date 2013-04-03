@@ -1,0 +1,61 @@
+/*
+Syntax error: File to import not found or unreadable: plugins/**/*.
+              Load paths:
+                Sass::Globbing::Importer
+                /Users/wangstabill/Code/ruby/blog/sass
+                /Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/frameworks/blueprint/stylesheets
+                /Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/frameworks/compass/stylesheets
+                Compass::SpriteImporter
+        on line 10 of /Users/wangstabill/Code/ruby/blog/sass/screen.scss
+
+Backtrace:
+/Users/wangstabill/Code/ruby/blog/sass/screen.scss:10
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/import_node.rb:64:in `rescue in import'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/import_node.rb:42:in `import'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/import_node.rb:25:in `imported_file'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/perform.rb:149:in `rescue in visit_import'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/perform.rb:154:in `visit_import'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/base.rb:37:in `visit'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/perform.rb:18:in `visit'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/base.rb:53:in `block in visit_children'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/base.rb:53:in `map'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/base.rb:53:in `visit_children'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/perform.rb:27:in `block in visit_children'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/perform.rb:39:in `with_environment'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/perform.rb:26:in `visit_children'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/base.rb:37:in `block in visit'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/perform.rb:47:in `visit_root'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/base.rb:37:in `visit'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/perform.rb:18:in `visit'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/visitors/perform.rb:7:in `visit'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/tree/root_node.rb:20:in `render'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/engine.rb:300:in `_render'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/sass-3.1.20/lib/sass/engine.rb:247:in `render'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:140:in `block (2 levels) in compile'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:126:in `timed'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:139:in `block in compile'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/logger.rb:45:in `red'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:138:in `compile'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:118:in `compile_if_required'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:103:in `block (2 levels) in run'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:101:in `each'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:101:in `block in run'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:126:in `timed'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/compiler.rb:100:in `run'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/commands/update_project.rb:45:in `perform'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/commands/base.rb:18:in `execute'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/commands/project_base.rb:19:in `execute'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/exec/sub_command_ui.rb:43:in `perform!'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/lib/compass/exec/sub_command_ui.rb:15:in `run!'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/bin/compass:30:in `block in <top (required)>'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/bin/compass:44:in `call'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/bin/compass:44:in `<top (required)>'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/bin/compass:19:in `load'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/bin/compass:19:in `<main>'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/bin/ruby_noexec_wrapper:14:in `eval'
+/Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/bin/ruby_noexec_wrapper:14:in `<main>'
+*/
+body:before {
+  white-space: pre;
+  font-family: monospace;
+  content: "Syntax error: File to import not found or unreadable: plugins/**/*.\A               Load paths:\A                 Sass::Globbing::Importer\A                 /Users/wangstabill/Code/ruby/blog/sass\A                 /Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/frameworks/blueprint/stylesheets\A                 /Users/wangstabill/.rvm/gems/ruby-1.9.3-p327/gems/compass-0.12.2/frameworks/compass/stylesheets\A                 Compass::SpriteImporter\A         on line 10 of /Users/wangstabill/Code/ruby/blog/sass/screen.scss"; }
