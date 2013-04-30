@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Basic JIT - Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="Ever since I learned about
+Just In Time Compilation
+from the various
+Ruby VMs
+and
+JavaScript VMs,
+I&#8217;ve been inspired. I could tell you all &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemie's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Basic JIT</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-03T00:05:00-07:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Ever since I learned about
+<a href="`http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
+from the various
+<a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations">Ruby VMs</a>
+and
+<a href="http://www.slideshare.net/newmovie/know-yourengines-velocity2011">JavaScript VMs</a>,
+I&#8217;ve been inspired.  I could tell you all about how just in time (JIT)
+compilation worked, and how it could give your interpreted language a speed
+boost.  It was so cool.  Well, it still is!  There&#8217;s a ton of research going on
+around JIT compilation.  But the problem for me is that I could never figure
+out, let alone guess, how it was being done.  How could you compile code at
+runtime, and then execute it?  I asked
+<a href="http://pybites.blogspot.com/">Benjamin Peterson</a>
+about how he had learned so much about JITs, and he referred me to
+<a href="http://pypy.org/">pypy</a> (a Python JIT)&#8217;s source.  But digging through source
+was too much; I just wanted a simple example I could grok quickly.  So I&#8217;ve
+always been left wondering.</p>
+
+<p>Luckily, I have an awesome job where I can meet face to face with the people
+who are doing the work on making awesome production JIT compilers.  I spent
+part of last week at <a href="http://www.gdconf.com/">GDC</a> demoing
+<a href="https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/">Unreal Engine 3</a>
+running in the browser.  The demo was actually the hard work of many, and I&#8217;ll
+dive into it more in another post following up the events, but
+<a href="https://blog.mozilla.org/luke/">Luke Wagner</a>, a Mozillian working on the
+JavaScript engine, added OdinMonkey to SpiderMonkey to allow optimizations of
+<a href="https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/">asm.js</a>.</p>
+
+<p>Luke is super friendly, and just listening to him talk with Dave Herman and
+Alon Zakai is a treat.  I asked Luke the basics of JIT&#8217;ing at tonight&#8217;s Mozilla
+Research Party and he explained clearly. <em>Compile a simple object file, use
+objdump to get the resulting platform specific assembly, use the mmap system
+call to allocate some memory that you can write to <strong>AND</strong> execute, copy the
+instructions into that buffer, typecast it to a function pointer and finally
+call that.</em></p>
+
+<p>So my goal was to at runtime, create a function that for simplicity&#8217;s sake
+multiplied two integers.  The first thing I did was write up a simple .c file,
+then compile that to an object file with the -c flag.</p>
+
+<div><script src='https://gist.github.com/5299131.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>As a heads up, I&#8217;m on 64bit OSX.  So the generated assembly may differ on your
+platform.  Obviously, the production JIT maintainers have abstracted away the
+platform dependency, taking into account what platform you&#8217;re on.  My example
+doesn&#8217;t, but that why I&#8217;m walking you through the steps I took to find out the
+x86_64 instructions.  The next step is to grab binutils, which is not installed
+by default in OSX.  I used homebrew to install it: <code>brew install binutils</code>.
+Homebrew installs gobjdump but it works with the same flags.</p>
+
+<p>Once you have binutils and [g]objdump, the next step is to read out the machine
+code from your object file, which is represented in hexadecimal.  By running
+<code>gobjdump -j .text -d mul.o -M intel</code> you should get something similar
+(remember, architecture dependent).</p>
+
+<div><script src='https://gist.github.com/5299169.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Ok, so those instructions vary in size.  I don&#8217;t know any x86 so I can&#8217;t
+comment too much on that particular
+<a href="http://en.wikipedia.org/wiki/Instruction_set">Instruction Set Architecture</a>
+but they&#8217;re obviously in pairs of hexadecimal digits.  16<sup>2</sup> == 2<sup>8</sup> meaning that
+each pair of hex digits can be represented by a single byte (or char of memory).
+So these can all be thrown in an unsigned char [].  The man page for mmap explains
+all of the fun flags, but the important point is that this way of allocating
+memory makes it executable, so it can do bad things that memory allocated from
+malloc can&#8217;t.  I&#8217;m sure the JavaScript engine guys have fun with that.  Once
+memory is copied in, you can typecast the memory to a function pointer.
+Make sure to check out the syntax that reminds me of a function pointer in an
+argument list, but being used as an L-value.  Of course, you could just put the
+cast right in front of the memory before you use it, but I find this as neat,
+not so common C syntax.  I kind of
+<a href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/">have a thing</a>
+for stuff like that.  Then we can call it!  The resulting code looks like this.</p>
+
+<div><script src='https://gist.github.com/5299272.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Voila!  How neat is that!  It works!  Luke&#8217;s directions, an hour of working on
+this, and
+<a href="http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html">this article</a>
+in particular, and we have a simple JIT working. Again, this simple example is super
+non-portable and dealing with memory in this fashion is generally unsafe.  But
+now I know the basics of JIT&#8217;ing code, and now so do you!</p>
+
+<p>Thanks Luke!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-03T00:05:00-07:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/c/'>C</a>, <a class='category' href='/blog/categories/code/'>Code</a>, <a class='category' href='/blog/categories/compile/'>Compile</a>, <a class='category' href='/blog/categories/dynamic/'>Dynamic</a>, <a class='category' href='/blog/categories/jit/'>JIT</a>, <a class='category' href='/blog/categories/just/'>Just</a>, <a class='category' href='/blog/categories/runtime/'>Runtime</a>, <a class='category' href='/blog/categories/time/'>Time</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit/" data-via="LostOracle" data-counturl="http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/02/28/commandments-of-a-mobile-web/" title="Previous Post: Commandments of a Mobile Web">&laquo; Commandments of a Mobile Web</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/04/03/basic-jit/">Basic JIT</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/28/commandments-of-a-mobile-web/">Commandments of a Mobile Web</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/">C Function Pointers Alternate Syntax</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/19/internet-freedom-is-not-free/">[Internet] Freedom is Not Free</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/14/closures-javascript/">Closures: JavaScript, Ruby, and Rust</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit/';
+        var disqus_url = 'http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Function | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.com/blog/categories/function/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.com/"/>
+  <updated>2013-04-03T01:45:52-07:00</updated>
+  <id>http://nickdesaulniers.github.com/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[C Function Pointers Alternate Syntax]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/"/>
+    <updated>2013-01-26T17:49:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax</id>
+    <content type="html"><![CDATA[<p>On an interview with <a href="https://squareup.com/">Square</a>, I made the mistake
+of stating that one of the benefits of working with JavaScript over C is
+that functions are <a href="http://en.wikipedia.org/wiki/First-class_function">first class</a>
+in JavaScript, therefore they may be <a href="http://eloquentjavascript.net/chapter6.html">passed around</a>.  To which the
+interviewer replied, "Well, C can do that, what about function pointers?"  What? Luckily, I
+was able to get out of that jam by guessing that JavaScript had a nicer
+syntax.</p>
+
+<p>While I was taught some C in university, we had never gone over function
+pointers or more in depth topics such as <a href="http://en.wikipedia.org/wiki/Static_library">static</a>
+or <a href="http://en.wikipedia.org/wiki/Dynamic_library">dynamic</a> <a href="http://www.yolinux.com/TUTORIALS/LibraryArchives-StaticAndDynamic.html">linkage</a>.
+I was so embarrassed that my expensive (read <a href="http://online.wsj.com/article/SB10001424127887324442304578231922159602676.html?mod=WSJ_hps_LEFTTopStories">overpriced</a>)
+degree had not taught me more about
+the C programming language, especially from the Computer Engineering
+department that focuses on software <strong>AND</strong> hardware.  On my exit
+interview with the dean, I was very opinionated on the amount of C that
+was (or wasn't) taught at my university.  His argument was that there
+are only so much of so many languages you can cover in a university, which
+to some extent is valid.  My problem has been that I've enjoyed learning
+many different programming languages, though I didn't really get it the
+first time around (with Java).  I think knowing many different languages
+and their respective paradigms makes you a better programmer in other
+languages, since you can bring a <a href="http://therubyway.org/">Ruby Way</a> to
+<a href="http://www.rust-lang.org/">Rust</a> or a <a href="http://www.ibm.com/developerworks/library/wa-javascript/index.html">JavaScript functional</a>
+<a href="http://interglacial.com/hoj/hoj.html">style</a> into C.</p>
+
+<p>I had read two books in the meantime that really flushed out more of the
+C language to me and I would definitely recommend them to those who want
+to learn more about the language. They are <a href="http://shop.oreilly.com/product/0636920015482.do">Head First C</a> by Dave and Dawn
+Griffiths and <a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a> by Ben Klemens.
+I'm also aware that <a href="http://en.wikipedia.org/wiki/The_C_Programming_Language">The C Programming Language</a> by
+Brian Kernighan and Dennis Ritchie is also known as the canonical text.
+The book is often referred to as 'K&amp;R' after the authors' initials, and Dennis
+Ritchie was the original creators of the C language and co-developer of
+Unix.  I'd love to get a chance to read it someday.</p>
+
+<p><a href="http://blog.charlescary.com/?p=95">This article</a> appeared on
+<a href="http://news.ycombinator.com/">Hacker News</a> and really piqued my
+interest.  Defenitely a great read.  What really stuck out to me was one
+of the <a href="http://blog.charlescary.com/?p=95#comment-31">comments</a> though.
+The author of the comment mentioned a less ugly syntax for function
+pointers, with a <a href="http://pastebin.com/MsJLY22j">link to an example</a>.
+Now I'm not sure what the commenter meant by "these params decay
+naturally to function pointers" but I was skeptical about this different
+syntax.  Event the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
+used the syntax that I was familiar with.  So I wrote up a quick example
+to try it:</p>
+
+<p><div><script src='https://gist.github.com/4645944.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>Sure enough we get:</p>
+
+<p><div><script src='https://gist.github.com/4645949.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+</p>
+
+<p>So the moral to the story I guess is that there's always more to your
+favorite language.  From using <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/variadic_macros.c">variadic macros</a>
+with <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/compound_literal.c">compound literals</a>
+to enable a more <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/foreach.c">functional style</a>
+in C to reflecting upon a function's <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/length">number of arguments</a>
+or <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/name">name</a>
+or <a href="http://taylodl.wordpress.com/2012/09/03/functional-javascript-memoization-part-ii/">adding attributes to a function</a>
+or the
+<a href="http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/">y-combinator</a>
+in JavaScript, I learn something new every day.  And I hope that you did
+too!  Thanks for reading!  If you have some other recommendations on
+good programming books, or design patterns, please leave a comment or
+write a reply blog post!</p>
+]]></content>
+  </entry>
+  
+</feed>

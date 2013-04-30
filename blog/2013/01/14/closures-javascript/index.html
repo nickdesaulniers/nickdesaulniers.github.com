@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Closures: JavaScript, Ruby, and Rust - Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="It&#8217;s all about closures. Understanding scope is paramount to coding.
+What can you access and what can&#8217;t you access. Closures allow us to &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.com/blog/2013/01/14/closures-javascript">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemie's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Closures: JavaScript, Ruby, and Rust</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-14T20:28:00-08:00" pubdate data-updated="true">Jan 14<span>th</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>It&#8217;s all about <a href="http://en.wikipedia.org/wiki/Closure_%28computer_science%29">closures</a>.  Understanding <a href="http://en.wikipedia.org/wiki/Scope_%28computer_science%29">scope</a> is paramount to coding.
+What can you access and what can&#8217;t you access.  Closures allow us to
+access variables that otherwise might be awkward to pass into a
+function.  Closures can help us out of tricky situations, but can
+confuse those from backgrounds with (typically) <a href="http://en.wikipedia.org/wiki/Statically_typed#Static_typing">statically typed</a> languages that
+may not support closing over variables.</p>
+
+<p><a href="http://www.rust-lang.org/">Rust</a> is an up and coming systems level programming language being
+developed at <a href="http://www.mozilla.org">Mozilla</a>.  Let&#8217;s take a look at the
+syntax of closures in Rust, but first let&#8217;s see how closures are
+implemented in some other, more popular languages.</p>
+
+<p>In <a href="https://developer.mozilla.org/en-US/docs/JavaScript">JavaScript</a>, closures are super common.  Here&#8217;s a simple example.</p>
+
+<div><script src='https://gist.github.com/4536170.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>JavaScript has function scope; the definition of a new function creates
+a new scope.  But if a reference to an identifier is not found within
+the local scope, the next outer scope is consulted and so on until it is
+either found, or a ReferenceError is raised.  We could prevent this for
+example by shadowing the variable name by naming it in the parameter
+list:</p>
+
+<div><script src='https://gist.github.com/4536211.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Notice how in the above snippet, we cannot close over the outer x?  This
+is called <a href="http://en.wikipedia.org/wiki/Variable_shadowing">variable
+shadowing</a>.  In JavaScript, no matter if you use a
+<a href="http://stackoverflow.com/q/1013385/1027966">function definition or function expression</a> to define a function, as long
+as you do not shadow a particular variable, then you may close over it.</p>
+
+<p>Let&#8217;s see how <a href="http://www.ruby-lang.org">Ruby</a> handles closures.</p>
+
+<div><script src='https://gist.github.com/4536257.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Oops.  Looks like Ruby doesn&#8217;t support closures!  But I thought it was
+supposed to be easier to write than <a href="http://www.java.com">Java</a>!  Well, it turns out Ruby <em>does</em> support
+closures, it just has an alternate syntax for functions that close over
+references to variables in the outer scope.  This alternate syntax
+actually creates a new object containing the captured scope.  Lets take
+advantage of Ruby&#8217;s
+<a href="http://en.wikipedia.org/wiki/Anonymous_function#Ruby">lambdas</a> to close over variables:</p>
+
+<div><script src='https://gist.github.com/4536433.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Note, we could have also used the older lambda syntax, or even a Proc
+object.  I won&#8217;t cover the difference between the two here; there are
+<a href="http://www.robertsosinski.com/2008/12/21/understanding-ruby-blocks-procs-and-lambdas/">better blog posts on the differences</a>.  My point is that <strong><em>not all
+languages support closures with their default function declaration
+syntax (like in JavaScript)</em></strong>.  This provides a nice syntax into closures in Rust.</p>
+
+<div><script src='https://gist.github.com/4536519.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Note: Rust has some really nice <a href="http://en.wikipedia.org/wiki/Type_inference">type inference</a>.  We can write the
+previous snippet more succinctly:</p>
+
+<div><script src='https://gist.github.com/4536527.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>It might seem obvious that my point about different languages having
+different syntaxes.  I guess a better stating of that point is that
+<strong><em>closure definitions in Rust differ from vanilla function definitions like
+Ruby and as opposed to JavaScript</em></strong>.</p>
+
+<p>Rust aims to be a systems level programming language to replace C and
+C++.  With closures, type inference, and a syntax that faintly reminds
+me of Ruby&#8217;s block lambda syntax, I&#8217;ll take it!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-14T20:28:00-08:00" pubdate data-updated="true">Jan 14<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/closure/'>Closure</a>, <a class='category' href='/blog/categories/javascript/'>JavaScript</a>, <a class='category' href='/blog/categories/ruby/'>Ruby</a>, <a class='category' href='/blog/categories/rust/'>Rust</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.com/blog/2013/01/14/closures-javascript/" data-via="LostOracle" data-counturl="http://nickdesaulniers.github.com/blog/2013/01/14/closures-javascript/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/01/19/internet-freedom-is-not-free/" title="Next Post: [Internet] Freedom is Not Free">[Internet] Freedom is Not Free &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/04/03/basic-jit/">Basic JIT</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/28/commandments-of-a-mobile-web/">Commandments of a Mobile Web</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/">C Function Pointers Alternate Syntax</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/19/internet-freedom-is-not-free/">[Internet] Freedom is Not Free</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/14/closures-javascript/">Closures: JavaScript, Ruby, and Rust</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://nickdesaulniers.github.com/blog/2013/01/14/closures-javascript/';
+        var disqus_url = 'http://nickdesaulniers.github.com/blog/2013/01/14/closures-javascript/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

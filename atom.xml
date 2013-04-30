@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.com/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.com/"/>
+  <updated>2013-04-03T01:45:52-07:00</updated>
+  <id>http://nickdesaulniers.github.com/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Basic JIT]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit/"/>
+    <updated>2013-04-03T00:05:00-07:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/04/03/basic-jit</id>
+    <content type="html"><![CDATA[<p>Ever since I learned about
+<a href="`http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
+from the various
+<a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations">Ruby VMs</a>
+and
+<a href="http://www.slideshare.net/newmovie/know-yourengines-velocity2011">JavaScript VMs</a>,
+I&#8217;ve been inspired.  I could tell you all about how just in time (JIT)
+compilation worked, and how it could give your interpreted language a speed
+boost.  It was so cool.  Well, it still is!  There&#8217;s a ton of research going on
+around JIT compilation.  But the problem for me is that I could never figure
+out, let alone guess, how it was being done.  How could you compile code at
+runtime, and then execute it?  I asked
+<a href="http://pybites.blogspot.com/">Benjamin Peterson</a>
+about how he had learned so much about JITs, and he referred me to
+<a href="http://pypy.org/">pypy</a> (a Python JIT)&#8217;s source.  But digging through source
+was too much; I just wanted a simple example I could grok quickly.  So I&#8217;ve
+always been left wondering.</p>
+
+<p>Luckily, I have an awesome job where I can meet face to face with the people
+who are doing the work on making awesome production JIT compilers.  I spent
+part of last week at <a href="http://www.gdconf.com/">GDC</a> demoing
+<a href="https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/">Unreal Engine 3</a>
+running in the browser.  The demo was actually the hard work of many, and I&#8217;ll
+dive into it more in another post following up the events, but
+<a href="https://blog.mozilla.org/luke/">Luke Wagner</a>, a Mozillian working on the
+JavaScript engine, added OdinMonkey to SpiderMonkey to allow optimizations of
+<a href="https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/">asm.js</a>.</p>
+
+<p>Luke is super friendly, and just listening to him talk with Dave Herman and
+Alon Zakai is a treat.  I asked Luke the basics of JIT&#8217;ing at tonight&#8217;s Mozilla
+Research Party and he explained clearly. <em>Compile a simple object file, use
+objdump to get the resulting platform specific assembly, use the mmap system
+call to allocate some memory that you can write to <strong>AND</strong> execute, copy the
+instructions into that buffer, typecast it to a function pointer and finally
+call that.</em></p>
+
+<p>So my goal was to at runtime, create a function that for simplicity&#8217;s sake
+multiplied two integers.  The first thing I did was write up a simple .c file,
+then compile that to an object file with the -c flag.</p>
+
+<div><script src='https://gist.github.com/5299131.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>As a heads up, I&#8217;m on 64bit OSX.  So the generated assembly may differ on your
+platform.  Obviously, the production JIT maintainers have abstracted away the
+platform dependency, taking into account what platform you&#8217;re on.  My example
+doesn&#8217;t, but that why I&#8217;m walking you through the steps I took to find out the
+x86_64 instructions.  The next step is to grab binutils, which is not installed
+by default in OSX.  I used homebrew to install it: <code>brew install binutils</code>.
+Homebrew installs gobjdump but it works with the same flags.</p>
+
+<p>Once you have binutils and [g]objdump, the next step is to read out the machine
+code from your object file, which is represented in hexadecimal.  By running
+<code>gobjdump -j .text -d mul.o -M intel</code> you should get something similar
+(remember, architecture dependent).</p>
+
+<div><script src='https://gist.github.com/5299169.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Ok, so those instructions vary in size.  I don&#8217;t know any x86 so I can&#8217;t
+comment too much on that particular
+<a href="http://en.wikipedia.org/wiki/Instruction_set">Instruction Set Architecture</a>
+but they&#8217;re obviously in pairs of hexadecimal digits.  16<sup>2</sup> == 2<sup>8</sup> meaning that
+each pair of hex digits can be represented by a single byte (or char of memory).
+So these can all be thrown in an unsigned char [].  The man page for mmap explains
+all of the fun flags, but the important point is that this way of allocating
+memory makes it executable, so it can do bad things that memory allocated from
+malloc can&#8217;t.  I&#8217;m sure the JavaScript engine guys have fun with that.  Once
+memory is copied in, you can typecast the memory to a function pointer.
+Make sure to check out the syntax that reminds me of a function pointer in an
+argument list, but being used as an L-value.  Of course, you could just put the
+cast right in front of the memory before you use it, but I find this as neat,
+not so common C syntax.  I kind of
+<a href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/">have a thing</a>
+for stuff like that.  Then we can call it!  The resulting code looks like this.</p>
+
+<div><script src='https://gist.github.com/5299272.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Voila!  How neat is that!  It works!  Luke&#8217;s directions, an hour of working on
+this, and
+<a href="http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html">this article</a>
+in particular, and we have a simple JIT working. Again, this simple example is super
+non-portable and dealing with memory in this fashion is generally unsafe.  But
+now I know the basics of JIT&#8217;ing code, and now so do you!</p>
+
+<p>Thanks Luke!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Commandments of a Mobile Web]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/02/28/commandments-of-a-mobile-web/"/>
+    <updated>2013-02-28T22:43:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/02/28/commandments-of-a-mobile-web</id>
+    <content type="html"><![CDATA[<p>Over the past few years, there&#8217;s been certain
+<a href="http://en.wikipedia.org/wiki/Paradigm_shift">paradigm shifts</a>
+in web development. When you think of milestones that really changed how
+development on the web was done, the two biggest were
+<a href="https://www.ibm.com/developerworks/mydeveloperworks/blogs/BobZurek/entry/the_ajax_paradigm_shift?lang=en">Ajax</a>
+and <a href="http://www.html5rocks.com/en/why">HTML5</a>.  Development was identifiably
+different before and after such technological advancements.  There were
+<a href="http://java.sys-con.com/node/315210">some</a> who initially
+<a href="http://blog.tobie.me/post/31366970040/when-im-introspective-about-the-last-few-years-i">doubted</a>
+the technologies, but I&#8217;m sure such doubters eventually
+<a href="http://www.sencha.com/blog/the-making-of-fastbook-an-html5-love-story/">saw the light</a>.
+After spending time working on applications for Mozilla&#8217;s upcoming mobile
+operating system, Firefox OS, and talking with my fellow employees, I feel that
+the mobile web is another one of those shifts in how we
+approach web development that looking back will be an identifiable point in
+time where we can say that we did things differently before and after.
+So in that sense, I want to share some of the insights I&#8217;ve found to
+help other developers wrap their heads around how developing for the mobile web
+isn&#8217;t their traditional cup of tea.</p>
+
+<h1>Internet connectivity is not guaranteed</h1>
+
+<p>This is a fundamental divorce from the World Wide Web and the Internet. I feel
+that a lot of people having trouble differentiating the Web from the Internet;
+where you&#8217;ve had one, you&#8217;ve always had the other. Don&#8217;t
+assume your application will always have a valid connection.  When a user
+is on a wifi connection, or hardwired, it&#8217;s so obvious that if they&#8217;re on your
+website, then they must be connected to the Internet.  Right?  But what happens
+now when one of your users loads up your site or app on a mobile device, then enters
+a tunnel?  What does it do when offline?  Does it work?  Maybe it
+doesn&#8217;t make sense if you&#8217;re offering a service that requires data from the
+back end, but does that mean that the front end should totally look like crap
+or break when the back end can&#8217;t be reached?  Do your Ajax requests have error
+callbacks?  Do you try and reconnect your WebSocket connections after they&#8217;ve
+failed?  Do you cache previous requests or use one of the many forms of offline
+storage to show something to the user?  Developing on the loopback is literally
+the best case for connectivity, but it gives the developer a false sense of
+how latency and connectivity issues affect their application.  It&#8217;s literally
+shocking the first time you encounter your site/application offline if you
+didn&#8217;t think about the user experience up front.</p>
+
+<h1>Bandwidth is not free</h1>
+
+<p>The advent of broadband made it acceptable for sites to utilize massive amounts
+of assets.  Seeing sites that load up so much stuff makes my heart sink when
+I wonder about viewing such a site on my mobile device.  I only pay for so much
+mobile data per month, then I&#8217;m billed ridiculous amounts as a
+<a href="http://forums.att.com/t5/Data-Messaging-Features-Internet/What-does-quot-Data-MB-Overage-quot-mean/td-p/2872883">&#8220;Data Overage&#8221;</a>.
+Users in other countries frequently have a more pay as you go style plan, so
+they&#8217;re being billed for each bit across the wire.  In countries without the
+infrastructure necessary to get broadband Internet to every household, mobile
+is more prolific in getting users connected.</p>
+
+<p>Things like minification and gzip certainly help, but deferred loading of
+assets until they&#8217;re necessary is frequently overlooked.
+Massive libraries are nice for devs, but may end up giving mobile users more
+problems than they are worth. There exist more advanced techniques such as
+<a href="http://buildnewgames.com/optimizing-websockets-bandwidth/">WebSocket compression</a>.</p>
+
+<p>How much does your site <a href="http://www.sitepoint.com/minimizing-page-weight-matters/">weigh</a>?</p>
+
+<h1>An expensive website does not make an awesome app</h1>
+
+<blockquote><p>Why doesn&#8217;t my million dollar website make a kick ass web app?</p></blockquote>
+
+
+<p>This point is brought to you by <a href="http://www.mattbasta.com/">Matt Basta</a>.  The
+point is that there is something fundamentally different between a web &#8220;site&#8221;
+and a web &#8220;app&#8221;.  In a web site the usual flow involves loading up a page
+and maybe navigating between pages.  An app more often than not will be a
+single page that loads data asynchronously and dynamically modifies the content
+displayed to the user.  Some web sites make great use of things like Ajax, and
+are great example of single page sites.  But not all are.  Some still haven&#8217;t
+come around to loading all data asynchronously on request.  And it&#8217;s not that
+they necessarily even have to, they can be a website and never have to be
+anything more.  But you&#8217;ll find that some sites make better apps than others.</p>
+
+<h2>No chrome</h2>
+
+<p>Not the browser made by Google, Google Chrome; the actual
+<a href="https://developer.mozilla.org/en-US/docs/Chrome">controls</a> on the top
+of your browser such as the back and reload buttons, and the url bar.  This
+point comes from <a href="https://github.com/cvan">Chris Van Wiemeersch</a>.  One of
+the things you&#8217;ll find when evaluating whether a site makes a good app is
+whether it relies on chrome to navigate.  If it does, then it&#8217;s not really
+going to cut it as an app.  If you&#8217;re going to make a single page app, try
+making it fullscreen in your browser and try navigating around. Are you
+hindered without the chrome?  One thing I
+found recently was an error condition where I notified the user that they had
+to be online to check for an update.  But when I was developing, I would just
+refresh the page to clear the error message and try again.  On a device, as an
+app, where there was no chrome, this meant closing and restarting the app.
+That sucked, so I made it so the user could click/touch, after figuring out
+their connectivity issues, to retry the fetch.  Even better may have
+been to listen for online events!</p>
+
+<h2>Traditional forms of input are not fun</h2>
+
+<p>Here&#8217;s some tips from <a href="http://potch.me/">Matthew &#8220;Potch&#8221; Claypotch</a>.</p>
+
+<h3>Fingers aren&#8217;t as precise as cursors</h3>
+
+<p>Having tiny click
+targets is really frustrating.  How many times have you clicked the wrong
+thing on a mobile device?  Tiny buttons are not the easiest thing for users
+to specify, especially when groups of them are clustered nearby.  Custom
+buttons enabled by <a href="http://www.cssbuttongenerator.com/">a little CSS</a> can go a
+long way.</p>
+
+<h3>Typing on little keyboards in tedious</h3>
+
+<p>This is an effect of tiny buttons, but requiring the user to type in large
+strings gets annoying fast.  Sometimes this can&#8217;t be avoided, but it should be
+when it can.  Just as typing in a long, complex url to a mobile browser is
+not enjoyable, neither is doing so in an app.</p>
+
+<h1>Detect features not browser engine (User agent sniffing is a sin)</h1>
+
+<p>Print <a href="http://diveintohtml5.com/everything.html">this</a> and staple it to your
+wall above your workspace.  This should be
+<a href="http://www.nczonline.net/blog/2009/12/29/feature-detection-is-not-browser-detection/">old</a>
+<a href="http://msdn.microsoft.com/en-us/magazine/hh475813.aspx">news</a> at this point.</p>
+
+<h2>Vendor prefixes are meant for browser vendors to test, not production code</h2>
+
+<p>I place a majority of the blame for this on vendors; prefixes should never see
+the light of day in release builds.  It&#8217;s ridiculous to have to write four
+copies of the same rule, when you&#8217;re trying to express one thing.  I should
+rewrite this sentence four different ways to prove a point.  -o-Do you understand
+what I&#8217;m getting at?  -ms-It&#8217;s almost like rambling. -moz-Repetitive department
+of repetition. -webkit-This is ridiculous.</p>
+
+<p>But developers need to recognize the habit as an addiction, and not feed it.
+If you have, I forgive you.  Now stop doing it.</p>
+
+<p>These two particular articles are just so good, it wouldn&#8217;t do them justice to
+try and summarize them.  Please go read them, I&#8217;ll wait.
+<a href="http://hsivonen.iki.fi/vendor-prefixes/">this</a>
+and
+<a href="http://www.quirksmode.org/blog/archives/2010/03/css_vendor_pref.html">this</a></p>
+
+<h2>Developing towards WebKit and not HTML5 is a sin</h2>
+
+<p>I understand that Google Chrome is your favorite browser, and I am so happy for
+you; but it is not mine.  I&#8217;ll be the first to admit that Google
+caught all of the other browser vendors with their pants down, but when I see
+pages that look flawless in Chrome and
+not so hot in others, it reminds me of days when sites only worked in IE6.
+Surely you remember <em>those</em> days.  I hate when content publishers try and
+dictate which browser I should use to view their content.  I understand WebKit
+based browsers dominant in mobile, but so did IE6 in desktop share at one point.
+It&#8217;s not unreasonable to expect users to use the most updated version of their
+browser, but empower your users to choose their browser.  Don&#8217;t take that
+choice away from them.</p>
+
+<p>A neat <a href="http://robertnyman.com/2013/02/14/webkit-an-objective-view/">point</a> by
+<a href="http://robertnyman.com/">Robert Nyman</a> is that WebKit itself already has forks.
+Can you imagine if there were eventually vendor prefixes for forks of WebKit?
+Continuing with vendor prefixes means that we&#8217;ll now have seven vendor prefixes:
+unprefixed, -moz-, -o-, -ms-, -webkit-o-, -webkit-chrome-, -webkit-safari-.
+Awesome!  Maybe I should rewrite this sentence seven different ways to make a
+point!</p>
+
+<p>I&#8217;m also curious if Google, Apple, and the WebKit maintainers are turning a
+blind eye to this, or what their opinions are? Being a vendor and wanting an
+open web are almost conflicts of interest; you want your browser to &#8220;win&#8221; or
+dominate in marketshare, but at the same time you don&#8217;t want any one browser
+having too much marketshare.</p>
+
+<h1>Design Responsively</h1>
+
+<p>What is
+<a href="http://mashable.com/2012/12/11/responsive-web-design/">responsive design</a>?
+<a href="http://www.smashingmagazine.com/responsive-web-design-guidelines-tutorials/">Responsive design</a>
+is making a site look great on
+any size screen, without duplicating assets or sniffing a user agent string.
+Firefox has a neat web dev tool called
+<a href="https://developer.mozilla.org/en-US/docs/Tools/Responsive_Design_View">&#8220;Responsive Design View&#8221;</a>.
+It&#8217;s great for testing out your site on various screen sizes.
+<a href="http://twitter.github.com/bootstrap/index.html">Twitter Bootstrap</a> is an
+excellent example of a framework for developing a single app that looks great
+on any screen size.  Even if you don&#8217;t want to use a whole big framework,
+simple things like using CSS rules in terms of percentages instead of hard
+coded pixels can go a long way.</p>
+
+<p>Sites that are trying to become more app like have trouble with conforming to
+responsive design.  Instead of starting with a site and trying to figure out
+how to hide
+or not display information as the screen gets smaller, you&#8217;ll find it much
+<a href="http://johnpolacek.github.com/scrolldeck.js/decks/responsive/">easier</a> to
+start small, and dynamically add content as the screen gets bigger.</p>
+
+<h1>High performance code respects battery life</h1>
+
+<p>In the end of the day, all of the code you write that runs in the browser is
+a set of instructions the processor can decode, not necessarily the high level
+JavaScript you wrote.  While it&#8217;s important to avoid premature optimizations,
+having a few
+<a href="http://christianheilmann.com/2013/01/25/five-things-you-can-do-to-make-html5-perform-better/">rules of thumb</a>
+up front will help you write better, faster code.
+If the same overall action can be expressed in one instruction or one hundred,
+which do you think will use
+<a href="http://coding.smashingmagazine.com/2012/11/05/writing-fast-memory-efficient-javascript/">less power</a>?
+Keep in mind that transistors leak current while switching.</p>
+
+<h2>Native methods over library methods, CSS over JS</h2>
+
+<p>What do I mean by &#8220;native methods?&#8221; Like C++?  Well, yes.  You see under the
+hood the DOM bindings that you&#8217;re calling are probably written in C++.  Call
+<code>toSource()</code> on <code>document.getElementById()</code>.  The <code>[native code]</code> statement
+in the returned string refers to the implementation.  While type specialized
+code emitted by the JIT can match or even beat native code, you can only count
+on that for hot loops.  In the same vein, library code is going to be
+<a href="http://jsperf.com/getelementbyid-vs-jquery-id/25">slower</a> than any code
+written natively.  I&#8217;m not saying that you shouldn&#8217;t use libraries, just know
+that the use of libraries can incur some overhead.  Things like animations will
+also be faster
+when handled by natively implemented CSS over JS.  You can use JS to
+dynamically add classes to elements to get finer resolution over events, but
+then get the performance of CSS.</p>
+
+<h2>Avoid JIT bailout</h2>
+
+<p>The Just In Time (JIT) interpreter is a
+<a href="http://www.slideshare.net/amdgigabyte/know-your-javascript-engine">new breed</a>
+of VM that most browser
+vendors are now using.  The JIT can
+<a href="http://s3.mrale.ph/nodecamp.eu/#1">analyze</a> running code, and
+<a href="http://en.wikipedia.org/wiki/Code_generation_%28compiler%29#Runtime_code_generation">emit</a>
+native code
+that is faster than reinterpreting code again, and even higher-optimized code
+for type stable JavaScript, as long as certain &#8220;guard&#8221; conditions are met.
+When a guard fails, the JIT has to
+<a href="http://mxr.mozilla.org/mozilla-central/source/js/src/ion/Bailouts.h#19">bailout</a>
+the emitted native code and start reinterpreting code again.</p>
+
+<h2>Keep up to date on new APIs</h2>
+
+<p>HTML5 is a big
+<a href="http://www.w3.org/html/wg/drafts/html/master/single-page.html">spec</a>, and is
+getting bigger.  So big that some recommendations are
+being <a href="http://www.websocket.org/aboutwebsocket.html">spun off</a> from the
+original HTML5 spec.  As an engineer, I&#8217;m painfully aware that you need to
+<a href="http://bonsaiden.github.com/JavaScript-Garden/">keep up</a>
+in whatever industry you work in in order to stay relevant.
+The complacent are the most vulnerable.  There&#8217;s
+<a href="http://caniuse.com/">a lot to keep track of</a> with
+HTML5 and CSS3, but many new features offer higher performance methods of
+skinning the cat.</p>
+
+<h3>requestAnimationFrame</h3>
+
+<p>window.requestAnimation frame is a godsend for animation.  Not too long ago, I
+wrote up a quick
+<a href="https://github.com/nickdesaulniers/canvas2dcontext/blob/master/examples/sprite.html#L6">example</a>
+of various ways of implementing animation loops and their issues; you should
+check it out.</p>
+
+<h3>indexedDB over localstorage</h3>
+
+<p>The indexedDB api might not be as simple as localstorage&#8217;s is, but localstorage
+is synchronous and is noticeably slow on mobile.  If you can bite the bullet
+and use indexedDB, you&#8217;ll find you&#8217;re JS isn&#8217;t blocking on
+serializing/deserializing objects for storage.
+<a href="https://twitter.com/fabricedesre">Fabrice Desré</a> shared this with me.</p>
+
+<h3>WebWorkers</h3>
+
+<p>Webworkers can&#8217;t modify the DOM, but they can do heavy lifting without blocking
+the main thread.</p>
+
+<h3>CSS translate over absolute top and left rules</h3>
+
+<p><a href="http://digitarald.de/">Harald Kirschner</a> recommends CSS translates over top
+and left rules for absolutely positioning some elements.</p>
+
+<h3>Gradients are expensive</h3>
+
+<p><a href="http://www.backalleycoder.com/">Dan Buchner</a> notes that without beefy graphics
+processing units of their desktop counterparts to enable hardware acceleration,
+things like gradients will give you noticeable performance hits.</p>
+
+<h3>createDocumentFragment</h3>
+
+<p>Dan also suggests queuing up DOM changes.
+Whenever you manipulate items in the DOM, you&#8217;re going to trigger a reflow,
+which may consist of an update to the layout and/or a repaint.  Minimizing these
+makes for a faster update to the DOM.  For example, it can be faster to use
+document.createDocumentFragment and append child nodes to it, and then append
+that to the DOM, instead of appending lots of child nodes in between timer calls.
+Surprise, this isn&#8217;t actually a
+<a href="http://ejohn.org/blog/dom-documentfragments/">new</a> DOM binding from HTML5.</p>
+
+<h1>Conclusion</h1>
+
+<p>These are just some tips I have for application developers.  I am by no means
+an expert; I&#8217;m sure if you dig deep enough, you can find plenty of examples of
+my past work that contradicts some of my recommendations from this article.  But
+I&#8217;m a little smarter today than I was yesterday, and now so are you!  What are some
+tips that you have to share that you&#8217;ve found helpful developing for the
+mobile web?</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[C Function Pointers Alternate Syntax]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/"/>
+    <updated>2013-01-26T17:49:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax</id>
+    <content type="html"><![CDATA[<p>On an interview with <a href="https://squareup.com/">Square</a>, I made the mistake
+of stating that one of the benefits of working with JavaScript over C is
+that functions are <a href="http://en.wikipedia.org/wiki/First-class_function">first class</a>
+in JavaScript, therefore they may be <a href="http://eloquentjavascript.net/chapter6.html">passed around</a>.  To which the
+interviewer replied, &#8220;Well, C can do that, what about function pointers?&#8221;  What? Luckily, I
+was able to get out of that jam by guessing that JavaScript had a nicer
+syntax.</p>
+
+<p>While I was taught some C in university, we had never gone over function
+pointers or more in depth topics such as <a href="http://en.wikipedia.org/wiki/Static_library">static</a>
+or <a href="http://en.wikipedia.org/wiki/Dynamic_library">dynamic</a> <a href="http://www.yolinux.com/TUTORIALS/LibraryArchives-StaticAndDynamic.html">linkage</a>.
+I was so embarrassed that my expensive (read <a href="http://online.wsj.com/article/SB10001424127887324442304578231922159602676.html?mod=WSJ_hps_LEFTTopStories">overpriced</a>)
+degree had not taught me more about
+the C programming language, especially from the Computer Engineering
+department that focuses on software <strong>AND</strong> hardware.  On my exit
+interview with the dean, I was very opinionated on the amount of C that
+was (or wasn&#8217;t) taught at my university.  His argument was that there
+are only so much of so many languages you can cover in a university, which
+to some extent is valid.  My problem has been that I&#8217;ve enjoyed learning
+many different programming languages, though I didn&#8217;t really get it the
+first time around (with Java).  I think knowing many different languages
+and their respective paradigms makes you a better programmer in other
+languages, since you can bring a <a href="http://therubyway.org/">Ruby Way</a> to
+<a href="http://www.rust-lang.org/">Rust</a> or a <a href="http://www.ibm.com/developerworks/library/wa-javascript/index.html">JavaScript functional</a>
+<a href="http://interglacial.com/hoj/hoj.html">style</a> into C.</p>
+
+<p>I had read two books in the meantime that really flushed out more of the
+C language to me and I would definitely recommend them to those who want
+to learn more about the language. They are <a href="http://shop.oreilly.com/product/0636920015482.do">Head First C</a> by Dave and Dawn
+Griffiths and <a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a> by Ben Klemens.
+I&#8217;m also aware that <a href="http://en.wikipedia.org/wiki/The_C_Programming_Language">The C Programming Language</a> by
+Brian Kernighan and Dennis Ritchie is also known as the canonical text.
+The book is often referred to as &#8216;K&amp;R&#8217; after the authors&#8217; initials, and Dennis
+Ritchie was the original creators of the C language and co-developer of
+Unix.  I&#8217;d love to get a chance to read it someday.</p>
+
+<p><a href="http://blog.charlescary.com/?p=95">This article</a> appeared on
+<a href="http://news.ycombinator.com/">Hacker News</a> and really piqued my
+interest.  Defenitely a great read.  What really stuck out to me was one
+of the <a href="http://blog.charlescary.com/?p=95#comment-31">comments</a> though.
+The author of the comment mentioned a less ugly syntax for function
+pointers, with a <a href="http://pastebin.com/MsJLY22j">link to an example</a>.
+Now I&#8217;m not sure what the commenter meant by &#8220;these params decay
+naturally to function pointers&#8221; but I was skeptical about this different
+syntax.  Event the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
+used the syntax that I was familiar with.  So I wrote up a quick example
+to try it:</p>
+
+<div><script src='https://gist.github.com/4645944.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Sure enough we get:</p>
+
+<div><script src='https://gist.github.com/4645949.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>So the moral to the story I guess is that there&#8217;s always more to your
+favorite language.  From using <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/variadic_macros.c">variadic macros</a>
+with <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/compound_literal.c">compound literals</a>
+to enable a more <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/foreach.c">functional style</a>
+in C to reflecting upon a function&#8217;s <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/length">number of arguments</a>
+or <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/name">name</a>
+or <a href="http://taylodl.wordpress.com/2012/09/03/functional-javascript-memoization-part-ii/">adding attributes to a function</a>
+or the
+<a href="http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/">y-combinator</a>
+in JavaScript, I learn something new every day.  And I hope that you did
+too!  Thanks for reading!  If you have some other recommendations on
+good programming books, or design patterns, please leave a comment or
+write a reply blog post!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[[Internet] Freedom is Not Free]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/01/19/internet-freedom-is-not-free/"/>
+    <updated>2013-01-19T20:12:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/01/19/internet-freedom-is-not-free</id>
+    <content type="html"><![CDATA[<p>Last week, the Internet community
+<a href="http://tech.mit.edu/V132/N61/swartz.html">lost</a> a member in the on going war
+against the copyright industry.  While I&#8217;ve never met the deceased, or
+even heard of the deceased before his suicide, I&#8217;m horrified.  I&#8217;m
+horrified that the government we are asked to put so much faith in,
+would give someone, not that different from myself, such a <a href="http://www.techdirt.com/articles/20120917/17393320412/us-government-ups-felony-count-jstoraaron-swartz-case-four-to-thirteen.shtml">ridiculous sentence</a>.
+That I could be thrown away, locked away from the things that
+I love for 35 years, for freeing information that
+<a href="http://arstechnica.com/tech-policy/2013/01/aaron-swartz-memorial-jstor-liberator-sets-public-domain-academic-articles-free/">should</a>
+have been free, and was later
+<a href="http://www.3news.co.nz/Reddit-co-founder-dies-weeks-before-trial/tabid/412/articleID/282905/Default.aspx">made</a> free.</p>
+
+<p>That my government would strike such fear into someone&#8217;s life that they
+would prefer death by their own hands to punishment.  Why do we put up
+with this?</p>
+
+<p>The Internet, and the technology sector evolves so quickly.  It&#8217;s
+amazing that the law the deceased was being prosecuted under, pertaining
+to computers, is from
+<a href="http://en.wikipedia.org/wiki/Computer_Fraud_and_Abuse_Act">1986</a>.  Can
+you even remember what computers were like in 1986?  I didn&#8217;t even
+exist!  My first family computer ran Windows 95.  I can only imagine how
+archaic laws would be that were based on such rapidly evolving tech.</p>
+
+<p>The limiting of information is problematic to me.  How do the people of
+China, Iran, and others feel about their government?  I assume they are
+aware that the government is limiting their body of knowledge.  Even the
+US television news agencies can&#8217;t get the story straight.  It
+reminds me of George Orwell&#8217;s <em>1984</em>, where the language is limited to
+curtail expression.  If the free world uses the Internet as <a href="http://en.wikipedia.org/wiki/Transactive_memory">Transactive Memory</a>, does the
+oppressed world know what they&#8217;re missing?  Can you know what you&#8217;re
+missing, before you&#8217;ve lost it?</p>
+
+<p>The media and copyright lobby disgust me.  I&#8217;m disgusted that <a href="http://www.mpaa.org/about/ceo">my former state senator</a>
+is now the Chairman and
+CEO of the MPAA.  Remember learning in high school civics the term
+<a href="http://en.wikipedia.org/wiki/Revolving_door_%28politics%29">&#8220;Revolving Door&#8221;</a>? Case
+in point.</p>
+
+<p>America was constitutionalized as a republic, but through
+amendment has <a href="http://en.wikipedia.org/wiki/Democratic_republic">evolved</a>
+into a democratic republic.  The idea of a republic was important to an
+<a href="http://seattletimes.com/html/nationworld/2003332210_tuesday31.html">agrarian society</a>,
+and we still feel the effects every first Tuesday in
+November; the least convenient day of the week.  Voting for someone
+just to represent you was convenient when your form of long-range
+communication was a man on a pony.  With the rise of the Internet, and
+representatives who work for their lobbies and not the people,
+why do we still elect officials?  Why are we a republic?  Why not just a
+democracy?  Allow voters to authenticate and cast their vote online.
+Everyone.  No computer or internet?  I&#8217;m sure your local library offers
+both free for public use.  &#8220;But people don&#8217;t always know what&#8217;s right.&#8221;
+Sure, I think some people aren&#8217;t too bright.  But then I see the
+deadlock in congress, fiscal cliff after fiscal cliff, and I can&#8217;t help
+but think we could do better if we just fired all of these assholes.</p>
+
+<p>Why can&#8217;t the difference in viewpoints be celebrated?  A good leader
+recognizes both sides of the coin.  I love having a diverse team of
+people with varying backgrounds, because they come up with solutions I
+never could have.  And if you want to beat your enemy, you have to know
+your enemy.  That means empathizing, understanding where they come from.</p>
+
+<blockquote><p>If you give orders and explain nothing, you might get obedience, but<br/>you&#8217;ll get no creativity. If you tell them your purpose, then when your<br/>original plan is shown to be faulty, they&#8217;ll find another way to achieve<br/>your goal. Explaining to your men doesn&#8217;t weaken their respect for you,<br/>it proves your respect for them.</p><footer><strong>Han Tzu</strong> <cite>Shadow of the Giant Pg. 303 by Orson Scott Card</cite></footer></blockquote>
+
+
+<p>I don&#8217;t hate anyone for what they believe, nor do I
+try to persuade them otherwise.  I just feel like the technologically
+minded are under represented in Washington.  I wish we had a
+technological party.  We need a
+party that strives to protect the internet, the ideals behind
+the freedom and preservation of information, the technical investment in
+sovereign energy and our failing infrastructure, and internet access
+speeds that are unrivaled in the world, not stagnated by corporations
+who are relatively regional monopolies.  One where social
+issues are open to debate, but also where protecting our greatest asset and
+achievement is top priority.  One where the media industry is invited to
+the table, unlike the back door <a href="http://en.wikipedia.org/wiki/Stop_Online_Piracy_Act">policies</a>
+they would try to slip in under our noses.  My dad advocated a turn the
+other cheek policy.  That&#8217;s called acting like an adult.</p>
+
+<p>My belief of good vs. evil is that there is no good or evil, but that people
+are inherently selfish.  They
+do things that are perceived by others as evil.  But they don&#8217;t do
+things because those actions are evil, they do them because they gain
+some form of personal utility from the action; they perceive the action
+as good.  And it is good&#8230;to them.  It&#8217;s easy to be evil.  It&#8217;s the easy
+way out.  It&#8217;s harder to think about other people.  It&#8217;s tougher to do
+the right thing.  Being good is so recognizably hard; it&#8217;s impressive.</p>
+
+<p>The president of MIT, L. Rafael Reif, had this to say regarding the
+deceased: <a href="http://touch.latimes.com/#section/-1/article/p2p-74009443/">&#8220;It pains me to think that MIT played any role in a series of events that have ended in tragedy&#8230;&#8221;</a>
+Fuck you. Maybe if MIT&#8217;s bottom line wasn&#8217;t their acceptance rate, they
+might be able to look out for more than just their own.</p>
+
+<blockquote><p>All that is necessary for the triumph of evil is that good men do<br/>nothing.</p><footer><strong>Edmund Burke</strong> <cite>Thoughts on the Cause of Present Discontents</cite></footer></blockquote>
+
+
+<p>Suicide is never the answer.  No matter how shitty your current
+situation is, no matter if things will never go back to the way they
+were, you will always be able to change your situation.  Maybe not
+immediately, but that&#8217;s what goals are for.  Anyone who ever committed
+suicide to prove a point could have done more for their cause dedicating
+the rest of their life to it.  If you&#8217;re feeling depressed, talk to
+someone.  It will make you feel so much better to talk to someone about
+what&#8217;s upsetting you.  As much as people like to shit on the Catholic
+Church, I feel like the Catholic practice of penance (confession),
+provides a cathartic placebo effect.  If you are depressed or hurting, and
+you need someone to talk to, even a complete stranger, feel free to
+contact me.  I will always provide an ear and a shoulder.</p>
+
+<blockquote><p>It seems strange that my life should end in such a terrible place, but<br/>for three years I had roses and apologized to no one. I shall die here.<br/>Every inch of me shall perish. Every inch, but one. An inch. It is small<br/>and it is fragile and it is the only thing in the world worth having. We<br/>must never lose it or give it away. We must NEVER let them take it from<br/>us. I hope that whoever you are, you escape this place. I hope that the<br/>world turns, and that things get better. But what I hope most of all is<br/>that you understand what I mean when I tell you that, even though I do<br/>not know you, and even though I may never meet you, laugh with you, cry<br/>with you, or kiss you, I love you. With all my heart, I love you.</p><footer><strong>Valerie</strong> <cite>V for Vendetta</cite></footer></blockquote>
+
+
+<p>The next time the media industry tries to limit what you have access to
+on the Internet, make a big ruckus.  Inform everyone you know about the
+facts.  Pushing for an increase in media piracy activities is not the
+right answer.  Instead we should push to boycott working for
+organizations like the RIAA and MPAA and their ilk.  Think about how
+much better off we would be in the United States if teachers were paid
+like rock stars and rock stars were paid like teachers?  Instead, everyone
+in the media industry needs a fat paycheck.  Celebrity is the case in
+point of the blind leading the blind.  Did you know that EMI
+<a href="https://mashable.com/2013/01/18/i-have-a-dream-internet-freedom/">owns</a>
+the copyright to the footage of Martin Luther King&#8217;s &#8220;I have a
+dream&#8221; speech?  If you can find it, I bet it wont be up long.  Frankly,
+I&#8217;m surprised EMI doesn&#8217;t also own the Declaration of Independence and
+Constitution, charging admission.</p>
+
+<p>Revolutions are a continuation of the battle between sword and shield.
+Something new is created and shows potential, then doubters pop up
+seeking to curtail that which upsets their competitive edge.  In the
+case of information, many make money and become powerful off
+limiting the access to knowledge.  I think all knowledge that is
+beneficial to mankind should be open, and that the Internet is the ultimate
+utility for the sharing of our collective knowledge.  Where do you draw
+the line, you might ask?  I think the knowledge required to make atomic
+weapons and 3D-print receivers is decidedly unbefitting of society,
+for instance.
+And in the end, you can&#8217;t take any of the knowledge you protect with
+you.  If everyone shared what they knew, then you&#8217;d have a more
+improved life, since then the right people would be
+in the know to advance our being.  Technology would advance even faster
+than it does currently if we weren&#8217;t limited to
+<a href="http://www.techradar.com/us/news/computing-components/processors/why-intels-new-cpus-disappoint-1077260">tick-tock</a> product
+cycles and business secrets.</p>
+
+<p>So what does a rant about government, antiquated laws, corrupt
+representatives, celebrating diversity, hypothetical political parties,
+inaction, and established industries have to do with anything?
+They&#8217;re all anchored to a suicide.  They&#8217;re all that&#8217;s been running
+through my mind lately.  What I see in the deceased, I see in myself.
+Standing amongst my peers, celebrating <a href="http://www.internetfreedomday.net/">Internet Freedom Day</a>
+, listening to <a href="https://www.eff.org/about/staff/peter-eckersley">Peter Eckersley</a> of the
+<a href="https://www.eff.org/">EFF</a> talk, I realized <a href="http://www.youtube.com/watch?v=Vo0D6bzxLLw">&#8216;The power is
+yours!&#8217;</a>.
+So now I add my voice to the or so 20 Internet activists that will continue to
+spring up as one falls.</p>
+
+<p>What will you do to shape the world you live in?  What are you going to do to
+fix it?  If you don&#8217;t, I will.  Because if you want something done
+right, you have to do it yourself.</p>
+
+<blockquote><p>It has to start somewhere It has to start sometime<br/>What better place than here, what better time than now?</p><footer><strong>Rage Against the Machine</strong> <cite>Guerrilla Radio</cite></footer></blockquote>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Closures: JavaScript, Ruby, and Rust]]></title>
+    <link href="http://nickdesaulniers.github.com/blog/2013/01/14/closures-javascript/"/>
+    <updated>2013-01-14T20:28:00-08:00</updated>
+    <id>http://nickdesaulniers.github.com/blog/2013/01/14/closures-javascript</id>
+    <content type="html"><![CDATA[<p>It&#8217;s all about <a href="http://en.wikipedia.org/wiki/Closure_%28computer_science%29">closures</a>.  Understanding <a href="http://en.wikipedia.org/wiki/Scope_%28computer_science%29">scope</a> is paramount to coding.
+What can you access and what can&#8217;t you access.  Closures allow us to
+access variables that otherwise might be awkward to pass into a
+function.  Closures can help us out of tricky situations, but can
+confuse those from backgrounds with (typically) <a href="http://en.wikipedia.org/wiki/Statically_typed#Static_typing">statically typed</a> languages that
+may not support closing over variables.</p>
+
+<p><a href="http://www.rust-lang.org/">Rust</a> is an up and coming systems level programming language being
+developed at <a href="http://www.mozilla.org">Mozilla</a>.  Let&#8217;s take a look at the
+syntax of closures in Rust, but first let&#8217;s see how closures are
+implemented in some other, more popular languages.</p>
+
+<p>In <a href="https://developer.mozilla.org/en-US/docs/JavaScript">JavaScript</a>, closures are super common.  Here&#8217;s a simple example.</p>
+
+<div><script src='https://gist.github.com/4536170.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>JavaScript has function scope; the definition of a new function creates
+a new scope.  But if a reference to an identifier is not found within
+the local scope, the next outer scope is consulted and so on until it is
+either found, or a ReferenceError is raised.  We could prevent this for
+example by shadowing the variable name by naming it in the parameter
+list:</p>
+
+<div><script src='https://gist.github.com/4536211.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Notice how in the above snippet, we cannot close over the outer x?  This
+is called <a href="http://en.wikipedia.org/wiki/Variable_shadowing">variable
+shadowing</a>.  In JavaScript, no matter if you use a
+<a href="http://stackoverflow.com/q/1013385/1027966">function definition or function expression</a> to define a function, as long
+as you do not shadow a particular variable, then you may close over it.</p>
+
+<p>Let&#8217;s see how <a href="http://www.ruby-lang.org">Ruby</a> handles closures.</p>
+
+<div><script src='https://gist.github.com/4536257.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Oops.  Looks like Ruby doesn&#8217;t support closures!  But I thought it was
+supposed to be easier to write than <a href="http://www.java.com">Java</a>!  Well, it turns out Ruby <em>does</em> support
+closures, it just has an alternate syntax for functions that close over
+references to variables in the outer scope.  This alternate syntax
+actually creates a new object containing the captured scope.  Lets take
+advantage of Ruby&#8217;s
+<a href="http://en.wikipedia.org/wiki/Anonymous_function#Ruby">lambdas</a> to close over variables:</p>
+
+<div><script src='https://gist.github.com/4536433.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Note, we could have also used the older lambda syntax, or even a Proc
+object.  I won&#8217;t cover the difference between the two here; there are
+<a href="http://www.robertsosinski.com/2008/12/21/understanding-ruby-blocks-procs-and-lambdas/">better blog posts on the differences</a>.  My point is that <strong><em>not all
+languages support closures with their default function declaration
+syntax (like in JavaScript)</em></strong>.  This provides a nice syntax into closures in Rust.</p>
+
+<div><script src='https://gist.github.com/4536519.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>Note: Rust has some really nice <a href="http://en.wikipedia.org/wiki/Type_inference">type inference</a>.  We can write the
+previous snippet more succinctly:</p>
+
+<div><script src='https://gist.github.com/4536527.js'></script>
+<noscript><pre><code></code></pre></noscript></div>
+
+
+<p>It might seem obvious that my point about different languages having
+different syntaxes.  I guess a better stating of that point is that
+<strong><em>closure definitions in Rust differ from vanilla function definitions like
+Ruby and as opposed to JavaScript</em></strong>.</p>
+
+<p>Rust aims to be a systems level programming language to replace C and
+C++.  With closures, type inference, and a syntax that faintly reminds
+me of Ruby&#8217;s block lambda syntax, I&#8217;ll take it!</p>
+]]></content>
+  </entry>
+  
+</feed>
