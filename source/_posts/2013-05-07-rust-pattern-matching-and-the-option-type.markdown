@@ -4,7 +4,7 @@ title: "Rust: Pattern Matching and the Option Type"
 date: 2013-05-07 18:41
 comments: true
 categories: [Rust, Pattern Matching, Option Type, Null Pointer, C++]
-published: false
+published: true
 ---
 The other day I was thinking about the function for performing dynamic memory
 allocation in the C standard library, malloc. From the manual pages,
@@ -23,19 +23,10 @@ if (nums == NULL) {
   // handle error
 } else {
   *nums = 7;
+  // operate on nums
   free(nums);
   nums = NULL;
 }
-```
-```c++ C++
-try {
-  int* nums = new int(7);
-  *nums = 42;
-  delete nums;
-} catch (std::bad_alloc& ba) {
-  // handle error
-}
-
 ```
 
 Here we allocated space for an integer, cast the `void*` returned from malloc
@@ -46,8 +37,8 @@ One of the big problems with the null pointer has to do with
 safely dereferencing it.  In C, dereferencing the null pointer is undefined
 and usually leads to a segfault and program crash.
 
-It's can be so unsafe to work with raw pointers which may be null that
-C. A. R. Hoare refers to them as his billion dollar mistake:
+It can be so unsafe to work with null pointers that
+C. A. R. Hoare refers to them as his billion-dollar mistake:
 
 {% blockquote C.A.R. Hoare, InfoQ http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare Null References: The Billion Dollar Mistake %}
 I call it my billion-dollar mistake. It was the invention of the null reference in 1965. At that time, I was designing the first comprehensive type system for references in an object oriented language (ALGOL W). My goal was to ensure that all use of references should be absolutely safe, with checking performed automatically by the compiler. But I couldn't resist the temptation to put in a null reference, simply because it was so easy to implement. This has led to innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years.
@@ -62,14 +53,14 @@ Rust, a systems programming language with a focus on safety and concurrency,
 does not have the concept of a null pointer.  Instead, it has a different
 construct to represent the absence of value, a whole other structure called an
 [Option<T>](http://static.rust-lang.org/doc/core/option.html).  It is an
-[enum](http://static.rust-lang.org/doc/core/option.html#enum-option) that can
+[enumerated type](http://static.rust-lang.org/doc/core/option.html#enum-option) that can
 either be None (no value) or Some(T) (a specialization of type T).
 
 So what the heck is an option type and how do we use it?  The option type is
-a polymorphic type (generic type that can be specialized), that encapsulates
+a polymorphic type (generic type that can be specialized) that encapsulates
 either an empty constructor or the constructor of the original data type.  Let's
 take a trip down the rabbit hole to see how we use one.  First, let's look at
-some C++ code, then translate it to Rust.
+some C++ code, and then translate it to Rust.
 
 ```c++ option.cpp
 #include <iostream> // cout, endl
@@ -131,8 +122,9 @@ if (x) {
 
 We check if the pointer is valid, that is that it is safe to use, as `NULL` is
 falsy in a C++ conditional.  If it is, then we can safely dereference it.  Let's
-switch on the (dereferenced) value.  Notice how we need to break to prevent fall
-through, though [97% of the time you don't need to](http://books.google.com/books?id=4vm2xK3yn34C&pg=PA37&lpg=PA38&dq=expert+c+fallthrough&source=bl&ots=Ho98ZhXF9X&sig=PebysT8-3zA_9B2aRkuvnz4mCmY&hl=en&sa=X&ei=j8CJUdeWMerJiwLQmICoDw&ved=0CC4Q6AEwAA#v=onepage&q=expert%20c%20fallthrough&f=false).
+switch on the (dereferenced) value.  Notice how we need to break to explicitly 
+prevent fall through, though
+[97% of the time that's what you intend](http://books.google.com/books?id=4vm2xK3yn34C&pg=PA37&lpg=PA38&dq=expert+c+fallthrough&source=bl&ots=Ho98ZhXF9X&sig=PebysT8-3zA_9B2aRkuvnz4mCmY&hl=en&sa=X&ei=j8CJUdeWMerJiwLQmICoDw&ved=0CC4Q6AEwAA#v=onepage&q=expert%20c%20fallthrough&f=false).
 
 ```c++ Lines 17-22
 switch (*x) {
@@ -164,29 +156,28 @@ Let's see my rough translation of this program into Rust.
 ```rust option.rs
 use core::rand;
 
-fn may_return_none () -> Option<@int> {
-  if rand::Rng().next() % 2 == 1 { Some(@666) } else { None }
+fn may_return_none () -> Option<int> {
+  if rand::Rng().next() % 2 == 1 { Some(666) } else { None }
 }
 
 fn main () {
-  let x: Option<@int> = may_return_none();
-  
+  let x: Option<int> = may_return_none();
+
   io::println(match x {
-    Some(y) if *y == 777 => "Lucky Sevens",
-    Some(y) if *y == 666 => "Number of the Beast",
-    Some(y) if *y == 42 => "Meaning of Life",
+    Some(777) => "Lucky Sevens",
+    Some(666) => "Number of the Beast",
+    Some(422) => "Meaning of Life",
     Some(_) => "Nothing special",
     None => "No value"
   });
-  
+
   match x {
-    Some(y) if *y == 666 => {
+    Some(666) => {
       io::println("Did I mention that Iron Maiden is my favorite Band?")
     },
     _ => {}
   };
 }
-
 ```
 
 Both programs, when compiled *should* randomly print either:
@@ -202,14 +193,14 @@ Now let's walk through the Rust code, starting at main and compare it to the
 equivalent C++ code.
 
 ```rust option.rs Line 8
-let x: Option<@int> = may_return_none();
+let x: Option<int> = may_return_none();
 ```
 ```c++ option.cpp Line 14
 const int* const x = may_return_null();
 ```
 
 I read this Rust code as 'let x be type Option,
-specialized to type managed pointer to an int initialized
+specialized to type int initialized
 to the return value of may_return_none.'  I read the C++ as 'x is a const pointer
 to a const integer initialized to the return value of may_return_none.'  It's
 important to note that values and pointers in Rust default to being immutable,
@@ -219,28 +210,28 @@ mutable: `let mut x: ... = ...;`.  In both, we can also leave the explicit types
 to be inferred by the compiler.
 
 ```rust option.rs Line 4
-if rand::Rng().next() % 2 == 1 { Some(@666) } else { None }
+if rand::Rng().next() % 2 == 1 { Some(666) } else { None }
 ```
 ```c++ option.cpp Lines 8-9
 srand(time(NULL));
 return rand() % 2 == 1 ? new int(666) : NULL;
 ```
 
-Now for the body of `may_return_null`.  Rust does not have a ternary operator,
+Now for the body of `may_return_none`.  Rust does not have a ternary operator,
 so a single line `if {} else {}` block will have to do.  We also don't need
 parentheses around the predicate in the conditional statement.  If we add them,
-no harm is done as we'd just be being redundant about order of operations.
+no harm is done, as we'd just be being redundant about order of operations.
 There
 are no semicolons in this expression, nor a return statement in this function.
 Rust will return the last expression in a function or method if the semicolon is
 left off.  Also there is no such thing as a conditional statement, only
 conditional expressions; the if is itself something that can be evaluated and
 assigned to a variable!  We see this later in the code where we pass the evaluation
-of a match expression directly into a call of `io::pintln`.
+of a match expression directly into a call of `io::println`.
 Rust returns the evaluation of the if expression,
 which is the evaluation of the branch's block specified by the predicate,
-which will randomly be one of the two emumerated types of `Option<@int>`, either
-an encapsulation of a managed pointer to the literal value `666`, `Some<@666>`, or
+which will randomly be one of the two enumerated types of `Option<int>`, either
+an encapsulation of a int whose literal value is `666`, `Some<666>`, or
 the representation of no value, `None`.  I believe the RNG code has changed in 0.7,
 this code was written in 0.6.
 
@@ -252,9 +243,9 @@ In fact, the one line if expression could have been written using a match
 expression:
 
 ```rust
-if rand::Rng().next() % 2 == 1 { Some(@666) } else { None }
+if rand::Rng().next() % 2 == 1 { Some(666) } else { None }
 // or
-match rand::Rng().next() % 2 { 1 => Some(@666), _ => None }
+match rand::Rng().next() % 2 { 1 => Some(666), _ => None }
 ``` 
 
 The basic design pattern
@@ -284,8 +275,7 @@ help us again in the future.
 We also don't need parentheses around the predicate for the match expression, which
 in this case is just a single variable, `x`.
 
-We can also add guards to the various
-arms of the match, the predicates following the possible values.  In the value
+In the value
 `Some(_)`, the underscore has an additional meaning here that we would not use a
 variable in the corresponding arm's block.  If we declared it as `Some(y)` we would get the warning:
 
@@ -327,9 +317,9 @@ by deleting line 15 or option.rs, `None => "No value"`:
 ```
 option.rs:10:14: 16:3 error: non-exhaustive patterns: None not covered
 option.rs:10   io::println(match x {
-option.rs:11     Some(y) if *y == 777 => "Lucky Sevens",
-option.rs:12     Some(y) if *y == 666 => "Number of the Beast",
-option.rs:13     Some(y) if *y == 42 => "Meaning of Life",
+option.rs:11     Some(777) => "Lucky Sevens",
+option.rs:12     Some(666) => "Number of the Beast",
+option.rs:13     Some(42) => "Meaning of Life",
 option.rs:14     Some(_) => "Nothing special"
 ```
 
@@ -337,12 +327,26 @@ Not only did the compiler prevent me from generating an executable, it told me
 that a pattern was not exhaustive, explicitly which one, and what case that was
 not covered.
 
-Now I know the two sample programs aren't 100% analogous, but my goal was to
-show how a particular problem in C++ has been solved in Rust.  The key takeaways
-that I wish to convey are:
+Coming back to encoding a lack of value for an int, we had left off that 0 *is*
+a valid value.  For instance, how should we represent any other integer divided
+by 0, as an integer?
+Signed integers use a single bit to store whether
+their value is positive or negative, the tradeoff being the signed integers
+represent up to one less power of two than unsigned integers.  Maybe we could use an
+additional bit to represent valid or invalid, but this would again cost us in
+terms of representable values.
+The IEEE 754 floating point representation has encodings for [plus and minus
+Infinity, plus and minus 0, and two kinds of NaN](https://en.wikipedia.org/wiki/IEEE_floating_point#Formats).
+To solve the validity problem, we can use enumerated types, which in Rust occur
+as specializations of the Option type.  It's up to the compiler to implement
+either additional information for the type, or use raw null pointers.  And to
+get the value back out of the Option type, we *must* handle the case where there
+is no valid value.
+
+The key takeaways that I wish to convey are:
 
 1. In C and C++, I can use NULL to refer to a pointer that has no value.
-1. A C/C++ compiler such as clang will allow me to compile code that violates
+1. A C/C++ compiler, such as clang, will allow me to compile code that violates
    memory safety, such as dereferencing NULL pointers.
 2. Rust instead uses Option types, an enumeration of a specialized type or None.
 3. Rust forces me to use a match statement to access the possible value of an
@@ -351,4 +355,3 @@ that I wish to convey are:
 5. The Rust compiler, rustc, forces me to handle the case where the pointer has
    no value, whereas the C++ compiler, clang++, did not.
 6. All conditional and switch statements can be replaced with pattern matching.
-
