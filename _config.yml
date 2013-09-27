@@ -2,12 +2,13 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://yoursite.com
-title: My Octopress Blog
-subtitle: A blogging framework for hackers.
-author: Your Name
+url: http://nickdesaulniers.github.io
+title: Nick Desaulniers
+subtitle: The enemy's gate is down
+blah: x's
+author: Nick Desaulniers
 simple_search: http://google.com/search
-description:
+description: A collection of my findings, C, Ruby, JavaScript, Node.JS
 
 # Default date format is "ordinal" (resulting in "July 22nd 2007")
 # You can customize the format as defined in
@@ -63,13 +64,17 @@ default_asides: [asides/recent_posts.html, asides/github.html, asides/delicious.
 # ----------------------- #
 
 # Github repositories
-github_user:
-github_repo_count: 0
+github_user: nickdesaulniers
+github_repo_count: 20
 github_show_profile_link: true
 github_skip_forks: true
 
 # Twitter
-twitter_user:
+twitter_user: LostOracle
+twitter_tweet_count: 4
+twitter_show_replies: false
+twitter_follow_button: true
+twitter_show_follower_count: false
 twitter_tweet_button: true
 
 # Google +1
@@ -90,11 +95,11 @@ delicious_user:
 delicious_count: 3
 
 # Disqus Comments
-disqus_short_name:
-disqus_show_comment_count: false
+disqus_short_name: wangstabill
+disqus_show_comment_count: true
 
 # Google Analytics
-google_analytics_tracking_id:
+google_analytics_tracking_id: UA-36993986-1
 
 # Facebook Like
-facebook_like: false
+facebook_like: true
