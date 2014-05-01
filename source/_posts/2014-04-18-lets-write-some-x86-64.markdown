@@ -309,6 +309,9 @@ to decide.  Thus the same code may not run on two different machines with the
 same microarchitecture if their operating systems are incompatible at the ABI
 layer.
 
+*UPDATE*: Further, I just learned that [Go, and C code compiled by 6c don’t use
+the "normal" SysV ABI and calling convention, but have their own.](http://nelhagedebugsshit.tumblr.com/post/84342207533/things-i-learned-writing-a-jit-in-go)
+
 What our goal is is to call `exit(0);` where exit is defined in libc, which we
 link against during the linking phase with with flag `-lc`.  This is another
 punt on system calls.  So to invoke exit with the first integer argument of 0,
