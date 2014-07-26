@@ -63,3 +63,10 @@ Video: [part 1](https://www.youtube.com/watch?v=XjxiNz1-fps) [part 2](https://ww
 
 [slides](http://nickdesaulniers.github.io/firefoxOSPresentation/#/)
 
+##2009
+
+###Paradigm Shift: Memristors and Memristic Systems
+[BarCamp](http://barcamproc.org/) - Rochester - April 18
+
+[slides](https://docs.google.com/presentation/d/1GVqEeFUJyI7VmzqYPabQ9DOC32rdQv-YN3YCzO6vvlY/pub?start=false&loop=false&delayms=3000#slide=id.p4) - [photos](https://www.flickr.com/photos/tags/barcamprochester/show/)
+
