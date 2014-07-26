@@ -18,7 +18,7 @@ footer: true
 [pictures](https://plus.google.com/events/gallery/cenu2oppbgqk2jt0jckv4f4hsgk) - [slides](http://nickdesaulniers.github.io/Convergence/#/) - [Community blog post](http://blog.mozillakerala.org/2014/04/html5defcon-report/)
 
 ###Convergence of the Browser and OS
-[SFJS]() - San Francisco - March 27
+[SFJS](http://www.meetup.com/jsmeetup/events/171307372/) - San Francisco - March 27
 
 [slides](http://nickdesaulniers.github.io/Convergence/#/) - [Audience blog post](http://risebird.tumblr.com/post/81376081254/the-browser-operating-system) - [Audience notes](https://gist.github.com/rjz/9824342)
 
