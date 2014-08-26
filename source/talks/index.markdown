@@ -8,6 +8,11 @@ footer: true
 ##2014
 
 ###Raw WebGL
+[BrazilJS Conf](http://braziljs.com.br/) - Porto Alegre, Brazil - August 21 & 22
+
+[slides](http://nickdesaulniers.github.io/RawWebGL/#/)
+
+###Raw WebGL
 [HTML5 Developer Conference](http://html5devconf.com/archives/may2014/index.html) - San Francisco - [May 22](http://html5devconf.com/speakers/nick_desaulniers.html)
 
 [video](tru://www.youtube.com/watch?v=H4c8t6myAWU) - [slides](http://nickdesaulniers.github.io/RawWebGL/#/)
