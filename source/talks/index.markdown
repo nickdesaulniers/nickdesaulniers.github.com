@@ -8,9 +8,14 @@ footer: true
 ##2014
 
 ###Raw WebGL
+[3D Night - Modeling Virtual Worlds/Oculs Rift, and WebGL at AutoDesk](http://www.meetup.com/talesofjavascript/events/200396932/) - San Francisco - September 8
+
+[slides](http://nickdesaulniers.github.io/RawWebGL/#/) - [alternate meetup link](http://www.meetup.com/Game-and-App-Devs/events/200402782/)
+
+###Raw WebGL
 [BrazilJS Conf](http://braziljs.com.br/) - Porto Alegre, Brazil - August 21 & 22
 
-[pictures](https://www.facebook.com/media/set/?set=a.728358947244046.1073741830.322410337838911&type=1) - [slides](http://nickdesaulniers.github.io/RawWebGL/#/) - [Audience blog post](http://jcemer.com/brazil-js-2014-primeiro-dia.html#Raw-WebGL-Nick-Desaulniers)
+[intro video](https://www.youtube.com/watch?v=fRuDcqYEdAY) - [pictures](https://www.facebook.com/media/set/?set=a.728358947244046.1073741830.322410337838911&type=1) - [slides](http://nickdesaulniers.github.io/RawWebGL/#/) - [Audience blog post](http://jcemer.com/brazil-js-2014-primeiro-dia.html#Raw-WebGL-Nick-Desaulniers)
 
 ###Raw WebGL
 [HTML5 Developer Conference](http://html5devconf.com/archives/may2014/index.html) - San Francisco - [May 22](http://html5devconf.com/speakers/nick_desaulniers.html)
