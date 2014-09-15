@@ -6,7 +6,7 @@ sharing: false
 footer: true
 ---
 
-{% img left /images/nick.jpg %}
+{% img right /images/nick.jpg %}
 Nick Desaulniers is a young software engineer fighting for the open web at
 Mozilla.  When Nick is not helping third party developers target Firefox OS,
 he's giving talks about graphics programming with WebGL, contributing to Open
