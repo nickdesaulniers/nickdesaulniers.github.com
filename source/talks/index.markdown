@@ -35,7 +35,7 @@ footer: true
 ###Convergence of the Broswer and OS
 [JSConfUY](http://jsconf.uy/) - Montevideo, Uruguay - March 14 & 15
 
-[slides](http://nickdesaulniers.github.io/Convergence/#/)
+[video](https://www.youtube.com/watch?v=hl5ppYOBdJ4) - [slides](http://nickdesaulniers.github.io/Convergence/#/)
 
 ##2013
 
