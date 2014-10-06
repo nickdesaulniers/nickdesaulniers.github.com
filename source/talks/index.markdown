@@ -15,7 +15,7 @@ footer: true
 ###Raw WebGL
 [BrazilJS Conf](http://braziljs.com.br/) - Porto Alegre, Brazil - August 21 & 22
 
-[intro video](https://www.youtube.com/watch?v=fRuDcqYEdAY) - [pictures](https://www.facebook.com/media/set/?set=a.728358947244046.1073741830.322410337838911&type=1) - [slides](http://nickdesaulniers.github.io/RawWebGL/#/) - [Audience blog post](http://jcemer.com/brazil-js-2014-primeiro-dia.html#Raw-WebGL-Nick-Desaulniers)
+[intro video](https://www.youtube.com/watch?v=fRuDcqYEdAY) - [video](https://www.youtube.com/watch?v=Z-t-QSV8J1Y) - [pictures](https://www.facebook.com/media/set/?set=a.728358947244046.1073741830.322410337838911&type=1) - [slides](http://nickdesaulniers.github.io/RawWebGL/#/) - [Audience blog post](http://jcemer.com/brazil-js-2014-primeiro-dia.html#Raw-WebGL-Nick-Desaulniers)
 
 ###Raw WebGL
 [HTML5 Developer Conference](http://html5devconf.com/archives/may2014/index.html) - San Francisco - [May 22](http://html5devconf.com/speakers/nick_desaulniers.html)
