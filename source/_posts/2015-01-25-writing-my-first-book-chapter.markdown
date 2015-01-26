@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Writing my first book (chapter)"
+title: "Writing my first technical book chapter"
 date: 2015-01-25 20:50
 comments: true
 categories: WebGL, Emscripten, Asm.js, Web, GL, Insights, Author, Graphics
