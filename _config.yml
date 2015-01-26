@@ -47,6 +47,14 @@ pagination_dir: blog  # Directory base for pagination URLs eg. /blog/page/2/
 recent_posts: 5       # Posts in the sidebar Recent Posts section
 excerpt_link: "Read on &rarr;"  # "Continue reading" link text at the bottom of excerpted articles
 
+# twitter
+gems: ['jekyll-twitter-plugin']
+twitter:
+  consumer_key: 'Wi2VEBf1qCvQ9XEqTwojVmL6O'
+  consumer_secret: 'uyvUrfhGcYEUrZpGLJ8aZ0qQKYAQSHCx9aXyXcXG7cRmPiboWP'
+  access_token: '28446277-6tgCkroRFCvnpP18QARmu0fC1g1hMYi7pVkaJwgEq'
+  access_token_secret: '4aOhfXKsFpBTDfj01vtV2A82hCMMWMLr0yWnGeHS4EqT9'
+
 titlecase: true       # Converts page and post titles to titlecase
 
 # list each of the sidebar modules you want to include, in the order you want them to appear.
