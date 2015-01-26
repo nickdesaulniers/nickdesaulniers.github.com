@@ -141,6 +141,11 @@ way to SIGGRAPH this year; I'd love to meet my fellow authors in person and
 potential readers.  Just seeing the list of authors was really a who's-who of
 folks doing cool WebGL stuff.
 
+If you're interested in learning more about working with Emscripten, asm.js,
+and WebGL, I sugguest you pick up a copy of WebGL Insights in August when it's
+published.  A big thank you to my reviewers: Eric Haines, Havi Hoffman,
+Jukka Jylänki, Chris Mills, Traian Stanev, Luke Wagner, and Alon Zakai.
+
 So that was a little bit about my first experience with authorship.  I'd be
 happy to follow up with any further questions you might have for me.  Let me
 know in the comments below, on Twitter, HN, or wherever and I'll probably find
