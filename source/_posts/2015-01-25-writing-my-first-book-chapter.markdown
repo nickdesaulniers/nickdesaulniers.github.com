@@ -10,7 +10,7 @@ It's a feeling of immense satisfaction when we complete a major achievement.
 Being able to say "it's done" is such a great stress relief.  Recently, I
 completed work on my first publication, a chapter about Emscripten for the
 upcoming book
-[WebGL Insights](https://web.archive.org/web/20141218200253/http://nickdesaulniers.github.io/)
+[WebGL Insights](http://www.crcpress.com/product/isbn/9781498716079)
 to be published by CRC Press in time for
 [SIGGRAPH 2015](http://s2015.siggraph.org/).
 
