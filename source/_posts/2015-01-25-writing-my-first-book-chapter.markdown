@@ -122,7 +122,7 @@ That was definitely a highlight for me.
 
 We used a Google Sheet to keep track of the state of reviews.  Reviewers were
 able to comment on sections of the chapter.  What was nice was that you were
-able to keep use the comment as a thread, being able to respond directly to a
+able to keep using the comment as a thread, responding directly to a
 criticism.  What didn't work so well was then once you edited that line, the
 comment and thus the thread was lost.
 
