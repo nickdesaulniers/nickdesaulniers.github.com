@@ -193,7 +193,7 @@ suites" come up again in TLS handshakes. The NSA
 [publishes a list of endorsed cryptographic components](http://en.wikipedia.org/wiki/NSA_Suite_B_Cryptography),
 for what it's worth.  There are also neat tricks we can do to prevent the
 message from being decrypted at a later time should the private key be
-compreomised and encrytped message recorded, called Perfect Forward Secrecy.
+compromised and encrytped message recorded, called Perfect Forward Secrecy.
 
 Let's take a look now at how a browser does a TLS handshake.  Here's a
 capture from Wireshark of me navigating to https://google.com. First we have a
