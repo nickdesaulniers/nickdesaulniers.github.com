@@ -102,11 +102,11 @@ Alice creates a symmetric block cypher using her favorite algorithm, a hash of
 their secret as a key, and random bytes as an initialization vector.
 
 ```javascript
-var cyper = "aes-256-ctr";
+var cypher = "aes-256-ctr";
 var hash = "sha256";
 var aliceIV = crypto.randomBytes(128);
 var aliceHashedSecret = crypto.createHash(hash).update(aliceSecret).digest("binary");
-var aliceCypher = crypto.createCypher(alg, aliceHashedSecret, aliceIV);
+var aliceCypher = crypto.createCypher(cypher, aliceHashedSecret, aliceIV);
 ```
 
 Alice then uses her cypher to encrypt her message to Bob.
@@ -131,7 +131,7 @@ and a hash of their shared secret.
 
 ```javascript
 var bobHasedSecret = crypto.createHash(hash).update(bobSecret).digest("binary");
-var bobCypher = crypto.createDecipher(alg, bobHashedSecret);
+var bobCypher = crypto.createDecipher(cypher, bobHashedSecret);
 ```
 
 Bob now decyphers the encrypted message (cypher text) from Alice.
@@ -145,7 +145,7 @@ Eve has intercepted the cypher text, cypher, hash, and tries to decrypt it.
 
 ```javascript
 var eveHashedSecret = crypto.createHash(hash).update(eveSecret).digest("binary");
-var eveCypher = crypto.createDecipher(alg, eveHashedSecret);
+var eveCypher = crypto.createDecipher(cypher, eveHashedSecret);
 console.log(eveCypher.update(cypherText).toString());
 
 // => ��_r](�i)
