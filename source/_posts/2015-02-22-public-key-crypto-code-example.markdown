@@ -265,6 +265,6 @@ and [shitty things governments](https://nickdesaulniers.github.io/blog/2013/07/0
 and [ISPs](https://www.youtube.com/watch?v=fpbOEoRrHyU) do,
 web developers are going to have to start boning up on their crypto knowledge.
 
-What are your recommendations for crrectly learning crypto?  Leave me some
+What are your recommendations for correctly learning crypto?  Leave me some
 thoughts in the comments below.
 
