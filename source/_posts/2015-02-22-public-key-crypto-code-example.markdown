@@ -130,7 +130,7 @@ Bob now constructs a symmetric block cypher using the algorithm from Alice,
 and a hash of their shared secret.
 
 ```javascript
-var bobHasedSecret = crypto.createHash(hash).update(bobSecret).digest("binary");
+var bobHashedSecret = crypto.createHash(hash).update(bobSecret).digest("binary");
 var bobCypher = crypto.createDecipher(cypher, bobHashedSecret);
 ```
 
