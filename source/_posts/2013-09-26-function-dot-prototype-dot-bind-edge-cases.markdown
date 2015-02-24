@@ -162,7 +162,7 @@ xhr.send();
 ```
 
 Oops, while I do want to operate on `this.result` within `crunch` with `this`
-referring to `xhr`, `this` at the time of biding was referring to `window`!
+referring to `xhr`, `this` at the time of binding was referring to `window`!
 Let's
 hope `window.results` is `undefined`!  What if we changed `this.result` with
 `xhr.result`?  Well, we're no longer referring to the `window` object, but
