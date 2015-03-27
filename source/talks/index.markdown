@@ -7,6 +7,11 @@ footer: true
 ---
 ##2014
 
+###HTML5 Mobile App Development Bootcamp
+[Nanyang Technical University](http://www.eventnook.com/event/html5bootcamp) - Singapore - December 9-14
+
+[slides](https://mozilla-ntu.github.io/slides2014/slides/day1-section1-intro.html#/)
+
 ###Raw WebGL
 [3D Night - Modeling Virtual Worlds/Oculs Rift, and WebGL at AutoDesk](http://www.meetup.com/talesofjavascript/events/200396932/) - San Francisco - September 8
 
