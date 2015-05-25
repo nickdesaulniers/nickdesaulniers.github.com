@@ -27,6 +27,8 @@ module Jekyll
         @width  = $7
         @height = $8
         @poster = $10
+      elsif markup =~ /\/video\/.*/
+        @video = [markup]
       end
       super
     end
