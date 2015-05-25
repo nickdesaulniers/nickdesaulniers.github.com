@@ -68,7 +68,7 @@ checks.  Again, punting and assuming well formed input to keep the code and the
 point more precise.
 
 Next up are the `+` and `-` operators, used for incrementing and decrementing
-the cell pointed to by the instruction pointer by one.
+the cell pointed to by the data pointer by one.
 ```c
 case '+': ++(*ptr); break;
 case '-': --(*ptr); break;
