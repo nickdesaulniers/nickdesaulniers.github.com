@@ -5,6 +5,13 @@ comments: true
 sharing: true
 footer: true
 ---
+##2015
+
+###HTML5 Mobile App Development Bootcamp
+[Nanyang Technical University](http://www.eventnook.com/event/html5bootcamp-44558) - Singapore - May 11-14
+
+[slides](http://mozilla-ntu.github.io/slidesMay2015/slides/day1-section1-intro.html#/)
+
 ##2014
 
 ###HTML5 Mobile App Development Bootcamp
