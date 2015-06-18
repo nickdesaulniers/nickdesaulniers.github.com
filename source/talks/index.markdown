@@ -7,6 +7,11 @@ footer: true
 ---
 ##2015
 
+###Let's Make a Netflix: An Intro to Adaptive Bitrate Streaming on the Web
+[Mozilla HQ](https://air.mozilla.org/tech-talk-3/) - Mountain View, CA - June 17
+
+[slides](https://nickdesaulniers.github.io/netfix/#/)
+
 ###HTML5 Mobile App Development Bootcamp
 [Nanyang Technical University](http://www.eventnook.com/event/html5bootcamp-44558) - Singapore - May 11-14
 
