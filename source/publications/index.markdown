@@ -6,6 +6,10 @@ sharing: false
 footer: true
 ---
 
+Desalniers, Nick. "Build an HTML5 Game - and distribute it." *Mozilla Hacks*. Mozilla. June 10, 2015. [Link](https://hacks.mozilla.org/2015/06/build-an-html5-game-and-distribute-it/) [HTML5 Weekly](http://html5weekly.com/issues/193)
+
+---
+
 {% img left /images/webgl_book_cover.jpg 130 160 %}
 
 Desaulniers, N. (2015). Emscripten and WebGL. In P. Cozzi, *WebGL Insights*
