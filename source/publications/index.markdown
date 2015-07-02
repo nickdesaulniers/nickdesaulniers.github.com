@@ -6,7 +6,11 @@ sharing: false
 footer: true
 ---
 
-Desalniers, Nick. "Build an HTML5 Game - and distribute it." *Mozilla Hacks*. Mozilla. June 10, 2015. [Link](https://hacks.mozilla.org/2015/06/build-an-html5-game-and-distribute-it/) [HTML5 Weekly](http://html5weekly.com/issues/193)
+Desaulniers, Nick. "Streaming media on demand with Media Source Extensions." *Mozilla Hacks*. Mozilla. July 1, 2015. [Link](https://hacks.mozilla.org/2015/07/streaming-media-on-demand-with-media-source-extensions/)
+
+---
+
+Desaulniers, Nick. "Build an HTML5 Game - and distribute it." *Mozilla Hacks*. Mozilla. June 10, 2015. [Link](https://hacks.mozilla.org/2015/06/build-an-html5-game-and-distribute-it/) [HTML5 Weekly](http://html5weekly.com/issues/193)
 
 ---
 
