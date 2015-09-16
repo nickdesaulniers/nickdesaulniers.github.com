@@ -6,6 +6,10 @@ sharing: false
 footer: true
 ---
 
+Desaulniers, Nick. "Stereoscopic Rendering in WebVR." *Mozilla Hacks*. Mozilla. September 16, 2015. [Link](https://hacks.mozilla.org/2015/09/stereoscopic-rendering-in-webvr/)
+
+---
+
 Desaulniers, Nick. "Streaming media on demand with Media Source Extensions." *Mozilla Hacks*. Mozilla. July 1, 2015. [Link](https://hacks.mozilla.org/2015/07/streaming-media-on-demand-with-media-source-extensions/)
 
 ---
