@@ -10,7 +10,7 @@ footer: true
 ###Improving Game Performance on the Web
 [BrazilJS Conf](http://braziljs.com.br/) - Porto Alegre, Brazil - August 21 & 22
 
-[slides](http://nickdesaulniers.github.io/BrazilJS2015/slides/index.html) - [demo](http://nickdesaulniers.github.io/joshVR/)
+[slides](http://nickdesaulniers.github.io/BrazilJS2015/slides/index.html) - [demo](http://nickdesaulniers.github.io/joshVR/) - [video](https://www.youtube.com/watch?v=XvoBR9K3ZmE)
 
 ###Let's Make a Netflix: An Intro to Adaptive Bitrate Streaming on the Web
 [Mozilla HQ](https://air.mozilla.org/tech-talk-3/) - Mountain View, CA - June 17
