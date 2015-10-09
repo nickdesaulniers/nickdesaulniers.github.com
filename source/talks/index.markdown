@@ -7,6 +7,11 @@ footer: true
 ---
 ##2015
 
+###WebAssembly
+[Future of Web Apps](https://futureofwebapps.com/london-2015/) - London, England - October 6 & 7
+
+[slides](http://nickdesaulniers.github.io/wasm-fowa/slides/#/)
+
 ###Improving Game Performance on the Web
 [BrazilJS Conf](http://braziljs.com.br/) - Porto Alegre, Brazil - August 21 & 22
 
