@@ -6,6 +6,10 @@ sharing: false
 footer: true
 ---
 
+Desaulniers, Nick. "Better than Gzip Compression with Brotli." *Mozilla Hacks*. Mozilla. November 6, 2015. [Link](https://hacks.mozilla.org/2015/11/better-than-gzip-compression-with-brotli/)
+
+---
+
 Desaulniers, Nick. "Stereoscopic Rendering in WebVR." *Mozilla Hacks*. Mozilla. September 16, 2015. [Link](https://hacks.mozilla.org/2015/09/stereoscopic-rendering-in-webvr/)
 
 ---
