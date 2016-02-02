@@ -6,6 +6,10 @@ sharing: false
 footer: true
 ---
 
+Desaulniers, Nick. "WebGL Off the Main Thread." *Mozilla Hacks*. Mozilla. January 22, 2015. [Link](https://hacks.mozilla.org/2016/01/webgl-off-the-main-thread/)
+
+---
+
 Desaulniers, Nick. "Better than Gzip Compression with Brotli." *Mozilla Hacks*. Mozilla. November 6, 2015. [Link](https://hacks.mozilla.org/2015/11/better-than-gzip-compression-with-brotli/)
 
 ---
