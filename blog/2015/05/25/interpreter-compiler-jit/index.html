@@ -1,0 +1,1290 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Interpreter, Compiler, JIT - Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="Interpreters and compilers are interesting programs, themselves used to run or
+translate other programs, respectively. Those other programs that &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemy's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/about">About</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/">Blog</a></li>
+  <li><a href="/publications">Publications</a></li>
+  <li><a href="/talks">Talks</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Interpreter, Compiler, JIT</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-25T08:35:00-07:00" pubdate data-updated="true">May 25<span>th</span>, 2015</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Interpreters and compilers are interesting programs, themselves used to run or
+translate other programs, respectively.  Those other programs that might be
+interpreted might be languages like JavaScript, Ruby, Python, PHP, and Perl.  The
+other programs that might be compiled are C, C++, and to some extent Java and
+C#.</p>
+
+<p>Taking the time to do translation to native machine code ahead of
+time can result in better performance at runtime, but an interpreter can get to work right away without spending any time translating.  There happens to be a sweet spot
+somewhere in between interpretation and compilation that combines the best of
+both worlds.  Such a technique
+is called Just In Time (JIT) compiling.  While interpreting, compiling, and JIT&#8217;ing code might sound radically different, they&rsquo;re actually strikingly similar.  In
+this post, I hope to show how similar by comparing the code for an interpreter,
+a compiler, and a JIT compiler for the language Brainfuck in around 100 lines
+of C code each.</p>
+
+<p>All of the code in the post is up on <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler">GitHub</a>.</p>
+
+<div class="embed-video-container"><iframe src="//www.youtube.com/embed/_C5AHaS1mOA" allowfullscreen></iframe></div>
+
+
+<p>Brainfuck is an interesting, if hard to read, language.  It only has eight
+operations it can perform <code>&gt; &lt; + - . , [ ]</code>, yet is Turing complete.  There&rsquo;s nothing really to
+lex; each character is a token, and if the token is not one of the eight
+operators, it&rsquo;s ignored.  There&rsquo;s also not much of a grammar to parse; the
+forward jumping and backwards jumping operators should be matched for well
+formed input, but that&rsquo;s about it.  In this post, we&rsquo;ll skip over validating
+input assuming well formed input so we can focus on the interpretation/code
+generation.  You can read more about it on the
+<a href="http://en.wikipedia.org/wiki/Brainfuck">Wikipedia page</a>,
+which we&rsquo;ll be using as a reference throughout.</p>
+
+<p>A Brainfuck program operates on a 30,000 element byte array initialized to all
+zeros.  It starts off with an instruction pointer, that initially points to the
+first element in the data array or &ldquo;tape.&rdquo;  In C code for an interpreter that
+might look like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// Initialize the tape with 30,000 zeroes.</span>
+</span><span class='line'><span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">tape</span> <span class="p">[</span><span class="mi">30000</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">0</span> <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// Set the pointer to point at the left most cell of the tape.</span>
+</span><span class='line'><span class="kt">unsigned</span> <span class="kt">char</span><span class="o">*</span> <span class="n">ptr</span> <span class="o">=</span> <span class="n">tape</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then, since we&rsquo;re performing an operation for each character in the Brainfuck
+source, we can have a for loop over every character with a nested switch
+statement containing case statements for each operator.</p>
+
+<p>The first two operators, <code>&gt;</code> and <code>&lt;</code> increment and decrement the data pointer.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span>: <span class="o">++</span><span class="n">ptr</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;&lt;&#39;</span>: <span class="o">--</span><span class="n">ptr</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>One thing that could be bad is that because the interpreter is written in C and
+we&rsquo;re representing the tape as an array but we&rsquo;re not validating our inputs,
+there&rsquo;s potential for stack buffer overrun since we&rsquo;re not performing bounds
+checks.  Again, punting and assuming well formed input to keep the code and the
+point more precise.</p>
+
+<p>Next up are the <code>+</code> and <code>-</code> operators, used for incrementing and decrementing
+the cell pointed to by the data pointer by one.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;+&#39;</span>: <span class="o">++</span><span class="p">(</span><span class="o">*</span><span class="n">ptr</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;-&#39;</span>: <span class="o">--</span><span class="p">(</span><span class="o">*</span><span class="n">ptr</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The operators <code>.</code> and <code>,</code> provide Brainfuck&rsquo;s only means of input or output, by
+writing the value pointed to by the instruction pointer to stdout as an ASCII
+value, or reading one byte from stdin as an ASCII value and writing it to the
+cell pointed to by the instruction pointer.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;.&#39;</span>: <span class="n">putchar</span><span class="p">(</span><span class="o">*</span><span class="n">ptr</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;,&#39;</span>: <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="n">getchar</span><span class="p">();</span> <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, our looping constructs, <code>[</code> and <code>]</code>.  From the definition on Wikipedia
+for <code>[</code>: <code>if the byte at the data pointer is zero, then instead of moving the
+instruction pointer forward to the next command, jump it forward to the command
+after the matching ] command</code> and for <code>]</code>: <code>if the byte at the data pointer is
+nonzero, then instead of moving the instruction pointer forward to the next
+command, jump it back to the command after the matching [ command.</code></p>
+
+<p>I interpret that as:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;[&#39;</span>:
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="o">*</span><span class="n">ptr</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">loop</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(</span><span class="n">loop</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">current_char</span> <span class="o">=</span> <span class="n">input</span><span class="p">[</span><span class="o">++</span><span class="n">i</span><span class="p">];</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="n">current_char</span> <span class="o">==</span> <span class="sc">&#39;]&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="o">--</span><span class="n">loop</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">current_char</span> <span class="o">==</span> <span class="sc">&#39;[&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="o">++</span><span class="n">loop</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;]&#39;</span>:
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">ptr</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">loop</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">while</span> <span class="p">(</span><span class="n">loop</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">current_char</span> <span class="o">=</span> <span class="n">input</span><span class="p">[</span><span class="o">--</span><span class="n">i</span><span class="p">];</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="n">current_char</span> <span class="o">==</span> <span class="sc">&#39;[&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="o">--</span><span class="n">loop</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">current_char</span> <span class="o">==</span> <span class="sc">&#39;]&#39;</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="o">++</span><span class="n">loop</span><span class="p">;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Where the variable <code>loop</code> keeps track of open brackets for which we&rsquo;ve not seen
+a matching close bracket, aka our nested depth.</p>
+
+<p>So <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/interpreter.c">we can see the interpreter is quite basic</a>, in around 50 SLOC were able to
+read a byte, and immediately perform an action based on the operator.  How we
+perform that operation might not be the fastest though.</p>
+
+<p>How about if we want to compile the Brainfuck source code to native machine
+code?  Well, we need to know a little bit about our host machine&rsquo;s Instruction
+Set Architecture (ISA) and Application Binary Interface (ABI).  The rest of the
+code in this post will not be as portable as the above C code, since it assumes
+an x86-64 ISA and UNIX ABI.  Now would be a good time to <a href="/blog/2014/04/18/lets-write-some-x86-64/">take a detour and learn more about writing assembly for x86-64</a>.  The interpreter is even portable enough to <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler#emscripten">build with Emscripten and run in a browser</a>!</p>
+
+<p>For our compiler, we&rsquo;ll iterate over every character in the source file again,
+switching on the recognized operator.  This time, instead of performing an
+action right away, we&rsquo;ll print assembly instructions to stdout.  Doing so
+requires running the compiler on an input file, redirecting stdout to a file,
+then running the system assembler and linker on that file.  We&rsquo;ll stick with
+just compiling and not assembling (though it&rsquo;s not too difficult), and linking
+(for now).</p>
+
+<p>First, we need to print a prologue for our compiled code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="k">const</span> <span class="n">prologue</span> <span class="o">=</span>
+</span><span class='line'>  <span class="s">&quot;.text</span><span class="se">\n</span><span class="s">&quot;</span>
+</span><span class='line'>  <span class="s">&quot;.globl _main</span><span class="se">\n</span><span class="s">&quot;</span>
+</span><span class='line'>  <span class="s">&quot;_main:</span><span class="se">\n</span><span class="s">&quot;</span>
+</span><span class='line'>  <span class="s">&quot;  pushq %rbp</span><span class="se">\n</span><span class="s">&quot;</span>
+</span><span class='line'>  <span class="s">&quot;  movq %rsp, %rbp</span><span class="se">\n</span><span class="s">&quot;</span>
+</span><span class='line'>  <span class="s">&quot;  pushq %r12</span><span class="se">\n</span><span class="s">&quot;</span>        <span class="c1">// store callee saved register</span>
+</span><span class='line'>  <span class="s">&quot;  subq $30008, %rsp</span><span class="se">\n</span><span class="s">&quot;</span> <span class="c1">// allocate 30,008 B on stack, and realign</span>
+</span><span class='line'>  <span class="s">&quot;  leaq (%rsp), %rdi</span><span class="se">\n</span><span class="s">&quot;</span> <span class="c1">// address of beginning of tape</span>
+</span><span class='line'>  <span class="s">&quot;  movl $0, %esi</span><span class="se">\n</span><span class="s">&quot;</span>     <span class="c1">// fill with 0&#39;s</span>
+</span><span class='line'>  <span class="s">&quot;  movq $30000, %rdx</span><span class="se">\n</span><span class="s">&quot;</span> <span class="c1">// length 30,000 B</span>
+</span><span class='line'>  <span class="s">&quot;  call _memset</span><span class="se">\n</span><span class="s">&quot;</span>      <span class="c1">// memset</span>
+</span><span class='line'>  <span class="s">&quot;  movq %rsp, %r12&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="n">puts</span><span class="p">(</span><span class="n">prologue</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>During the linking phase, we&rsquo;ll make sure to link in libc so we can call
+memset.  What we&rsquo;re doing is backing up callee saved registers we&rsquo;ll be using,
+stack allocating the tape, realigning the stack (<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #1</a>), copying
+the address of the only item on the stack into a register for our first
+argument, setting the second argument to the constant <code>0</code>, the third arg to
+<code>30000</code>, then calling memset.  Finally, we use the callee saved register %r12
+as our instruction pointer, which is the address into a value on the stack.</p>
+
+<p>We
+can expect the call to memset to result in a segfault if simply subtract just
+30000B, and not realign for the 2 registers (64 b each, 8 B each) we pushed on
+the stack.  The first pushed register aligns the stack on a 16 B boundary, the
+second misaligns it; that&rsquo;s why we allocate an additional 8 B on the stack
+(<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #1</a>).  The stack is mis-aligned upon function entry in x86-64.
+30000 is a multiple of 16.</p>
+
+<p><img class="center" src="/images/compiler_stack_alignment.png"></p>
+
+<p>Moving the instruction pointer (<code>&gt;</code>, <code>&lt;</code>) and modifying the pointed to value
+(<code>+</code>, <code>-</code>) are straight-forward:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span>:
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  inc %r12&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;&lt;&#39;</span>:
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  dec %r12&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;+&#39;</span>:
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  incb (%r12)&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;-&#39;</span>:
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  decb (%r12)&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For output, <code>.</code>, we need to copy the pointed to byte into the register for the
+first argument to putchar.  We
+explicitly zero out the register before calling putchar, since it takes an int
+(32 b), but we&rsquo;re only copying a char (8 b) (Look up C&rsquo;s type promotion rules for more info).  x86-64 has an instruction that does both, movzXX, Where the first X is the source size (b, w) and the second is the destination size (w, l, q).  Thus movzbl moves a <strong>b</strong>yte (8 b) into a doub<strong>l</strong>e word (32 b).  %rdi and %edi are the same register, but %rdi is the full
+64 b register, while %edi is the lowest (or least significant) 32 b.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;.&#39;</span>:
+</span><span class='line'>  <span class="c1">// move byte to double word and zero upper bits since putchar takes an</span>
+</span><span class='line'>  <span class="c1">// int.</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  movzbl (%r12), %edi&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  call _putchar&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Input (<code>,</code>) is easy; call getchar, move the resulting lowest byte into the cell
+pointed to by the instruction pointer.  %al is the lowest 8 b of the 64 b %rax register.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;,&#39;</span>:
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  call _getchar&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  movb %al, (%r12)&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As usual, the looping constructs (<code>[</code> &amp; <code>]</code>) are much more work.  We have to
+match up jumps to matching labels, but for an assembly program, labels must be
+unique.  One way we can solve for this is whenever we encounter an opening
+brace, push a monotonically increasing number that represents the numbers of
+opening brackets we&rsquo;ve seen so far onto a stack like data structure.  Then, we
+do our comparison and jump to what will be the label that should be produced by
+the matching close label.  Next, we insert our starting label, and finally
+increment the number of brackets seen.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;[&#39;</span>:
+</span><span class='line'>  <span class="n">stack_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">stack</span><span class="p">,</span> <span class="n">num_brackets</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  cmpb $0, (%r12)&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;  je bracket_%d_end</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">num_brackets</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;bracket_%d_start:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">num_brackets</span><span class="o">++</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For close brackets, we pop the number of brackets seen (or rather, number of
+pending open brackets which we have yet to see a matching close bracket) off of
+the stack, do our comparison, jump to the matching start label, and finally
+place our end label.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;]&#39;</span>:
+</span><span class='line'>  <span class="n">stack_pop</span><span class="p">(</span><span class="o">&amp;</span><span class="n">stack</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">matching_bracket</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  cmpb $0, (%r12)&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;  jne bracket_%d_start</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">matching_bracket</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;bracket_%d_end:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">matching_bracket</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So for sequential loops (<code>[][]</code>) we can expect the relevant assembly to look
+like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'>  <span class="nf">cmpb</span> <span class="no">$0</span><span class="p">,</span> <span class="p">(</span><span class="nv">%r12</span><span class="p">)</span>
+</span><span class='line'>  <span class="nf">je</span> <span class="no">bracket_0_end</span>
+</span><span class='line'><span class="nl">bracket_0_start:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nf">cmpb</span> <span class="no">$0</span><span class="p">,</span> <span class="p">(</span><span class="nv">%r12</span><span class="p">)</span>
+</span><span class='line'>  <span class="nf">jne</span> <span class="no">bracket_0_start</span>
+</span><span class='line'><span class="nl">bracket_0_end:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nf">cmpb</span> <span class="no">$0</span><span class="p">,</span> <span class="p">(</span><span class="nv">%r12</span><span class="p">)</span>
+</span><span class='line'>  <span class="nf">je</span> <span class="no">bracket_1_end</span>
+</span><span class='line'><span class="nl">bracket_1_start:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nf">cmpb</span> <span class="no">$0</span><span class="p">,</span> <span class="p">(</span><span class="nv">%r12</span><span class="p">)</span>
+</span><span class='line'>  <span class="nf">jne</span> <span class="no">bracket_1_start</span>
+</span><span class='line'><span class="nl">bracket_1_end:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and for nested loops (<code>[[]]</code>), we can expect assembly like the following (note
+the difference in the order of numbered start and end labels):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'>  <span class="nf">cmpb</span> <span class="no">$0</span><span class="p">,</span> <span class="p">(</span><span class="nv">%r12</span><span class="p">)</span>
+</span><span class='line'>  <span class="nf">je</span> <span class="no">bracket_0_end</span>
+</span><span class='line'><span class="nl">bracket_0_start:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nf">cmpb</span> <span class="no">$0</span><span class="p">,</span> <span class="p">(</span><span class="nv">%r12</span><span class="p">)</span>
+</span><span class='line'>  <span class="nf">je</span> <span class="no">bracket_1_end</span>
+</span><span class='line'><span class="nl">bracket_1_start:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nf">cmpb</span> <span class="no">$0</span><span class="p">,</span> <span class="p">(</span><span class="nv">%r12</span><span class="p">)</span>
+</span><span class='line'>  <span class="nf">jne</span> <span class="no">bracket_1_start</span>
+</span><span class='line'><span class="nl">bracket_1_end:</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="nf">cmpb</span> <span class="no">$0</span><span class="p">,</span> <span class="p">(</span><span class="nv">%r12</span><span class="p">)</span>
+</span><span class='line'>  <span class="nf">jne</span> <span class="no">bracket_0_start</span>
+</span><span class='line'><span class="nl">bracket_0_end:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, we need an epilogue to clean up the stack and callee saved registers
+after ourselves.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="k">const</span> <span class="n">epilogue</span> <span class="o">=</span>
+</span><span class='line'>  <span class="s">&quot;  addq $30008, %rsp</span><span class="se">\n</span><span class="s">&quot;</span> <span class="c1">// clean up tape from stack.</span>
+</span><span class='line'>  <span class="s">&quot;  popq %r12</span><span class="se">\n</span><span class="s">&quot;</span> <span class="c1">// restore callee saved register</span>
+</span><span class='line'>  <span class="s">&quot;  popq %rbp</span><span class="se">\n</span><span class="s">&quot;</span>
+</span><span class='line'>  <span class="s">&quot;  ret</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="n">puts</span><span class="p">(</span><span class="n">epilogue</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The compiler is a pain when modifying and running a Brainfuck
+program; it takes a couple extra commands to compile the Brainfuck program to
+assembly, assemble the assembly into an object file, link it into an
+executable, and run it whereas with the interpreter we can just run it.  The
+trade off is that the compiled version is quite a bit faster.  How much faster?
+Let&rsquo;s save that for later.</p>
+
+<p>Wouldn&rsquo;t it be nice if there was a translation &amp; execution technique that
+didn&rsquo;t force us to compile our code every time we changed it and wanted to run
+it, but also performance closer to that of compiled code?  That&rsquo;s where a JIT
+compiler comes in!</p>
+
+<p>For the basics of JITing code, make sure you read <a href="/blog/2013/04/03/basic-jit/">my previous article on the basics of JITing code in C</a>.  We&rsquo;re going to follow the same technique of
+creating executable memory, copying bytes into that memory, casting it to a
+function pointer, then calling it.  Just like the interpreter and the compiler,
+we&rsquo;re going to do a unique action for each recognized token.  What&rsquo;s different is
+that for each operator, we&rsquo;re going to push opcodes into a dynamic array, that
+way it can grow based on our sequential reading of input and will simplify our calculation of relative offsets for branching operations.</p>
+
+<p>The other special thing we&rsquo;re going to do it that we&rsquo;re going to pass
+the address of our libc functions (memset, putchar, and getchar) into our
+JIT&#8217;ed function at runtime.  This avoids those kooky stub functions you might
+see in a disassembled executable.  That means we&rsquo;ll be invoking our JIT&#8217;ed
+function like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">typedef</span> <span class="kt">void</span><span class="o">*</span> <span class="nf">fn_memset</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">,</span> <span class="kt">int</span><span class="p">,</span> <span class="kt">size_t</span><span class="p">);</span>
+</span><span class='line'><span class="k">typedef</span> <span class="kt">int</span> <span class="nf">fn_putchar</span> <span class="p">(</span><span class="kt">int</span><span class="p">);</span>
+</span><span class='line'><span class="k">typedef</span> <span class="kt">int</span> <span class="nf">fn_getchar</span> <span class="p">();</span>
+</span><span class='line'><span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">jitted_func</span><span class="p">)</span> <span class="p">(</span><span class="n">fn_memset</span><span class="p">,</span> <span class="n">fn_putchar</span><span class="p">,</span> <span class="n">fn_getchar</span><span class="p">)</span> <span class="o">=</span> <span class="n">mem</span><span class="p">;</span>
+</span><span class='line'><span class="n">jitted_func</span><span class="p">(</span><span class="n">memset</span><span class="p">,</span> <span class="n">putchar</span><span class="p">,</span> <span class="n">getchar</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Where mem is our mmap&#8217;ed executable memory with our opcodes copied into it, and
+the typedef&rsquo;s are for the respective function signatures for our function
+pointers we&rsquo;ll be passing to our JIT&#8217;ed code.  We&rsquo;re kind of getting ahead of
+ourselves, but knowing how we will invoke the dynamically created executable
+code will give us an idea of how the code itself will work.</p>
+
+<p>The prologue is quite a bit involved, so we&rsquo;ll take it step at a time.  First,
+we have the usual prologue:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">char</span> <span class="n">prologue</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="mh">0x55</span><span class="p">,</span> <span class="c1">// push rbp</span>
+</span><span class='line'>  <span class="mh">0x48</span><span class="p">,</span> <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xE5</span><span class="p">,</span> <span class="c1">// mov rsp, rbp</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then we want to back up our callee saved registers that we&rsquo;ll be using.  Expect horrific and difficult to debug bugs if you forget to do this.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'>  <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x54</span><span class="p">,</span> <span class="c1">// pushq %r12</span>
+</span><span class='line'>  <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x55</span><span class="p">,</span> <span class="c1">// pushq %r13</span>
+</span><span class='line'>  <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x56</span><span class="p">,</span> <span class="c1">// pushq %r14</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this point, %rdi will contain the address of memset, %rsi will contain the
+address of putchar, and %rdx will contain the address of getchar, see
+<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #2</a>.  We want to store these in callee saved registers before
+calling any of them, else they may clobber %rdi, %rsi, or %rdx since they&rsquo;re
+not &ldquo;callee saved,&rdquo; rather &ldquo;call clobbered.&rdquo;  See <a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #4</a>.</p>
+
+<p><img class="center" src="/images/prologue1.png"></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'>  <span class="mh">0x49</span><span class="p">,</span> <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xFC</span><span class="p">,</span> <span class="c1">// movq %rdi, %r12</span>
+</span><span class='line'>  <span class="mh">0x49</span><span class="p">,</span> <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xF5</span><span class="p">,</span> <span class="c1">// movq %rsi, %r13</span>
+</span><span class='line'>  <span class="mh">0x49</span><span class="p">,</span> <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xD6</span><span class="p">,</span> <span class="c1">// movq %rdx, %r14</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>At this point, %r12 will contain the address of memset, %r13 will contain the
+address of putchar, and %r14 will contain the address of getchar.</p>
+
+<p><img class="center" src="/images/prologue2.png"></p>
+
+<p>Next up is allocating 30008 B on the stack:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'>  <span class="mh">0x48</span><span class="p">,</span> <span class="mh">0x81</span><span class="p">,</span> <span class="mh">0xEC</span><span class="p">,</span> <span class="mh">0x38</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="c1">// subq $30008, %rsp</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is our first hint at how numbers, whose value is larger than the maximum
+representable value in a byte, are represented on x86-64.  Where in this
+instruction is the value 30008?  The answer is the 4 byte sequence
+<code>0x38, 0x75, 0x00, 0x00</code>.  The x86-64 architecture is &ldquo;Little Endian,&rdquo; which
+means that the least significant bit (LSB) is first and the most significant
+bit (MSB) is last.  When humans do math, they typically represent numbers the
+other way, or “Big Endian.”  Thus we write decimal ten as &ldquo;10&rdquo; and not &ldquo;01.&rdquo;
+So that means that <code>0x38, 0x75, 0x00, 0x00</code> in Little Endian is
+<code>0x00, 0x00, 0x75, 0x38</code> in Big Endian, which then is
+<code>7*16^3+5*16^2+3*16^1+8*16^0</code>
+which is <code>30008</code> in decimal, the amount of bytes we want to subtract from the
+stack. We&rsquo;re allocating an additional 8 B on the stack for alignment
+requirements, similar to the compiler.  By pushing even numbers of 64 b
+registers, we need to realign our stack pointer.</p>
+
+<p><img class="center" src="/images/prologue3.png"></p>
+
+<p>Next in the prologue, we set up and call memset:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'>  <span class="c1">// address of beginning of tape</span>
+</span><span class='line'>  <span class="mh">0x48</span><span class="p">,</span> <span class="mh">0x8D</span><span class="p">,</span> <span class="mh">0x3C</span><span class="p">,</span> <span class="mh">0x24</span><span class="p">,</span> <span class="c1">// leaq (%rsp), %rdi</span>
+</span><span class='line'>  <span class="c1">// fill with 0&#39;s</span>
+</span><span class='line'>  <span class="mh">0xBE</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="c1">// movl $0, %esi</span>
+</span><span class='line'>  <span class="c1">// length 30,000 B</span>
+</span><span class='line'>  <span class="mh">0x48</span><span class="p">,</span> <span class="mh">0xC7</span><span class="p">,</span> <span class="mh">0xC2</span><span class="p">,</span> <span class="mh">0x30</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="c1">// movq $30000, %rdx</span>
+</span><span class='line'>  <span class="c1">// memset</span>
+</span><span class='line'>  <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0xFF</span><span class="p">,</span> <span class="mh">0xD4</span><span class="p">,</span> <span class="c1">// callq *%r12</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After invoking memset, %rdi, %rsi, &amp; %rcx will contain garbage values since
+they are &ldquo;call clobbered&rdquo; registers.  At this point we no longer need memset,
+so we now use %r12 as our instruction pointer.  %rsp will point to the top
+(technically the bottom) of the stack, which is the beginning of our memset&#8217;ed
+tape.  That&rsquo;s the end of our prologue.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'>  <span class="mh">0x49</span><span class="p">,</span> <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xE4</span> <span class="c1">// movq %rsp, %r12</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img class="center" src="/images/prologue4.png"></p>
+
+<p>We can then push our prologue into our dynamic array implementation:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">prologue</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">prologue</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we iterate over our Brainfuck program and switch on the operations again.
+For pointer increment and decrement, we just nudge %r12.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span>:
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="kt">char</span> <span class="n">opcodes</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="mh">0x49</span><span class="p">,</span> <span class="mh">0xFF</span><span class="p">,</span> <span class="mh">0xC4</span> <span class="c1">// inc %r12</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">opcodes</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">opcodes</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;&lt;&#39;</span>:
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="kt">char</span> <span class="n">opcodes</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="mh">0x49</span><span class="p">,</span> <span class="mh">0xFF</span><span class="p">,</span> <span class="mh">0xCC</span> <span class="c1">// dec %r12</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">opcodes</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">opcodes</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That extra fun block in the switch statement is because in C/C++, we <a href="http://stackoverflow.com/a/8550253/1027966">can&rsquo;t
+define variables in the branches of switch statements</a>.</p>
+
+<p>Pointer deref then increment/decrement are equally uninspiring:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;+&#39;</span>:
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="kt">char</span> <span class="n">opcodes</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0xFE</span><span class="p">,</span> <span class="mh">0x04</span><span class="p">,</span> <span class="mh">0x24</span> <span class="c1">// incb (%r12)</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">opcodes</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">opcodes</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;-&#39;</span>:
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="kt">char</span> <span class="n">opcodes</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0xFE</span><span class="p">,</span> <span class="mh">0x0C</span><span class="p">,</span> <span class="mh">0x24</span> <span class="c1">// decv (%r12)</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">opcodes</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">opcodes</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I/O might be interesting, but in x86-64 we have an opcode for calling the
+function at the end of a pointer.  %r13 contains the address of putchar while
+%r14 contains the address of getchar.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;.&#39;</span>:
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="kt">char</span> <span class="n">opcodes</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x0F</span><span class="p">,</span> <span class="mh">0xB6</span><span class="p">,</span> <span class="mh">0x3C</span><span class="p">,</span> <span class="mh">0x24</span><span class="p">,</span> <span class="c1">// movzbl (%r12), %edi</span>
+</span><span class='line'>      <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0xFF</span><span class="p">,</span> <span class="mh">0xD5</span> <span class="c1">// callq *%r13</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">opcodes</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">opcodes</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="k">case</span> <span class="sc">&#39;,&#39;</span>:
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="kt">char</span> <span class="n">opcodes</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0xFF</span><span class="p">,</span> <span class="mh">0xD6</span><span class="p">,</span> <span class="c1">// callq *%r14</span>
+</span><span class='line'>      <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x88</span><span class="p">,</span> <span class="mh">0x04</span><span class="p">,</span> <span class="mh">0x24</span> <span class="c1">// movb %al, (%r12)</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">opcodes</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">opcodes</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now with our looping constructs, we get to the fun part.  With the compiler, we
+deferred the concept of &ldquo;relocation&rdquo; to the assembler.  We simply emitted
+labels, that the assembler turned into relative offsets (jumps by values
+relative to the last byte in the jump instruction).  We&rsquo;ve found ourselves in a
+Catch-22 though: how many bytes forward do we jump to the matching close
+bracket that we haven&rsquo;t seen yet?</p>
+
+<p>Normally, an assembler might have a data structure known as a
+&ldquo;relocation table.&rdquo;  It keeps track of the first byte after a label and jumps,
+rewriting jumps-to-labels (which aren&rsquo;t kept around in the resulting binary
+executable) to relative jumps.  Spidermonkey, Firefox&rsquo;s JavaScript Virtual
+Machine has two classes for this, <a href="http://mxr.mozilla.org/mozilla-central/source/js/src/jit/MacroAssembler.cpp">MacroAssembler</a> and <a href="http://mxr.mozilla.org/mozilla-central/source/js/src/jit/Label.h">Label</a>.  Spidermonkey
+embeds a linked list in the opcodes it generates for jumps with which it&rsquo;s yet
+to see a label for.  Once it finds the label, it walks the linked list (which
+itself is embedded in the emitted instruction stream) patching up these
+locations as it goes.</p>
+
+<p>For Brainfuck, we don&rsquo;t have to anything quite as fancy since each label only
+ends up having one jump site.  Instead, we can use a stack of integers that are
+offsets into our dynamic array, and do the relocation once we know where
+exactly we&rsquo;re jumping to.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;[&#39;</span>:
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="kt">char</span> <span class="n">opcodes</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x80</span><span class="p">,</span> <span class="mh">0x3C</span><span class="p">,</span> <span class="mh">0x24</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="c1">// cmpb $0, (%r12)</span>
+</span><span class='line'>      <span class="c1">// Needs to be patched up</span>
+</span><span class='line'>      <span class="mh">0x0F</span><span class="p">,</span> <span class="mh">0x84</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span> <span class="c1">// je &lt;32b relative offset, 2&#39;s compliment, LE&gt;</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">opcodes</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">opcodes</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="n">stack_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">relocation_table</span><span class="p">,</span> <span class="n">instruction_stream</span><span class="p">.</span><span class="n">size</span><span class="p">);</span> <span class="c1">// create a label after</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>First we push the compare and jump opcodes, but for now we leave the relative
+offset blank (four zero bytes).  We will come back and patch it up later.
+Then, we push the current length of dynamic array, which just so happens to be
+the offset into the instruction stream of the next instruction.</p>
+
+<p>All of the relocation magic happens in the case for the closing bracket.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;]&#39;</span>:
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="kt">char</span> <span class="n">opcodes</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x80</span><span class="p">,</span> <span class="mh">0x3C</span><span class="p">,</span> <span class="mh">0x24</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="c1">// cmpb $0, (%r12)</span>
+</span><span class='line'>      <span class="c1">// Needs to be patched up</span>
+</span><span class='line'>      <span class="mh">0x0F</span><span class="p">,</span> <span class="mh">0x85</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span> <span class="c1">// jne &lt;33b relative offset, 2&#39;s compliment, LE&gt;</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">opcodes</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">opcodes</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="c1">// ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>First, we push our comparison and jump instructions into the dynamic array.
+We should know the relative offset we need to jump back to at this point, and
+thus don&rsquo;t need to push four empty bytes, but it makes the following math a
+little simpler, as were not done yet with this case.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'>  <span class="c1">// ...</span>
+</span><span class='line'>  <span class="n">stack_pop</span><span class="p">(</span><span class="o">&amp;</span><span class="n">relocation_table</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">relocation_site</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">relative_offset</span> <span class="o">=</span> <span class="n">instruction_stream</span><span class="p">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">relocation_site</span><span class="p">;</span>
+</span><span class='line'>  <span class="c1">// ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img class="center" src="/images/relative_jump_unknown.png"></p>
+
+<p>We pop the matching offset into the dynamic array (from the matching open
+bracket), and calculate the difference from the current size of the instruction
+stream to the matching offset to get our relative offset.  What&rsquo;s interesting
+is that this offset is equal in magnitude for the forward and backwards jumps
+that we now need to patch up.  We simply go back in our instruction stream 4 B,
+and write that relative offset negated as a 32 b LE number (patching our
+backwards jump), then go back to the site of our forward jump minus 4 B and
+write that relative offset as a 32 b LE number (patching our forwards jump).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'>  <span class="c1">// ...</span>
+</span><span class='line'>  <span class="n">vector_write32LE</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">instruction_stream</span><span class="p">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="n">relative_offset</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">vector_write32LE</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">relocation_site</span> <span class="o">-</span> <span class="mi">4</span><span class="p">,</span> <span class="n">relative_offset</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Thus, when writing a JIT, one must worry about manual relocation.  From the
+<a href="http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.pdf">Intel 64 and IA-32 Architectures Software Developer’s Manual Volume 2 (2A, 2B &amp; 2C): Instruction Set Reference, A-Z</a> &ldquo;A relative offset
+(rel8, rel16, or rel32) is generally specified as a label in assembly code, but
+at the machine code level, it is encoded as a signed, 8-bit or 32-bit immediate
+value, which is added to the instruction pointer.&rdquo;</p>
+
+<p>The last thing we push onto our instruction stream is clean up code in the
+epilogue.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">char</span> <span class="n">epilogue</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="mh">0x48</span><span class="p">,</span> <span class="mh">0x81</span><span class="p">,</span> <span class="mh">0xC4</span><span class="p">,</span> <span class="mh">0x38</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="c1">// addq $30008, %rsp</span>
+</span><span class='line'>  <span class="c1">// restore callee saved registers</span>
+</span><span class='line'>  <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x5E</span><span class="p">,</span> <span class="c1">// popq %r14</span>
+</span><span class='line'>  <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x5D</span><span class="p">,</span> <span class="c1">// popq %r13</span>
+</span><span class='line'>  <span class="mh">0x41</span><span class="p">,</span> <span class="mh">0x5C</span><span class="p">,</span> <span class="c1">// popq %r12</span>
+</span><span class='line'>  <span class="mh">0x5d</span><span class="p">,</span> <span class="c1">// pop rbp</span>
+</span><span class='line'>  <span class="mh">0xC3</span> <span class="c1">// ret</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">epilogue</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">epilogue</span><span class="p">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A dynamic array of bytes isn&rsquo;t really useful, so we need to create executable
+memory the size of the current instruction stream and copy all of the machine
+opcodes into it, cast it to a function pointer, call it, and finally clean up:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span><span class="o">*</span> <span class="n">mem</span> <span class="o">=</span> <span class="n">mmap</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="n">instruction_stream</span><span class="p">.</span><span class="n">size</span><span class="p">,</span> <span class="n">PROT_WRITE</span> <span class="o">|</span> <span class="n">PROT_EXEC</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">MAP_ANON</span> <span class="o">|</span> <span class="n">MAP_PRIVATE</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="n">memcpy</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="n">instruction_stream</span><span class="p">.</span><span class="n">data</span><span class="p">,</span> <span class="n">instruction_stream</span><span class="p">.</span><span class="n">size</span><span class="p">);</span>
+</span><span class='line'><span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">jitted_func</span><span class="p">)</span> <span class="p">(</span><span class="n">fn_memset</span><span class="p">,</span> <span class="n">fn_putchar</span><span class="p">,</span> <span class="n">fn_getchar</span><span class="p">)</span> <span class="o">=</span> <span class="n">mem</span><span class="p">;</span>
+</span><span class='line'><span class="n">jitted_func</span><span class="p">(</span><span class="n">memcpy</span><span class="p">,</span> <span class="n">putchar</span><span class="p">,</span> <span class="n">getchar</span><span class="p">);</span>
+</span><span class='line'><span class="n">munmap</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="n">instruction_stream</span><span class="p">.</span><span class="n">size</span><span class="p">);</span>
+</span><span class='line'><span class="n">vector_destroy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note: we could have used the instruction stream rewinding technique to move the address of memset, putchar, and getchar as 64 b immediate values into %r12-%r14, which would have <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/pull/6/files">simplified our JIT&rsquo;d function&rsquo;s type signature</a>.</p>
+
+<p>Compile that, and we now have <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/jit.c">a function that will JIT compile and execute Brainfuck in roughly 141 SLOC</a>.  And, we can make changes to our Brainfuck program and not have to recompile it like we did with the Brainfuck compiler.</p>
+
+<p>Hopefully it&rsquo;s becoming apparent how similar an interpreter, compiler, and JIT
+behave.  In the interpreter, we immediately execute some operation.  In the
+compiler, we emit the equivalent text based assembly instructions corresponding
+to what the higher level language might get translated to in the interpreter.
+In the JIT, we emit the binary opcodes into executable memory and manually
+perform relocation, where the binary opcodes are equivalent to the text based
+assembly we might emit in the compiler.  A production ready JIT would probably have macros for each operation in the JIT would perform, so the code would look more like the compiler rather than raw arrays of bytes (though the preprocessor would translate those macros into such).  The entire process is basically disassembling C code with <code>gobjdump -S -M suffix a.out</code>, and punching in hex like one would a Gameshark.</p>
+
+<p>Compare pointer incrementing from the three:</p>
+
+<p>Interpreter:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span>: <span class="o">++</span><span class="n">ptr</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Compiler:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span>:
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;  inc %r12&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>JIT:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span>:
+</span><span class='line'>  <span class="p">{</span>
+</span><span class='line'>    <span class="kt">char</span> <span class="n">opcodes</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="mh">0x49</span><span class="p">,</span> <span class="mh">0xFF</span><span class="p">,</span> <span class="mh">0xC4</span> <span class="c1">// inc %r12</span>
+</span><span class='line'>    <span class="p">};</span>
+</span><span class='line'>    <span class="n">vector_push</span><span class="p">(</span><span class="o">&amp;</span><span class="n">instruction_stream</span><span class="p">,</span> <span class="n">opcodes</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">opcodes</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">break</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or compare the full sources of the <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/interpreter.c">the interpreter</a>, <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/compiler.c">the compiler</a>, and <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/jit.c">the JIT</a>. Each at ~100 lines of code should be fairly easy to digest.</p>
+
+<p>Let&rsquo;s now examine the performance of these three.  One of the longer running
+Brainfuck programs I can find is <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/samples/mandelbrot.b">one that prints the Mandelbrot set as ASCII art to stdout</a>.</p>
+
+<p><video width='' height='' preload='none' controls poster=''><source src='/video/jit.mp4 ' ></video></p>
+
+<p>Running the UNIX command <code>time</code> on the interpreter, compiled
+result, and the JIT, we should expect numbers similar to:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="err">$</span> <span class="n">time</span> <span class="p">.</span><span class="o">/</span><span class="n">interpreter</span> <span class="p">..</span><span class="o">/</span><span class="n">samples</span><span class="o">/</span><span class="n">mandelbrot</span><span class="p">.</span><span class="n">b</span>
+</span><span class='line'><span class="mf">43.54</span><span class="n">s</span> <span class="n">user</span> <span class="mf">0.03</span><span class="n">s</span> <span class="n">system</span> <span class="mi">99</span><span class="o">%</span> <span class="n">cpu</span> <span class="mf">43.581</span> <span class="n">total</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span> <span class="p">.</span><span class="o">/</span><span class="n">compiler</span> <span class="p">..</span><span class="o">/</span><span class="n">samples</span><span class="o">/</span><span class="n">mandelbrot</span><span class="p">.</span><span class="n">b</span> <span class="o">&gt;</span> <span class="n">temp</span><span class="p">.</span><span class="n">s</span><span class="p">;</span> <span class="p">..</span><span class="o">/</span><span class="n">assemble</span><span class="p">.</span><span class="n">sh</span> <span class="n">temp</span><span class="p">.</span><span class="n">s</span><span class="p">;</span> <span class="n">time</span> <span class="p">.</span><span class="o">/</span><span class="n">a</span><span class="p">.</span><span class="n">out</span>
+</span><span class='line'><span class="mf">3.24</span><span class="n">s</span> <span class="n">user</span> <span class="mf">0.01</span><span class="n">s</span> <span class="n">system</span> <span class="mi">99</span><span class="o">%</span> <span class="n">cpu</span> <span class="mf">3.254</span> <span class="n">total</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">$</span> <span class="n">time</span> <span class="p">.</span><span class="o">/</span><span class="n">jit</span> <span class="p">..</span><span class="o">/</span><span class="n">samples</span><span class="o">/</span><span class="n">mandelbrot</span><span class="p">.</span><span class="n">b</span>
+</span><span class='line'><span class="mf">3.27</span><span class="n">s</span> <span class="n">user</span> <span class="mf">0.01</span><span class="n">s</span> <span class="n">system</span> <span class="mi">99</span><span class="o">%</span> <span class="n">cpu</span> <span class="mf">3.282</span> <span class="n">total</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The interpreter is an order of magnitude slower than the compiled result or run
+of the JIT.  Then again, the interpreter isn&rsquo;t able to jump back and forth as
+efficiently as the compiler or JIT, since it scans back and forth for matching
+brackets O(N), while the other two can jump to where they need to go in a few instructions O(1).  A production interpreter would probably translate the higher level language to a byte code, and thus be able to calculate the offsets used for jumps directly, rather than scanning back and forth.</p>
+
+<p>The interpreter bounces back and forth between looking up an operation, then
+doing something based on the operation, then lookup, etc..  The compiler and JIT preform the translation first, then the execution, not interleaving the two.</p>
+
+<p>The compiled result is the fastest, as expected, since it doesn&rsquo;t have the
+overhead the JIT does of having to read the input file or build up the
+instructions to execute at runtime.  The compiler has read
+and translated the input file ahead of time.</p>
+
+<p>What if we take into account the
+time it takes to compile the source code, and run it?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="err">$</span> <span class="n">time</span> <span class="p">(.</span><span class="o">/</span><span class="n">compiler</span> <span class="p">..</span><span class="o">/</span><span class="n">samples</span><span class="o">/</span><span class="n">mandelbrot</span><span class="p">.</span><span class="n">b</span> <span class="o">&gt;</span> <span class="n">temp</span><span class="p">.</span><span class="n">s</span><span class="p">;</span> <span class="p">..</span><span class="o">/</span><span class="n">assemble</span><span class="p">.</span><span class="n">sh</span> <span class="n">temp</span><span class="p">.</span><span class="n">s</span><span class="p">;</span> <span class="p">.</span><span class="o">/</span><span class="n">a</span><span class="p">.</span><span class="n">out</span><span class="p">)</span>
+</span><span class='line'><span class="mf">3.27</span><span class="n">s</span> <span class="n">user</span> <span class="mf">0.08</span><span class="n">s</span> <span class="n">system</span> <span class="mi">99</span><span class="o">%</span> <span class="n">cpu</span> <span class="mf">3.353</span> <span class="n">total</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Including the time it takes to compile the code then run it, the compiled
+results are now slightly slower than the JIT (though I bet the multiple processes we start up are suspect), but with the JIT we pay the price
+to compile each and every time we run our code.  With the compiler, we pay that
+tax once.  When compilation time is cheap, as is the case with our Brainfuck
+compiler &amp; JIT, it makes sense to prefer the JIT; it allows us to quickly make
+changes to our code and re-run it.  When compilation is expensive, we might
+only want to pay the compilation tax once, especially if we plan on running the
+program repeatedly.</p>
+
+<p>JIT&rsquo;s are neat but compared to compilers can be more complex to
+implement.  They also repeatedly re-parse input files and re-build instruction
+streams at runtime. Where they can shine is bridging the gap for dynamically
+typed languages where the runtime itself is much more dynamic, and thus harder
+(if not, impossible) to optimize ahead of time.  Being able to jump into JIT&rsquo;d
+native code from an
+interpreter and back gives you the best of both (interpreted and compiled)
+worlds.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-05-25T08:35:00-07:00" pubdate data-updated="true">May 25<span>th</span>, 2015</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/brainfuck/'>Brainfuck</a>, <a class='category' href='/blog/categories/c/'>C</a>, <a class='category' href='/blog/categories/jit/'>JIT</a>, <a class='category' href='/blog/categories/compiler/'>compiler</a>, <a class='category' href='/blog/categories/in/'>in</a>, <a class='category' href='/blog/categories/interpreter/'>interpreter</a>, <a class='category' href='/blog/categories/just/'>just</a>, <a class='category' href='/blog/categories/time/'>time</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/" data-via="LostOracle" data-counturl="http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/02/22/public-key-crypto-code-example/" title="Previous Post: Hidden in Plain Sight - Public Key Crypto">&laquo; Hidden in Plain Sight - Public Key Crypto</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/" title="Next Post: Additional C/C++ Tooling">Additional C/C++ Tooling &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/">Intro to Debugging X86-64 Assembly</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/08/14/my-siggraph-2015-experience/">My SIGGRAPH 2015 Experience</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/">Additional C/C++ Tooling</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/05/25/interpreter-compiler-jit/">Interpreter, Compiler, JIT</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/22/public-key-crypto-code-example/">Hidden in Plain Sight - Public Key Crypto</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/';
+        var disqus_url = 'http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

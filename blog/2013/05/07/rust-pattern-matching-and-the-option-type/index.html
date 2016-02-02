@@ -1,0 +1,761 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Rust: Pattern Matching and the Option Type - Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="The other day I was thinking about the function for performing dynamic memory
+allocation in the C standard library, malloc. From the manual pages,
+If &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemy's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/about">About</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/">Blog</a></li>
+  <li><a href="/publications">Publications</a></li>
+  <li><a href="/talks">Talks</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Rust: Pattern Matching and the Option Type</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-07T18:41:00-07:00" pubdate data-updated="true">May 7<span>th</span>, 2013</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>The other day I was thinking about the function for performing dynamic memory
+allocation in the C standard library, malloc. From the manual pages,
+<code>If successful, the malloc() function returns a pointer to allocated memory.
+If there is an error, it
+returns a NULL pointer and sets errno to ENOMEM.</code> One of the most common errors
+when using malloc is not checking for allocation failure.  The allocation is not
+guaranteed to succeed and trying to use a NULL reference can lead to program
+crashes.</p>
+
+<p>So a common pattern we&rsquo;ll see is:</p>
+
+<figure class='code'><figcaption><span>C</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="n">nums</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">nums</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">// handle error</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>  <span class="o">*</span><span class="n">nums</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>
+</span><span class='line'>  <span class="c1">// operate on nums</span>
+</span><span class='line'>  <span class="n">free</span><span class="p">(</span><span class="n">nums</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">nums</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we allocated space for an integer, cast the <code>void*</code> returned from malloc
+to an <code>int*</code>, compared it against the <code>NULL</code> pointer, then freed the allocated
+memory and removed the reference.</p>
+
+<p>One of the big problems with the null pointer has to do with
+safely dereferencing it.  In C, dereferencing the null pointer is undefined
+and usually leads to a segfault and program crash.</p>
+
+<p>It can be so unsafe to work with null pointers that
+C. A. R. Hoare refers to them as his billion-dollar mistake:</p>
+
+<blockquote><p>I call it my billion-dollar mistake. It was the invention of the null reference in 1965. At that time, I was designing the first comprehensive type system for references in an object oriented language (ALGOL W). My goal was to ensure that all use of references should be absolutely safe, with checking performed automatically by the compiler. But I couldn&#8217;t resist the temptation to put in a null reference, simply because it was so easy to implement. This has led to innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years.</p><footer><strong>C.A.R. Hoare, InfoQ</strong> <cite><a href='http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare'>Null References: The Billion Dollar Mistake</a></cite></footer></blockquote>
+
+
+<p>So how do we represent the value of nothing?  With an integer, for example, your
+first instinct might be to use 0 to refer to no value.  But 0 <em>is</em> a value, so
+how do we represent the range of integer values but also whether there is a
+value or not?</p>
+
+<p>Rust, a systems programming language with a focus on safety and concurrency,
+does not have the concept of a null pointer.  Instead, it has a different
+construct to represent the absence of value, a whole other structure called an
+<a href="http://static.rust-lang.org/doc/core/option.html">Option<T></a>.  It is an
+<a href="http://static.rust-lang.org/doc/core/option.html#enum-option">enumerated type</a> that can
+either be None (no value) or Some(T) (a specialization of type T).</p>
+
+<p>So what the heck is an option type and how do we use it?  The option type is
+a polymorphic type (generic type that can be specialized) that encapsulates
+either an empty constructor or the constructor of the original data type.  Let&rsquo;s
+take a trip down the rabbit hole to see how we use one.  First, let&rsquo;s look at
+some C++ code, and then translate it to Rust.</p>
+
+<figure class='code'><figcaption><span>option.cpp</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="cp">#include &lt;iostream&gt; </span><span class="c1">// cout, endl</span>
+</span><span class='line'><span class="cp">#include &lt;stdlib.h&gt; </span><span class="c1">// rand</span>
+</span><span class='line'><span class="cp">#include &lt;time.h&gt; </span><span class="c1">// time</span>
+</span><span class='line'><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// If there is a &#39;random error&#39; returns NULL</span>
+</span><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">may_return_null</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">srand</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">?</span> <span class="k">new</span> <span class="kt">int</span><span class="p">(</span><span class="mi">666</span><span class="p">)</span> <span class="o">:</span> <span class="nb">NULL</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="n">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">// if else</span>
+</span><span class='line'>  <span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">x</span> <span class="o">=</span> <span class="n">may_return_null</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// switch</span>
+</span><span class='line'>    <span class="k">switch</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">case</span> <span class="mi">777</span><span class="o">:</span> <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Lucky Sevens&quot;</span>        <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">case</span> <span class="mi">666</span><span class="o">:</span> <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Number of the Beast&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">case</span> <span class="mi">42</span><span class="o">:</span> <span class="n">cout</span>  <span class="o">&lt;&lt;</span> <span class="s">&quot;Meaning of Life&quot;</span>     <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">default</span><span class="o">:</span> <span class="n">cout</span>  <span class="o">&lt;&lt;</span> <span class="s">&quot;Nothing special&quot;</span>     <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;No value&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// single if</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="mi">666</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Did I mention that Iron Maiden is my favorite band?&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s step through this program line by line, starting in main.</p>
+
+<figure class='code'><figcaption><span>Line 14</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">x</span> <span class="o">=</span> <span class="n">may_return_null</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we&rsquo;re calling a function that may return null, just like malloc!</p>
+
+<figure class='code'><figcaption><span>Lines 8-9</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">srand</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+</span><span class='line'><span class="k">return</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">?</span> <span class="k">new</span> <span class="kt">int</span><span class="p">(</span><span class="mi">666</span><span class="p">)</span> <span class="o">:</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the body of <code>may_return_null</code> we seed the random number generator, generate a random number, mod it by 2
+(so it can either be 0 or 1, 50-50 chance, hopefully), then either return a
+pointer pointing to memory allocated on the heap or the null pointer.  We also use the succinct
+ternary operator, which gives us the power of a conditional statement in the
+form of a concise expression.</p>
+
+<figure class='code'><figcaption><span>Line 15</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We check if the pointer is valid, that is that it is safe to use, as <code>NULL</code> is
+falsy in a C++ conditional.  If it is, then we can safely dereference it.  Let&rsquo;s
+switch on the (dereferenced) value.  Notice how we need to break to explicitly
+prevent fall through, though
+<a href="http://books.google.com/books?id=4vm2xK3yn34C&amp;pg=PA37&amp;lpg=PA38&amp;dq=expert+c+fallthrough&amp;source=bl&amp;ots=Ho98ZhXF9X&amp;sig=PebysT8-3zA_9B2aRkuvnz4mCmY&amp;hl=en&amp;sa=X&amp;ei=j8CJUdeWMerJiwLQmICoDw&amp;ved=0CC4Q6AEwAA#v=onepage&amp;q=expert%20c%20fallthrough&amp;f=false">97% of the time that&rsquo;s what you intend</a>.</p>
+
+<figure class='code'><figcaption><span>Lines 17-22</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">switch</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">case</span> <span class="mi">777</span><span class="o">:</span> <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Lucky Sevens&quot;</span>        <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">case</span> <span class="mi">666</span><span class="o">:</span> <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Number of the Beast&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">case</span> <span class="mi">42</span><span class="o">:</span> <span class="n">cout</span>  <span class="o">&lt;&lt;</span> <span class="s">&quot;Meaning of Life&quot;</span>     <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">default</span><span class="o">:</span> <span class="n">cout</span>  <span class="o">&lt;&lt;</span> <span class="s">&quot;Nothing special&quot;</span>     <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If the pointer was null, the else branch of the conditional would execute
+printing a different result.</p>
+
+<figure class='code'><figcaption><span>Line 24</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;No value&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally in we check the value pointed to.  Did I forget something here?  Save
+that thought, we&rsquo;ll come back to it.</p>
+
+<figure class='code'><figcaption><span>Lines 28-30</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="mi">666</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Did I mention that Iron Maiden is my favorite band?&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s see my rough translation of this program into Rust.</p>
+
+<figure class='code'><figcaption><span>option.rs</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">use</span> <span class="n">core</span><span class="o">::</span><span class="n">rand</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">may_return_none</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Option</span><span class="o">&lt;</span><span class="k">int</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">rand</span><span class="o">::</span><span class="n">Rng</span><span class="p">().</span><span class="n">next</span><span class="p">()</span> <span class="o">%</span> <span class="m">2</span> <span class="o">==</span> <span class="m">1</span> <span class="p">{</span> <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">None</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">x</span><span class="o">:</span> <span class="n">Option</span><span class="o">&lt;</span><span class="k">int</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">may_return_none</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">io</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="n">match</span> <span class="n">x</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="m">777</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Lucky Sevens&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Number of the Beast&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="m">422</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Meaning of Life&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Nothing special&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">None</span> <span class="o">=&gt;</span> <span class="s">&quot;No value&quot;</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">match</span> <span class="n">x</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">io</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="s">&quot;Did I mention that Iron Maiden is my favorite Band?&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="n">_</span> <span class="o">=&gt;</span> <span class="p">{}</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Both programs, when compiled <em>should</em> randomly print either:</p>
+
+<figure class='code'><figcaption><span>option.rs</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">No</span> <span class="n">Value</span>
+</span><span class='line'><span class="c1">// or</span>
+</span><span class='line'><span class="n">Number</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Beast</span>
+</span><span class='line'><span class="n">Did</span> <span class="n">I</span> <span class="n">mention</span> <span class="n">that</span> <span class="n">Iron</span> <span class="n">Maiden</span> <span class="n">is</span> <span class="n">my</span> <span class="n">favorite</span> <span class="n">Band</span><span class="o">?</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now let&rsquo;s walk through the Rust code, starting at main and compare it to the
+equivalent C++ code.</p>
+
+<figure class='code'><figcaption><span>option.rs Line 8</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">x</span><span class="o">:</span> <span class="n">Option</span><span class="o">&lt;</span><span class="k">int</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">may_return_none</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span>option.cpp Line 14</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">x</span> <span class="o">=</span> <span class="n">may_return_null</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I read this Rust code as &lsquo;let x be type Option,
+specialized to type int initialized
+to the return value of may_return_none.&rsquo;  I read the C++ as &lsquo;x is a const pointer
+to a const integer initialized to the return value of may_return_none.&rsquo;  It&rsquo;s
+important to note that values and pointers in Rust default to being immutable,
+where as in c++ they default to being mutable, which is why we need to be
+explicit about their const&#8217;ness.  In Rust, we could declare x as being explicitly
+mutable: <code>let mut x: ... = ...;</code>.  In both, we can also leave the explicit types
+to be inferred by the compiler.</p>
+
+<figure class='code'><figcaption><span>option.rs Line 4</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">if</span> <span class="n">rand</span><span class="o">::</span><span class="n">Rng</span><span class="p">().</span><span class="n">next</span><span class="p">()</span> <span class="o">%</span> <span class="m">2</span> <span class="o">==</span> <span class="m">1</span> <span class="p">{</span> <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">None</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span>option.cpp Lines 8-9</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">srand</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+</span><span class='line'><span class="k">return</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">?</span> <span class="k">new</span> <span class="kt">int</span><span class="p">(</span><span class="mi">666</span><span class="p">)</span> <span class="o">:</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now for the body of <code>may_return_none</code>.  Rust does not have a ternary operator,
+so a single line <code>if {} else {}</code> block will have to do.  We also don&rsquo;t need
+parentheses around the predicate in the conditional statement.  If we add them,
+no harm is done, as we&rsquo;d just be being redundant about order of operations.
+There
+are no semicolons in this expression, nor a return statement in this function.
+Rust will return the last expression in a function or method if the semicolon is
+left off.  Also there is no such thing as a conditional statement, only
+conditional expressions; the if is itself something that can be evaluated and
+assigned to a variable!  We see this later in the code where we pass the evaluation
+of a match expression directly into a call of <code>io::println</code>.
+Rust returns the evaluation of the if expression,
+which is the evaluation of the branch&rsquo;s block specified by the predicate,
+which will randomly be one of the two enumerated types of <code>Option&lt;int&gt;</code>, either
+an encapsulation of a int whose literal value is <code>666</code>, <code>Some&lt;666&gt;</code>, or
+the representation of no value, <code>None</code>.  I believe the RNG code has changed in 0.7,
+this code was written in 0.6.</p>
+
+<p>In Rust, to get the value out of an option type, we pattern match on it.  Pattern
+matching is something I became familiar with through the
+<a href="http://learnyouahaskell.com/syntax-in-functions#pattern-matching">Haskell</a> programming language.  Pattern
+matching is a powerful language construct that can entirely replace conditionals.
+In fact, the one line if expression could have been written using a match
+expression:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">if</span> <span class="n">rand</span><span class="o">::</span><span class="n">Rng</span><span class="p">().</span><span class="n">next</span><span class="p">()</span> <span class="o">%</span> <span class="m">2</span> <span class="o">==</span> <span class="m">1</span> <span class="p">{</span> <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">None</span> <span class="p">}</span>
+</span><span class='line'><span class="c1">// or</span>
+</span><span class='line'><span class="n">match</span> <span class="n">rand</span><span class="o">::</span><span class="n">Rng</span><span class="p">().</span><span class="n">next</span><span class="p">()</span> <span class="o">%</span> <span class="m">2</span> <span class="p">{</span> <span class="m">1</span> <span class="o">=&gt;</span> <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">),</span> <span class="n">_</span> <span class="o">=&gt;</span> <span class="n">None</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>The basic design pattern
+for accessing the value of an option type in Rust looks like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">match</span> <span class="n">x</span> <span class="p">{</span> <span class="c1">// x: Option&lt;T&gt;</span>
+</span><span class='line'>  <span class="n">Some</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="o">*</span><span class="n">y</span> <span class="p">},</span>
+</span><span class='line'>  <span class="n">None</span> <span class="o">=&gt;</span> <span class="p">{}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The curly braces are optional for one liners (no block needed).
+Pattern matches have to be exhaustive.  That means I have to exhaust all
+possibilities for what the deconstructed value could be.  You can use a branch
+that looks like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">_</span> <span class="o">=&gt;</span> <span class="err">&#39;</span><span class="n">everything</span> <span class="k">else</span><span class="err">&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to catch everything else.  The underscore here means &ldquo;every other possible case.&rdquo;
+So by having to use a match expression (also not a
+statement, as opposed to C++&rsquo;s switch statement), which itself must be exhaustive,
+Rust forces us to handle the case where the optional type is None!  This will
+help us again in the future.
+We also don&rsquo;t need parentheses around the predicate for the match expression, which
+in this case is just a single variable, <code>x</code>.</p>
+
+<p>In the value
+<code>Some(_)</code>, the underscore has an additional meaning here that we would not use a
+variable in the corresponding arm&rsquo;s block.  If we declared it as <code>Some(y)</code> we would get the warning:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">option</span><span class="p">.</span><span class="n">rs</span><span class="o">:</span><span class="m">14</span><span class="o">:</span><span class="m">9</span><span class="o">:</span> <span class="m">14</span><span class="o">:</span><span class="m">11</span> <span class="n">warning</span><span class="o">:</span> <span class="n">unused</span> <span class="n">variable</span><span class="o">:</span> <span class="err">`</span><span class="n">y</span><span class="err">`</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="n">rs</span><span class="o">:</span><span class="m">14</span>     <span class="n">Some</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Nothing special&quot;</span><span class="p">,</span>
+</span><span class='line'>                      <span class="o">^~</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I hope back in my C++ code you spotted the fatal flaw.  On line 28, I just
+dereferenced a raw pointer without checking its validity.  This is a violation
+of memory safety.</p>
+
+<figure class='code'><figcaption><span>option.cpp Line 28</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="mi">666</span><span class="p">)</span> <span class="p">{</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When running the C++ code, instead of seeing <code>No value</code> printed to stdout in the
+case of no value, a segfault occurs.</p>
+
+<figure class='code'><figcaption><span>option.cpp Line 28</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">No</span> <span class="n">value</span>
+</span><span class='line'><span class="p">[</span><span class="mi">1</span><span class="p">]</span>    <span class="mi">80265</span> <span class="n">segmentation</span> <span class="n">fault</span>  <span class="p">.</span><span class="o">/</span><span class="n">option</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What I should have done is something more like:</p>
+
+<figure class='code'><figcaption><span>Line 28 corrected</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="mi">666</span><span class="p">)</span> <span class="p">{</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But, the C++ compiler let me get away with not handling the case where the
+pointer was invalid (even if doing nothing in the case of &ldquo;handling&rdquo; it).  By
+leaving out the check for a valid pointer, I have instructed the machine to
+behave the same or follow the same code path with and without a reference to a
+valid memory location.  Let&rsquo;s see what happens when I don&rsquo;t handle the None case
+by deleting line 15 or option.rs, <code>None =&gt; "No value"</code>:</p>
+
+<figure class='code'><figcaption><span>Line 28 corrected</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">10</span><span class="o">:</span><span class="mi">14</span><span class="o">:</span> <span class="mi">16</span><span class="o">:</span><span class="mi">3</span> <span class="nl">error:</span> <span class="n">non</span><span class="o">-</span><span class="n">exhaustive</span> <span class="nl">patterns:</span> <span class="n">None</span> <span class="n">not</span> <span class="n">covered</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">10</span>   <span class="n">io</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="n">match</span> <span class="n">x</span> <span class="p">{</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">11</span>     <span class="n">Some</span><span class="p">(</span><span class="mi">777</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Lucky Sevens&quot;</span><span class="p">,</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">12</span>     <span class="n">Some</span><span class="p">(</span><span class="mi">666</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Number of the Beast&quot;</span><span class="p">,</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">13</span>     <span class="n">Some</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Meaning of Life&quot;</span><span class="p">,</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">14</span>     <span class="n">Some</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Nothing special&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Not only did the compiler prevent me from generating an executable, it told me
+that a pattern was not exhaustive, explicitly which one, and what case that was
+not covered.</p>
+
+<p>Coming back to encoding a lack of value for an int, we had left off that 0 <em>is</em>
+a valid value.  For instance, how should we represent any other integer divided
+by 0, as an integer?
+Signed integers use a single bit to store whether
+their value is positive or negative, the tradeoff being the signed integers
+represent up to one less power of two than unsigned integers.  Maybe we could use an
+additional bit to represent valid or invalid, but this would again cost us in
+terms of representable values.
+The IEEE 754 floating point representation has encodings for <a href="https://en.wikipedia.org/wiki/IEEE_floating_point#Formats">plus and minus
+Infinity, plus and minus 0, and two kinds of NaN</a>.
+To solve the validity problem, we can use enumerated types, which in Rust occur
+as specializations of the Option type.  It&rsquo;s up to the compiler to implement
+either additional information for the type, or use raw null pointers.  And to
+get the value back out of the Option type, we <em>must</em> handle the case where there
+is no valid value.</p>
+
+<p>The key takeaways that I wish to convey are:</p>
+
+<ol>
+<li>In C and C++, I can use NULL to refer to a pointer that has no value.</li>
+<li>A C/C++ compiler, such as clang, will allow me to compile code that violates
+memory safety, such as dereferencing NULL pointers.</li>
+<li>Rust instead uses Option types, an enumeration of a specialized type or None.</li>
+<li>Rust forces me to use a match statement to access the possible value of an
+Option type.</li>
+<li>Pattern matching in Rust must be exhaustive.</li>
+<li>The Rust compiler, rustc, forces me to handle the case where the pointer has
+no value, whereas the C++ compiler, clang++, did not.</li>
+<li>All conditional and switch statements can be replaced with pattern matching.</li>
+</ol>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-07T18:41:00-07:00" pubdate data-updated="true">May 7<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/c-plus-plus/'>C++</a>, <a class='category' href='/blog/categories/null-pointer/'>Null Pointer</a>, <a class='category' href='/blog/categories/option-type/'>Option Type</a>, <a class='category' href='/blog/categories/pattern-matching/'>Pattern Matching</a>, <a class='category' href='/blog/categories/rust/'>Rust</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type/" data-via="LostOracle" data-counturl="http://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/04/29/the-persistence-of-memory/" title="Previous Post: The Persistence of Memory">&laquo; The Persistence of Memory</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2013/06/13/8-months-in-mozilla/" title="Next Post: 8 Months in Mozilla">8 Months in Mozilla &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/">Intro to Debugging X86-64 Assembly</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/08/14/my-siggraph-2015-experience/">My SIGGRAPH 2015 Experience</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/">Additional C/C++ Tooling</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/05/25/interpreter-compiler-jit/">Interpreter, Compiler, JIT</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/22/public-key-crypto-code-example/">Hidden in Plain Sight - Public Key Crypto</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type/';
+        var disqus_url = 'http://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

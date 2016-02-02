@@ -1,0 +1,1047 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: in | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/in/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2016-02-02T09:52:16-08:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Interpreter, Compiler, JIT]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/"/>
+    <updated>2015-05-25T08:35:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit</id>
+    <content type="html"><![CDATA[<p>Interpreters and compilers are interesting programs, themselves used to run or
+translate other programs, respectively.  Those other programs that might be
+interpreted might be languages like JavaScript, Ruby, Python, PHP, and Perl.  The
+other programs that might be compiled are C, C++, and to some extent Java and
+C#.</p>
+
+<p>Taking the time to do translation to native machine code ahead of
+time can result in better performance at runtime, but an interpreter can get to work right away without spending any time translating.  There happens to be a sweet spot
+somewhere in between interpretation and compilation that combines the best of
+both worlds.  Such a technique
+is called Just In Time (JIT) compiling.  While interpreting, compiling, and JIT'ing code might sound radically different, they&rsquo;re actually strikingly similar.  In
+this post, I hope to show how similar by comparing the code for an interpreter,
+a compiler, and a JIT compiler for the language Brainfuck in around 100 lines
+of C code each.</p>
+
+<p>All of the code in the post is up on <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler">GitHub</a>.</p>
+
+<p><div class="embed-video-container"><iframe src="//www.youtube.com/embed/_C5AHaS1mOA" allowfullscreen></iframe></div></p>
+
+<p>Brainfuck is an interesting, if hard to read, language.  It only has eight
+operations it can perform <code>&gt; &lt; + - . , [ ]</code>, yet is Turing complete.  There&rsquo;s nothing really to
+lex; each character is a token, and if the token is not one of the eight
+operators, it&rsquo;s ignored.  There&rsquo;s also not much of a grammar to parse; the
+forward jumping and backwards jumping operators should be matched for well
+formed input, but that&rsquo;s about it.  In this post, we&rsquo;ll skip over validating
+input assuming well formed input so we can focus on the interpretation/code
+generation.  You can read more about it on the
+<a href="http://en.wikipedia.org/wiki/Brainfuck">Wikipedia page</a>,
+which we&rsquo;ll be using as a reference throughout.</p>
+
+<p>A Brainfuck program operates on a 30,000 element byte array initialized to all
+zeros.  It starts off with an instruction pointer, that initially points to the
+first element in the data array or &ldquo;tape.&rdquo;  In C code for an interpreter that
+might look like:</p>
+
+<p>```c
+// Initialize the tape with 30,000 zeroes.
+unsigned char tape [30000] = { 0 };</p>
+
+<p>// Set the pointer to point at the left most cell of the tape.
+unsigned char* ptr = tape;
+```</p>
+
+<p>Then, since we&rsquo;re performing an operation for each character in the Brainfuck
+source, we can have a for loop over every character with a nested switch
+statement containing case statements for each operator.</p>
+
+<p>The first two operators, <code>&gt;</code> and <code>&lt;</code> increment and decrement the data pointer.</p>
+
+<p><code>c
+case '&gt;': ++ptr; break;
+case '&lt;': --ptr; break;
+</code></p>
+
+<p>One thing that could be bad is that because the interpreter is written in C and
+we&rsquo;re representing the tape as an array but we&rsquo;re not validating our inputs,
+there&rsquo;s potential for stack buffer overrun since we&rsquo;re not performing bounds
+checks.  Again, punting and assuming well formed input to keep the code and the
+point more precise.</p>
+
+<p>Next up are the <code>+</code> and <code>-</code> operators, used for incrementing and decrementing
+the cell pointed to by the data pointer by one.
+<code>c
+case '+': ++(*ptr); break;
+case '-': --(*ptr); break;
+</code></p>
+
+<p>The operators <code>.</code> and <code>,</code> provide Brainfuck&rsquo;s only means of input or output, by
+writing the value pointed to by the instruction pointer to stdout as an ASCII
+value, or reading one byte from stdin as an ASCII value and writing it to the
+cell pointed to by the instruction pointer.</p>
+
+<p><code>c
+case '.': putchar(*ptr); break;
+case ',': *ptr = getchar(); break;
+</code></p>
+
+<p>Finally, our looping constructs, <code>[</code> and <code>]</code>.  From the definition on Wikipedia
+for <code>[</code>: <code>if the byte at the data pointer is zero, then instead of moving the
+instruction pointer forward to the next command, jump it forward to the command
+after the matching ] command</code> and for <code>]</code>: <code>if the byte at the data pointer is
+nonzero, then instead of moving the instruction pointer forward to the next
+command, jump it back to the command after the matching [ command.</code></p>
+
+<p>I interpret that as:</p>
+
+<p>```c
+case &lsquo;[&rsquo;:
+  if (!(*ptr)) {</p>
+
+<pre><code>int loop = 1;
+while (loop &gt; 0) {
+  unsigned char current_char = input[++i];
+  if (current_char == ']') {
+    --loop;
+  } else if (current_char == '[') {
+    ++loop;
+  }
+}
+</code></pre>
+
+<p>  }
+  break;
+case &lsquo;]&rsquo;:
+  if (*ptr) {</p>
+
+<pre><code>int loop = 1;
+while (loop &gt; 0) {
+  unsigned char current_char = input[--i];
+  if (current_char == '[') {
+    --loop;
+  } else if (current_char == ']') {
+    ++loop;
+  }
+}
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>Where the variable <code>loop</code> keeps track of open brackets for which we&rsquo;ve not seen
+a matching close bracket, aka our nested depth.</p>
+
+<p>So <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/interpreter.c">we can see the interpreter is quite basic</a>, in around 50 SLOC were able to
+read a byte, and immediately perform an action based on the operator.  How we
+perform that operation might not be the fastest though.</p>
+
+<p>How about if we want to compile the Brainfuck source code to native machine
+code?  Well, we need to know a little bit about our host machine&rsquo;s Instruction
+Set Architecture (ISA) and Application Binary Interface (ABI).  The rest of the
+code in this post will not be as portable as the above C code, since it assumes
+an x86-64 ISA and UNIX ABI.  Now would be a good time to <a href="/blog/2014/04/18/lets-write-some-x86-64/">take a detour and learn more about writing assembly for x86-64</a>.  The interpreter is even portable enough to <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler#emscripten">build with Emscripten and run in a browser</a>!</p>
+
+<p>For our compiler, we&rsquo;ll iterate over every character in the source file again,
+switching on the recognized operator.  This time, instead of performing an
+action right away, we&rsquo;ll print assembly instructions to stdout.  Doing so
+requires running the compiler on an input file, redirecting stdout to a file,
+then running the system assembler and linker on that file.  We&rsquo;ll stick with
+just compiling and not assembling (though it&rsquo;s not too difficult), and linking
+(for now).</p>
+
+<p>First, we need to print a prologue for our compiled code:</p>
+
+<p><code>c
+const char* const prologue =
+  ".text\n"
+  ".globl _main\n"
+  "_main:\n"
+  "  pushq %rbp\n"
+  "  movq %rsp, %rbp\n"
+  "  pushq %r12\n"        // store callee saved register
+  "  subq $30008, %rsp\n" // allocate 30,008 B on stack, and realign
+  "  leaq (%rsp), %rdi\n" // address of beginning of tape
+  "  movl $0, %esi\n"     // fill with 0's
+  "  movq $30000, %rdx\n" // length 30,000 B
+  "  call _memset\n"      // memset
+  "  movq %rsp, %r12";
+puts(prologue);
+</code></p>
+
+<p>During the linking phase, we&rsquo;ll make sure to link in libc so we can call
+memset.  What we&rsquo;re doing is backing up callee saved registers we&rsquo;ll be using,
+stack allocating the tape, realigning the stack (<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #1</a>), copying
+the address of the only item on the stack into a register for our first
+argument, setting the second argument to the constant <code>0</code>, the third arg to
+<code>30000</code>, then calling memset.  Finally, we use the callee saved register %r12
+as our instruction pointer, which is the address into a value on the stack.</p>
+
+<p>We
+can expect the call to memset to result in a segfault if simply subtract just
+30000B, and not realign for the 2 registers (64 b each, 8 B each) we pushed on
+the stack.  The first pushed register aligns the stack on a 16 B boundary, the
+second misaligns it; that&rsquo;s why we allocate an additional 8 B on the stack
+(<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #1</a>).  The stack is mis-aligned upon function entry in x86-64.
+30000 is a multiple of 16.</p>
+
+<p><img class="center" src="/images/compiler_stack_alignment.png"></p>
+
+<p>Moving the instruction pointer (<code>&gt;</code>, <code>&lt;</code>) and modifying the pointed to value
+(<code>+</code>, <code>-</code>) are straight-forward:</p>
+
+<p><code>c
+case '&gt;':
+  puts("  inc %r12");
+  break;
+case '&lt;':
+  puts("  dec %r12");
+  break;
+case '+':
+  puts("  incb (%r12)");
+  break;
+case '-':
+  puts("  decb (%r12)");
+  break;
+</code></p>
+
+<p>For output, <code>.</code>, we need to copy the pointed to byte into the register for the
+first argument to putchar.  We
+explicitly zero out the register before calling putchar, since it takes an int
+(32 b), but we&rsquo;re only copying a char (8 b) (Look up C&rsquo;s type promotion rules for more info).  x86-64 has an instruction that does both, movzXX, Where the first X is the source size (b, w) and the second is the destination size (w, l, q).  Thus movzbl moves a <strong>b</strong>yte (8 b) into a doub<strong>l</strong>e word (32 b).  %rdi and %edi are the same register, but %rdi is the full
+64 b register, while %edi is the lowest (or least significant) 32 b.</p>
+
+<p><code>c
+case '.':
+  // move byte to double word and zero upper bits since putchar takes an
+  // int.
+  puts("  movzbl (%r12), %edi");
+  puts("  call _putchar");
+  break;
+</code></p>
+
+<p>Input (<code>,</code>) is easy; call getchar, move the resulting lowest byte into the cell
+pointed to by the instruction pointer.  %al is the lowest 8 b of the 64 b %rax register.</p>
+
+<p><code>c
+case ',':
+  puts("  call _getchar");
+  puts("  movb %al, (%r12)");
+  break;    
+</code></p>
+
+<p>As usual, the looping constructs (<code>[</code> &amp; <code>]</code>) are much more work.  We have to
+match up jumps to matching labels, but for an assembly program, labels must be
+unique.  One way we can solve for this is whenever we encounter an opening
+brace, push a monotonically increasing number that represents the numbers of
+opening brackets we&rsquo;ve seen so far onto a stack like data structure.  Then, we
+do our comparison and jump to what will be the label that should be produced by
+the matching close label.  Next, we insert our starting label, and finally
+increment the number of brackets seen.</p>
+
+<p><code>c
+case '[':
+  stack_push(&amp;stack, num_brackets);
+  puts("  cmpb $0, (%r12)");
+  printf("  je bracket_%d_end\n", num_brackets);
+  printf("bracket_%d_start:\n", num_brackets++);
+  break;
+</code></p>
+
+<p>For close brackets, we pop the number of brackets seen (or rather, number of
+pending open brackets which we have yet to see a matching close bracket) off of
+the stack, do our comparison, jump to the matching start label, and finally
+place our end label.</p>
+
+<p><code>c
+case ']':
+  stack_pop(&amp;stack, &amp;matching_bracket);
+  puts("  cmpb $0, (%r12)");
+  printf("  jne bracket_%d_start\n", matching_bracket);
+  printf("bracket_%d_end:\n", matching_bracket);
+  break;
+</code></p>
+
+<p>So for sequential loops (<code>[][]</code>) we can expect the relevant assembly to look
+like:</p>
+
+<p>```gas
+  cmpb $0, (%r12)
+  je bracket_0_end
+bracket_0_start:</p>
+
+<p>  cmpb $0, (%r12)
+  jne bracket_0_start
+bracket_0_end:</p>
+
+<p>  cmpb $0, (%r12)
+  je bracket_1_end
+bracket_1_start:</p>
+
+<p>  cmpb $0, (%r12)
+  jne bracket_1_start
+bracket_1_end:
+```</p>
+
+<p>and for nested loops (<code>[[]]</code>), we can expect assembly like the following (note
+the difference in the order of numbered start and end labels):</p>
+
+<p>```gas
+  cmpb $0, (%r12)
+  je bracket_0_end
+bracket_0_start:</p>
+
+<p>  cmpb $0, (%r12)
+  je bracket_1_end
+bracket_1_start:</p>
+
+<p>  cmpb $0, (%r12)
+  jne bracket_1_start
+bracket_1_end:</p>
+
+<p>  cmpb $0, (%r12)
+  jne bracket_0_start
+bracket_0_end:
+```</p>
+
+<p>Finally, we need an epilogue to clean up the stack and callee saved registers
+after ourselves.</p>
+
+<p><code>c
+const char* const epilogue =
+  "  addq $30008, %rsp\n" // clean up tape from stack.
+  "  popq %r12\n" // restore callee saved register
+  "  popq %rbp\n"
+  "  ret\n";
+puts(epilogue);
+</code></p>
+
+<p>The compiler is a pain when modifying and running a Brainfuck
+program; it takes a couple extra commands to compile the Brainfuck program to
+assembly, assemble the assembly into an object file, link it into an
+executable, and run it whereas with the interpreter we can just run it.  The
+trade off is that the compiled version is quite a bit faster.  How much faster?
+Let&rsquo;s save that for later.</p>
+
+<p>Wouldn&rsquo;t it be nice if there was a translation &amp; execution technique that
+didn&rsquo;t force us to compile our code every time we changed it and wanted to run
+it, but also performance closer to that of compiled code?  That&rsquo;s where a JIT
+compiler comes in!</p>
+
+<p>For the basics of JITing code, make sure you read <a href="/blog/2013/04/03/basic-jit/">my previous article on the basics of JITing code in C</a>.  We&rsquo;re going to follow the same technique of
+creating executable memory, copying bytes into that memory, casting it to a
+function pointer, then calling it.  Just like the interpreter and the compiler,
+we&rsquo;re going to do a unique action for each recognized token.  What&rsquo;s different is
+that for each operator, we&rsquo;re going to push opcodes into a dynamic array, that
+way it can grow based on our sequential reading of input and will simplify our calculation of relative offsets for branching operations.</p>
+
+<p>The other special thing we&rsquo;re going to do it that we&rsquo;re going to pass
+the address of our libc functions (memset, putchar, and getchar) into our
+JIT'ed function at runtime.  This avoids those kooky stub functions you might
+see in a disassembled executable.  That means we&rsquo;ll be invoking our JIT'ed
+function like:</p>
+
+<p><code>c
+typedef void* fn_memset (void*, int, size_t);
+typedef int fn_putchar (int);
+typedef int fn_getchar ();
+void (*jitted_func) (fn_memset, fn_putchar, fn_getchar) = mem;
+jitted_func(memset, putchar, getchar);
+</code></p>
+
+<p>Where mem is our mmap'ed executable memory with our opcodes copied into it, and
+the typedef&rsquo;s are for the respective function signatures for our function
+pointers we&rsquo;ll be passing to our JIT'ed code.  We&rsquo;re kind of getting ahead of
+ourselves, but knowing how we will invoke the dynamically created executable
+code will give us an idea of how the code itself will work.</p>
+
+<p>The prologue is quite a bit involved, so we&rsquo;ll take it step at a time.  First,
+we have the usual prologue:</p>
+
+<p><code>c
+char prologue [] = {
+  0x55, // push rbp
+  0x48, 0x89, 0xE5, // mov rsp, rbp
+</code></p>
+
+<p>Then we want to back up our callee saved registers that we&rsquo;ll be using.  Expect horrific and difficult to debug bugs if you forget to do this.</p>
+
+<p><code>c
+  0x41, 0x54, // pushq %r12
+  0x41, 0x55, // pushq %r13
+  0x41, 0x56, // pushq %r14
+</code></p>
+
+<p>At this point, %rdi will contain the address of memset, %rsi will contain the
+address of putchar, and %rdx will contain the address of getchar, see
+<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #2</a>.  We want to store these in callee saved registers before
+calling any of them, else they may clobber %rdi, %rsi, or %rdx since they&rsquo;re
+not &ldquo;callee saved,&rdquo; rather &ldquo;call clobbered.&rdquo;  See <a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #4</a>.</p>
+
+<p><img class="center" src="/images/prologue1.png"></p>
+
+<p><code>c
+  0x49, 0x89, 0xFC, // movq %rdi, %r12
+  0x49, 0x89, 0xF5, // movq %rsi, %r13
+  0x49, 0x89, 0xD6, // movq %rdx, %r14
+</code></p>
+
+<p>At this point, %r12 will contain the address of memset, %r13 will contain the
+address of putchar, and %r14 will contain the address of getchar.</p>
+
+<p><img class="center" src="/images/prologue2.png"></p>
+
+<p>Next up is allocating 30008 B on the stack:</p>
+
+<p><code>c
+  0x48, 0x81, 0xEC, 0x38, 0x75, 0x00, 0x00, // subq $30008, %rsp
+</code></p>
+
+<p>This is our first hint at how numbers, whose value is larger than the maximum
+representable value in a byte, are represented on x86-64.  Where in this
+instruction is the value 30008?  The answer is the 4 byte sequence
+<code>0x38, 0x75, 0x00, 0x00</code>.  The x86-64 architecture is &ldquo;Little Endian,&rdquo; which
+means that the least significant bit (LSB) is first and the most significant
+bit (MSB) is last.  When humans do math, they typically represent numbers the
+other way, or “Big Endian.”  Thus we write decimal ten as &ldquo;10&rdquo; and not &ldquo;01.&rdquo;
+So that means that <code>0x38, 0x75, 0x00, 0x00</code> in Little Endian is
+<code>0x00, 0x00, 0x75, 0x38</code> in Big Endian, which then is
+<code>7*16^3+5*16^2+3*16^1+8*16^0</code>
+which is <code>30008</code> in decimal, the amount of bytes we want to subtract from the
+stack. We&rsquo;re allocating an additional 8 B on the stack for alignment
+requirements, similar to the compiler.  By pushing even numbers of 64 b
+registers, we need to realign our stack pointer.</p>
+
+<p><img class="center" src="/images/prologue3.png"></p>
+
+<p>Next in the prologue, we set up and call memset:</p>
+
+<p><code>c
+  // address of beginning of tape
+  0x48, 0x8D, 0x3C, 0x24, // leaq (%rsp), %rdi
+  // fill with 0's
+  0xBE, 0x00, 0x00, 0x00, 0x00, // movl $0, %esi
+  // length 30,000 B
+  0x48, 0xC7, 0xC2, 0x30, 0x75, 0x00, 0x00, // movq $30000, %rdx
+  // memset
+  0x41, 0xFF, 0xD4, // callq *%r12
+</code></p>
+
+<p>After invoking memset, %rdi, %rsi, &amp; %rcx will contain garbage values since
+they are &ldquo;call clobbered&rdquo; registers.  At this point we no longer need memset,
+so we now use %r12 as our instruction pointer.  %rsp will point to the top
+(technically the bottom) of the stack, which is the beginning of our memset'ed
+tape.  That&rsquo;s the end of our prologue.</p>
+
+<p><code>c
+  0x49, 0x89, 0xE4 // movq %rsp, %r12
+};
+</code></p>
+
+<p><img class="center" src="/images/prologue4.png"></p>
+
+<p>We can then push our prologue into our dynamic array implementation:</p>
+
+<p><code>c
+vector_push(&amp;instruction_stream, prologue, sizeof(prologue))
+</code></p>
+
+<p>Now we iterate over our Brainfuck program and switch on the operations again.
+For pointer increment and decrement, we just nudge %r12.</p>
+
+<p>```c
+case &lsquo;>&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x49, 0xFF, 0xC4 // inc %r12
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+case &lsquo;&lt;&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x49, 0xFF, 0xCC // dec %r12
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>That extra fun block in the switch statement is because in C/C++, we <a href="http://stackoverflow.com/a/8550253/1027966">can&rsquo;t
+define variables in the branches of switch statements</a>.</p>
+
+<p>Pointer deref then increment/decrement are equally uninspiring:</p>
+
+<p>```c
+case &lsquo;+&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0xFE, 0x04, 0x24 // incb (%r12)
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+case &lsquo;&ndash;&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0xFE, 0x0C, 0x24 // decv (%r12)
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>I/O might be interesting, but in x86-64 we have an opcode for calling the
+function at the end of a pointer.  %r13 contains the address of putchar while
+%r14 contains the address of getchar.</p>
+
+<p>```c
+case &lsquo;.&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0x0F, 0xB6, 0x3C, 0x24, // movzbl (%r12), %edi
+  0x41, 0xFF, 0xD5 // callq *%r13
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+case &lsquo;,&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0xFF, 0xD6, // callq *%r14
+  0x41, 0x88, 0x04, 0x24 // movb %al, (%r12)
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>Now with our looping constructs, we get to the fun part.  With the compiler, we
+deferred the concept of &ldquo;relocation&rdquo; to the assembler.  We simply emitted
+labels, that the assembler turned into relative offsets (jumps by values
+relative to the last byte in the jump instruction).  We&rsquo;ve found ourselves in a
+Catch-22 though: how many bytes forward do we jump to the matching close
+bracket that we haven&rsquo;t seen yet?</p>
+
+<p>Normally, an assembler might have a data structure known as a
+&ldquo;relocation table.&rdquo;  It keeps track of the first byte after a label and jumps,
+rewriting jumps-to-labels (which aren&rsquo;t kept around in the resulting binary
+executable) to relative jumps.  Spidermonkey, Firefox&rsquo;s JavaScript Virtual
+Machine has two classes for this, <a href="http://mxr.mozilla.org/mozilla-central/source/js/src/jit/MacroAssembler.cpp">MacroAssembler</a> and <a href="http://mxr.mozilla.org/mozilla-central/source/js/src/jit/Label.h">Label</a>.  Spidermonkey
+embeds a linked list in the opcodes it generates for jumps with which it&rsquo;s yet
+to see a label for.  Once it finds the label, it walks the linked list (which
+itself is embedded in the emitted instruction stream) patching up these
+locations as it goes.</p>
+
+<p>For Brainfuck, we don&rsquo;t have to anything quite as fancy since each label only
+ends up having one jump site.  Instead, we can use a stack of integers that are
+offsets into our dynamic array, and do the relocation once we know where
+exactly we&rsquo;re jumping to.</p>
+
+<p>```c
+case &lsquo;[&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0x80, 0x3C, 0x24, 0x00, // cmpb $0, (%r12)
+  // Needs to be patched up
+  0x0F, 0x84, 0x00, 0x00, 0x00, 0x00 // je &lt;32b relative offset, 2's compliment, LE&gt;
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  stack_push(&amp;relocation_table, instruction_stream.size); // create a label after
+  break;
+```</p>
+
+<p>First we push the compare and jump opcodes, but for now we leave the relative
+offset blank (four zero bytes).  We will come back and patch it up later.
+Then, we push the current length of dynamic array, which just so happens to be
+the offset into the instruction stream of the next instruction.</p>
+
+<p>All of the relocation magic happens in the case for the closing bracket.</p>
+
+<p>```c
+case &lsquo;]&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0x80, 0x3C, 0x24, 0x00, // cmpb $0, (%r12)
+  // Needs to be patched up
+  0x0F, 0x85, 0x00, 0x00, 0x00, 0x00 // jne &lt;33b relative offset, 2's compliment, LE&gt;
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  // &hellip;
+```</p>
+
+<p>First, we push our comparison and jump instructions into the dynamic array.
+We should know the relative offset we need to jump back to at this point, and
+thus don&rsquo;t need to push four empty bytes, but it makes the following math a
+little simpler, as were not done yet with this case.</p>
+
+<p><code>c
+  // ...
+  stack_pop(&amp;relocation_table, &amp;relocation_site);
+  relative_offset = instruction_stream.size - relocation_site;
+  // ...
+</code></p>
+
+<p><img class="center" src="/images/relative_jump_unknown.png"></p>
+
+<p>We pop the matching offset into the dynamic array (from the matching open
+bracket), and calculate the difference from the current size of the instruction
+stream to the matching offset to get our relative offset.  What&rsquo;s interesting
+is that this offset is equal in magnitude for the forward and backwards jumps
+that we now need to patch up.  We simply go back in our instruction stream 4 B,
+and write that relative offset negated as a 32 b LE number (patching our
+backwards jump), then go back to the site of our forward jump minus 4 B and
+write that relative offset as a 32 b LE number (patching our forwards jump).</p>
+
+<p><code>c
+  // ...
+  vector_write32LE(&amp;instruction_stream, instruction_stream.size - 4, -relative_offset);
+  vector_write32LE(&amp;instruction_stream, relocation_site - 4, relative_offset);
+  break;
+</code></p>
+
+<p>Thus, when writing a JIT, one must worry about manual relocation.  From the
+<a href="http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.pdf">Intel 64 and IA-32 Architectures Software Developer’s Manual Volume 2 (2A, 2B &amp; 2C): Instruction Set Reference, A-Z</a> &ldquo;A relative offset
+(rel8, rel16, or rel32) is generally specified as a label in assembly code, but
+at the machine code level, it is encoded as a signed, 8-bit or 32-bit immediate
+value, which is added to the instruction pointer.&rdquo;</p>
+
+<p>The last thing we push onto our instruction stream is clean up code in the
+epilogue.</p>
+
+<p><code>c
+char epilogue [] = {
+  0x48, 0x81, 0xC4, 0x38, 0x75, 0x00, 0x00, // addq $30008, %rsp
+  // restore callee saved registers
+  0x41, 0x5E, // popq %r14
+  0x41, 0x5D, // popq %r13
+  0x41, 0x5C, // popq %r12
+  0x5d, // pop rbp
+  0xC3 // ret
+};
+vector_push(&amp;instruction_stream, epilogue, sizeof(epilogue));
+</code></p>
+
+<p>A dynamic array of bytes isn&rsquo;t really useful, so we need to create executable
+memory the size of the current instruction stream and copy all of the machine
+opcodes into it, cast it to a function pointer, call it, and finally clean up:</p>
+
+<p><code>c
+void* mem = mmap(NULL, instruction_stream.size, PROT_WRITE | PROT_EXEC,
+  MAP_ANON | MAP_PRIVATE, -1, 0);
+memcpy(mem, instruction_stream.data, instruction_stream.size);
+void (*jitted_func) (fn_memset, fn_putchar, fn_getchar) = mem;
+jitted_func(memcpy, putchar, getchar);
+munmap(mem, instruction_stream.size);
+vector_destroy(&amp;instruction_stream);
+</code></p>
+
+<p>Note: we could have used the instruction stream rewinding technique to move the address of memset, putchar, and getchar as 64 b immediate values into %r12-%r14, which would have <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/pull/6/files">simplified our JIT&rsquo;d function&rsquo;s type signature</a>.</p>
+
+<p>Compile that, and we now have <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/jit.c">a function that will JIT compile and execute Brainfuck in roughly 141 SLOC</a>.  And, we can make changes to our Brainfuck program and not have to recompile it like we did with the Brainfuck compiler.</p>
+
+<p>Hopefully it&rsquo;s becoming apparent how similar an interpreter, compiler, and JIT
+behave.  In the interpreter, we immediately execute some operation.  In the
+compiler, we emit the equivalent text based assembly instructions corresponding
+to what the higher level language might get translated to in the interpreter.
+In the JIT, we emit the binary opcodes into executable memory and manually
+perform relocation, where the binary opcodes are equivalent to the text based
+assembly we might emit in the compiler.  A production ready JIT would probably have macros for each operation in the JIT would perform, so the code would look more like the compiler rather than raw arrays of bytes (though the preprocessor would translate those macros into such).  The entire process is basically disassembling C code with <code>gobjdump -S -M suffix a.out</code>, and punching in hex like one would a Gameshark.</p>
+
+<p>Compare pointer incrementing from the three:</p>
+
+<p>Interpreter:
+<code>c
+case '&gt;': ++ptr; break;
+</code></p>
+
+<p>Compiler:
+<code>c
+case '&gt;':
+  puts("  inc %r12");
+  break;
+</code></p>
+
+<p>JIT:
+```c
+case &lsquo;>&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x49, 0xFF, 0xC4 // inc %r12
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>Or compare the full sources of the <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/interpreter.c">the interpreter</a>, <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/compiler.c">the compiler</a>, and <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/jit.c">the JIT</a>. Each at ~100 lines of code should be fairly easy to digest.</p>
+
+<p>Let&rsquo;s now examine the performance of these three.  One of the longer running
+Brainfuck programs I can find is <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/samples/mandelbrot.b">one that prints the Mandelbrot set as ASCII art to stdout</a>.</p>
+
+<p><video width='' height='' preload='none' controls poster=''><source src='/video/jit.mp4 ' ></video></p>
+
+<p>Running the UNIX command <code>time</code> on the interpreter, compiled
+result, and the JIT, we should expect numbers similar to:</p>
+
+<p>```
+$ time ./interpreter ../samples/mandelbrot.b
+43.54s user 0.03s system 99% cpu 43.581 total</p>
+
+<p>$ ./compiler ../samples/mandelbrot.b > temp.s; ../assemble.sh temp.s; time ./a.out
+3.24s user 0.01s system 99% cpu 3.254 total</p>
+
+<p>$ time ./jit ../samples/mandelbrot.b
+3.27s user 0.01s system 99% cpu 3.282 total
+```</p>
+
+<p>The interpreter is an order of magnitude slower than the compiled result or run
+of the JIT.  Then again, the interpreter isn&rsquo;t able to jump back and forth as
+efficiently as the compiler or JIT, since it scans back and forth for matching
+brackets O(N), while the other two can jump to where they need to go in a few instructions O(1).  A production interpreter would probably translate the higher level language to a byte code, and thus be able to calculate the offsets used for jumps directly, rather than scanning back and forth.</p>
+
+<p>The interpreter bounces back and forth between looking up an operation, then
+doing something based on the operation, then lookup, etc..  The compiler and JIT preform the translation first, then the execution, not interleaving the two.</p>
+
+<p>The compiled result is the fastest, as expected, since it doesn&rsquo;t have the
+overhead the JIT does of having to read the input file or build up the
+instructions to execute at runtime.  The compiler has read
+and translated the input file ahead of time.</p>
+
+<p>What if we take into account the
+time it takes to compile the source code, and run it?</p>
+
+<p><code>
+$ time (./compiler ../samples/mandelbrot.b &gt; temp.s; ../assemble.sh temp.s; ./a.out)
+3.27s user 0.08s system 99% cpu 3.353 total
+</code></p>
+
+<p>Including the time it takes to compile the code then run it, the compiled
+results are now slightly slower than the JIT (though I bet the multiple processes we start up are suspect), but with the JIT we pay the price
+to compile each and every time we run our code.  With the compiler, we pay that
+tax once.  When compilation time is cheap, as is the case with our Brainfuck
+compiler &amp; JIT, it makes sense to prefer the JIT; it allows us to quickly make
+changes to our code and re-run it.  When compilation is expensive, we might
+only want to pay the compilation tax once, especially if we plan on running the
+program repeatedly.</p>
+
+<p>JIT&rsquo;s are neat but compared to compilers can be more complex to
+implement.  They also repeatedly re-parse input files and re-build instruction
+streams at runtime. Where they can shine is bridging the gap for dynamically
+typed languages where the runtime itself is much more dynamic, and thus harder
+(if not, impossible) to optimize ahead of time.  Being able to jump into JIT&rsquo;d
+native code from an
+interpreter and back gives you the best of both (interpreted and compiled)
+worlds.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Hidden in Plain Sight - Public Key Crypto]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2015/02/22/public-key-crypto-code-example/"/>
+    <updated>2015-02-22T11:48:00-08:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2015/02/22/public-key-crypto-code-example</id>
+    <content type="html"><![CDATA[<p>How is it possible for us to communicate securely when there&rsquo;s the possibility
+of a third party eavesdropping on us?  How can we communicate private secrets
+through public channels?  How do such techniques enable us to bank online and
+carry out other sensitive transactions on the Internet while trusting numerous
+relays?  In this post, I hope
+to explain public key cryptography, with actual code examples, so that the
+concepts are a little more concrete.</p>
+
+<p>First, please check out this excellent video on public key crypto:</p>
+
+<p><div class="embed-video-container"><iframe src="//www.youtube.com/embed/YEBfamv-_do" allowfullscreen></iframe></div></p>
+
+<p>Hopefully that explains the gist of the technique, but what might it actually
+look like in code?  Let&rsquo;s take a look at example code in JavaScript using the
+Node.js crypto module.  We&rsquo;ll later compare the upcoming WebCrypto API and
+look at a TLS handshake.</p>
+
+<p>Meet Alice.  Meet Bob. Meet Eve.  Alice would like to send Bob a secret
+message.  Alice would not like Eve to view the message.  Assume Eve can
+intercept, but not tamper with, everything Alice and Bob try to share with each
+other.</p>
+
+<p>Alice chooses a modular exponential key group, such as modp4, then creates a
+public and private key.</p>
+
+<p><code>javascript
+var group = "modp4";
+var aliceDH = crypto.getDiffieHellman(group);
+aliceDH.generateKeys();
+</code></p>
+
+<p>A modular exponential key group is simply a &ldquo;sufficiently large&rdquo; prime number,
+paired with a generator (specific number), such as those defined in
+<a href="http://tools.ietf.org/html/rfc2412">RFC2412</a> and
+<a href="http://tools.ietf.org/html/rfc3526">RFC3526</a>.</p>
+
+<p>The public key is meant to be shared; it is ok for Eve to know the public key.
+The private key must not ever be shared, even with the person communicating to.</p>
+
+<p>Alice then shares her public key and group with Bob.</p>
+
+<p><code>
+Public Key:
+ &lt;Buffer 96 33 c5 9e b9 07 3e f2 ec 56 6d f4 1a b4 f8 4c 77 e6 5f a0 93 cf 32 d3 22 42 c8 b4 7b 2b 1f a9 55 86 05 a4 60 17 ae f9 ee bf b3 c9 05 a9 31 31 94 0f ... &gt;
+Group:
+ modp14
+</code></p>
+
+<p>Bob now creates a public and private key pair with the same group as Alice.</p>
+
+<p><code>javascript
+var bobDH = crypto.getDiffieHellman(group);
+bobDH.generateKeys();
+</code></p>
+
+<p>Bob shares his public key with Alice.</p>
+
+<p><code>
+Public key:
+ &lt;Buffer ee d7 e2 00 e5 82 11 eb 67 ab 50 20 30 81 b1 74 7a 51 0d 7e 2a de b7 df db cf ac 57 de a4 f0 bd bc b5 7e ea df b0 3b c3 3a e2 fa 0e ed 22 90 31 01 67 ... &gt;
+</code></p>
+
+<p>Alice and Bob now compute a shared secret.</p>
+
+<p><code>javascript
+var aliceSecret = aliceDH.computeSecret(bobDH.getPublicKey(), null, "hex");
+var bobSecret = bobDH.computeSecret(aliceDH.getPublicKey(), null, "hex");
+</code></p>
+
+<p>Alice and Bob have now derived a shared secret from each others' public keys.</p>
+
+<p><code>
+aliceSecret === bobSecret; // =&gt; true
+</code></p>
+
+<p>Meanwhile, Eve has intercepted Alice and Bob&rsquo;s public keys and group.  Eve
+tries to compute the same secret.</p>
+
+<p>```javascript
+var eveDH = crypto.getDiffieHellman(group);
+eveDH.generateKeys();
+var eveSecret = eveDH.computeSecret(aliceDH.getPublicKeys(), null, &ldquo;hex&rdquo;);</p>
+
+<p>eveSecret === aliceSecret; // => false
+```</p>
+
+<p>This is because Alice&rsquo;s secret is derived from Alice and Bob&rsquo;s private keys,
+which Eve does not have.  Eve may not realize her secret is not the same as
+Alice and Bob&rsquo;s until later.</p>
+
+<p>That was asymmetric encryption; using different keys.  The shared secret may
+now be used in symmetric encryption; using the same keys.</p>
+
+<p>Alice creates a symmetric block cypher using her favorite algorithm, a hash of
+their secret as a key, and random bytes as an initialization vector.</p>
+
+<p><code>javascript
+var cypher = "aes-256-ctr";
+var hash = "sha256";
+var aliceIV = crypto.randomBytes(128);
+var aliceHashedSecret = crypto.createHash(hash).update(aliceSecret).digest("binary");
+var aliceCypher = crypto.createCypher(cypher, aliceHashedSecret, aliceIV);
+</code></p>
+
+<p>Alice then uses her cypher to encrypt her message to Bob.</p>
+
+<p><code>javascript
+var cypherText = aliceCypher.update("...");
+</code></p>
+
+<p>Alice then sends the cypher text, cypher, and hash to Bob.</p>
+
+<p><code>
+cypherText:
+ &lt;Buffer bd 29 96 83 fa a8 7d 9c ea 90 ab&gt;
+cypher:
+ aes-256-ctr
+hash:
+ sha256
+</code></p>
+
+<p>Bob now constructs a symmetric block cypher using the algorithm from Alice,
+and a hash of their shared secret.</p>
+
+<p><code>javascript
+var bobHashedSecret = crypto.createHash(hash).update(bobSecret).digest("binary");
+var bobCypher = crypto.createDecipher(cypher, bobHashedSecret);
+</code></p>
+
+<p>Bob now decyphers the encrypted message (cypher text) from Alice.</p>
+
+<p><code>javascript
+var plainText = bobCypher.update(cypherText);
+console.log(plainText); // =&gt; "I love you"
+</code></p>
+
+<p>Eve has intercepted the cypher text, cypher, hash, and tries to decrypt it.</p>
+
+<p>```javascript
+var eveHashedSecret = crypto.createHash(hash).update(eveSecret).digest(&ldquo;binary&rdquo;);
+var eveCypher = crypto.createDecipher(cypher, eveHashedSecret);
+console.log(eveCypher.update(cypherText).toString());</p>
+
+<p>// => ��_r](�i)
+```</p>
+
+<p>Here&rsquo;s where Eve realizes her secret is not correct.</p>
+
+<p>This prevents passive eavesdropping, but not active man-in-the-middle (MITM)
+attacks.  For example, how does Alice know that the messages she was supposedly
+receiving from Bob actually came from Bob, not Eve posing as Bob?</p>
+
+<p>Today, we use a system of certificates to provide authentication.  This system
+certainly <a href="http://thenextweb.com/insider/2015/02/19/lenovo-caught-installing-adware-new-computers/">has</a> its
+<a href="https://deadbeefsec.wordpress.com/2012/09/30/who-do-you-trust-why-certificate-authorities-are-a-cartel/">flaws</a>,
+but it is what we use today.  This is more advanced topic that won&rsquo;t be covered
+here.  Trust is a funny thing.</p>
+
+<p>What&rsquo;s interesting to note is that the prime and generator used to generate
+Diffie-Hellman public and private keys have strings that represent the
+corresponding modular key exponential groups, ie &ldquo;modp14&rdquo;.  Web crypto&rsquo;s API
+gives you
+<a href="https://hg.mozilla.org/mozilla-central/file/d866ac7f8606/dom/crypto/test/test_WebCrypto_DH.html#l30">finer grain control</a>
+to specify the generator and
+<a href="https://hg.mozilla.org/mozilla-central/file/d866ac7f8606/dom/crypto/test/test-vectors.js#l662">large prime number</a>
+in a Typed Array.  I&rsquo;m not sure why this is; if it allows you to have finer
+grain control, or allows you to support newer groups before the implementation
+does?  To me, it seems like a source for errors to be made; hopefully someone
+will make a library to provide these prime/generator pairs.</p>
+
+<p>One issue with my approach is that I assumed that Alice and Bob both had
+support for the same hashing algorithms, modular exponential key group, and
+symmetric block cypher.  In the real world, this is not always the case.
+Instead, it is much more common for the client to broadcast publicly all of the
+algorithms it supports, and the server to pick one.  This list of algorithms is
+called a &ldquo;suite,&rdquo; ie &ldquo;cypher suit.&rdquo; I learned this the hard way recently trying
+to
+<a href="https://stribika.github.io/2015/01/04/secure-secure-shell.html">upgrade</a>
+the <a href="https://wiki.mozilla.org/Security/Guidelines/OpenSSH">cypher suit</a>
+on my ssh server and finding out that
+<a href="https://mochtu.de/2015/01/07/updating-openssh-on-mac-os-x-10-10-yosemite/">my client did not support the lastest cyphers</a>. In this case, Alice and Bob might not have the same
+versions of Node.js, which statically link their own versions of OpenSSL. Thus,
+one should use <code>cryto.getCiphers()</code> and <code>crypto.getHashes()</code> before assuming
+the party they&rsquo;re communicating to can do the math to decrypt. We&rsquo;ll see &ldquo;cypher
+suites&rdquo; come up again in TLS handshakes. The NSA
+<a href="http://en.wikipedia.org/wiki/NSA_Suite_B_Cryptography">publishes a list of endorsed cryptographic components</a>,
+for what it&rsquo;s worth.  There are also neat tricks we can do to prevent the
+message from being decrypted at a later time should the private key be
+compromised and encrytped message recorded, called Perfect Forward Secrecy.</p>
+
+<p>Let&rsquo;s take a look now at how a browser does a TLS handshake.  Here&rsquo;s a
+capture from Wireshark of me navigating to <a href="https://google.com.">https://google.com.</a> First we have a
+TLSv1.2 Client Hello to start the handshake.  Here we can see a list of the
+cypher suites.</p>
+
+<p><img src="/images/tls_1_client_hello.png"></p>
+
+<p>Next is the response from the server, a TLSv1.2 Server Hello.  Here you can see
+the server has picked a cypher to use.</p>
+
+<p><img src="/images/tls_2_server_hello.png"></p>
+
+<p>The server then sends its certificate, which contains a copy of its public key.</p>
+
+<p><img src="/images/tls_3_server_cert.png"></p>
+
+<p>Now that we&rsquo;ve agreed on a cypher suite, the client now sends its public key.
+The server sets up a session, that way it may abbreviate the handshake in the
+future. Finally, the client may now start making requests to the server with
+encrypted application data.</p>
+
+<p><img src="/images/tls_4_key_exchange.png"></p>
+
+<p>For more information on TLS handshakes, you should read
+<a href="https://www.igvita.com/">Ilya Grigorik&rsquo;s</a>
+High Performance Browser Networking book chapter
+<a href="http://chimera.labs.oreilly.com/books/1230000000545/ch04.html#TLS_HANDSHAKE">TLS Handshake</a>,
+<a href="https://wiki.mozilla.org/Security/Server_Side_TLS#DHE_handshake_and_dhparam">Mozilla OpSec&rsquo;s fantastic wiki</a>,
+and
+<a href="http://security.stackexchange.com/questions/20803/how-does-ssl-tls-work/20833">this exellent Stack Exchange post</a>.
+As you might imagine, all of these back and forth trips made during the TLS
+handshake add latency overhead when compared to unencrypted HTTP requests.</p>
+
+<p>I hope this post helped you understand how we can use cryptography to exchange
+secret information through public channels.  This isn&rsquo;t enough information to
+implement a perfectly secure system; end to end security means one single
+mistake can compromise the entire system.  Peer review and open source,
+<a href="https://danielmiessler.com/writing/cryptography_opensource/">battle tested</a>
+implementations
+<a href="http://dodcio.defense.gov/OpenSourceSoftwareFAQ.aspx#Q%3a_Doesn.27t_hiding_source_code_automatically_make_software_more_secure.3F">go a long way</a>.</p>
+
+<p><blockquote><p>A cryptosystem should be secure even if everything about the system, except the key, is public knowledge.</p><footer><strong>Kerckhoffs&rsquo;s principle</strong></footer></blockquote></p>
+
+<p>I wanted to write this post because I believe abstinence-only crypto education
+isn&rsquo;t working and I cant stand when anyone acts like part of a cabal from their
+ivory tower to those trying to learn new things.
+Someone will surely cite
+<a href="http://matasano.com/articles/javascript-cryptography/">Javascript Cryptography Considered Harmful</a>,
+which while valid, misses my point of simply trying to show people more concrete
+basics with code examples.
+The first crypto system you implement will have its holes, but you
+can&rsquo;t go from ignorance of crypto to perfect knowledge without implementing a
+few imperfect systems.  Don&rsquo;t be afraid to, just don&rsquo;t start with trying to protect
+high value data.  Crypto is dangerous, because it can be difficult to
+impossible to tell when your system fails.
+<a href="https://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/">Assembly</a>
+is also akin to juggling knives, but at least
+you&rsquo;ll usually segfault if you mess up and program execution will halt.</p>
+
+<p>With upcoming APIs like
+<a href="http://www.w3.org/TR/service-workers/#security-considerations">Service Workers requiring TLS</a>,
+protocols like <a href="http://http2.github.io/faq/#does-http2-require-encryption">HTTP2</a>,
+pushes for all <a href="http://blog.codinghorror.com/should-all-web-traffic-be-encrypted/">web traffic to be encrypted</a>,
+and <a href="https://nickdesaulniers.github.io/blog/2013/07/03/why-ill-be-marching-this-4th/">shitty things governments</a>,
+<a href="http://www.theguardian.com/technology/2015/jan/16/david-cameron-encryption-lavabit-ladar-levison">politicians</a>,
+and <a href="https://www.youtube.com/watch?v=fpbOEoRrHyU">ISPs</a> do,
+web developers are going to have to start boning up on their crypto knowledge.</p>
+
+<p>What are your recommendations for correctly learning crypto?  Leave me some
+thoughts in the comments below.</p>
+]]></content>
+  </entry>
+  
+</feed>

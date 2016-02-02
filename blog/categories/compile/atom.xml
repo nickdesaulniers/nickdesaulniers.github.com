@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Compile | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/compile/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2016-02-02T09:52:16-08:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Basic JIT]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/"/>
+    <updated>2013-04-03T00:05:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2013/04/03/basic-jit</id>
+    <content type="html"><![CDATA[<p>Ever since I learned about
+<a href="`http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
+from the various
+<a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations">Ruby VMs</a>
+and
+<a href="http://www.slideshare.net/newmovie/know-yourengines-velocity2011">JavaScript VMs</a>,
+I&rsquo;ve been inspired.  I could tell you all about how just in time (JIT)
+compilation worked, and how it could give your interpreted language a speed
+boost.  It was so cool.  Well, it still is!  There&rsquo;s a ton of research going on
+around JIT compilation.  But the problem for me is that I could never figure
+out, let alone guess, how it was being done.  How could you compile code at
+runtime, and then execute it?  I asked
+<a href="http://pybites.blogspot.com/">Benjamin Peterson</a>
+about how he had learned so much about JITs, and he referred me to
+<a href="http://pypy.org/">pypy</a> (a Python JIT)&rsquo;s source.  But digging through source
+was too much; I just wanted a simple example I could grok quickly.  So I&rsquo;ve
+always been left wondering.</p>
+
+<p>Luckily, I have an awesome job where I can meet face to face with the people
+who are doing the work on making awesome production JIT compilers.  I spent
+part of last week at <a href="http://www.gdconf.com/">GDC</a> demoing
+<a href="https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/">Unreal Engine 3</a>
+running in the browser.  The demo was actually the hard work of many, and I&rsquo;ll
+dive into it more in another post following up the events, but
+<a href="https://blog.mozilla.org/luke/">Luke Wagner</a>, a Mozillian working on the
+JavaScript engine, added OdinMonkey to SpiderMonkey to allow optimizations of
+<a href="https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/">asm.js</a>.</p>
+
+<p>Luke is super friendly, and just listening to him talk with Dave Herman and
+Alon Zakai is a treat.  I asked Luke the basics of JIT'ing at tonight&rsquo;s Mozilla
+Research Party and he explained clearly. <em>Compile a simple object file, use
+objdump to get the resulting platform specific assembly, use the mmap system
+call to allocate some memory that you can write to <strong>AND</strong> execute, copy the
+instructions into that buffer, typecast it to a function pointer and finally
+call that.</em></p>
+
+<p>So my goal was to at runtime, create a function that for simplicity&rsquo;s sake
+multiplied two integers.  The first thing I did was write up a simple .c file,
+then compile that to an object file with the -c flag.</p>
+
+<p><code>c
+// Compile me with: clang -c mul.c -o mul.o
+int mul (int a, int b) {
+  return a * b;
+}
+</code></p>
+
+<p>As a heads up, I&rsquo;m on 64bit OSX.  So the generated assembly may differ on your
+platform.  Obviously, the production JIT maintainers have abstracted away the
+platform dependency, taking into account what platform you&rsquo;re on.  My example
+doesn&rsquo;t, but that why I&rsquo;m walking you through the steps I took to find out the
+x86_64 instructions.  The next step is to grab binutils, which is not installed
+by default in OSX.  I used homebrew to install it: <code>brew install binutils</code>.
+Homebrew installs gobjdump but it works with the same flags.</p>
+
+<p>Once you have binutils and [g]objdump, the next step is to read out the machine
+code from your object file, which is represented in hexadecimal.  By running
+<code>gobjdump -j .text -d mul.o -M intel</code> you should get something similar
+(remember, architecture dependent).</p>
+
+<p>```
+$ gobjdump -j .text -d mul.o -M intel</p>
+
+<p>Disassembly of section .text:</p>
+
+<p>0000000000000000 &lt;_mul>:
+0: 55 push rbp
+1: 48 89 e5 mov rbp,rsp
+4: 89 7d fc mov DWORD PTR [rbp-0x4],edi
+7: 89 75 f8 mov DWORD PTR [rbp-0x8],esi
+a: 8b 75 fc mov esi,DWORD PTR [rbp-0x4]
+d: 0f af 75 f8 imul esi,DWORD PTR [rbp-0x8]
+11: 89 f0 mov eax,esi
+13: 5d pop rbp
+14: c3 ret
+```</p>
+
+<p>Ok, so those instructions vary in size.  I don&rsquo;t know any x86 so I can&rsquo;t
+comment too much on that particular
+<a href="http://en.wikipedia.org/wiki/Instruction_set">Instruction Set Architecture</a>
+but they&rsquo;re obviously in pairs of hexadecimal digits.  16<sup>2</sup> == 2<sup>8</sup> meaning that
+each pair of hex digits can be represented by a single byte (or char of memory).
+So these can all be thrown in an unsigned char [].  The man page for mmap explains
+all of the fun flags, but the important point is that this way of allocating
+memory makes it executable, so it can do bad things that memory allocated from
+malloc can&rsquo;t.  I&rsquo;m sure the JavaScript engine guys have fun with that.  Once
+memory is copied in, you can typecast the memory to a function pointer.
+Make sure to check out the syntax that reminds me of a function pointer in an
+argument list, but being used as an L-value.  Of course, you could just put the
+cast right in front of the memory before you use it, but I find this as neat,
+not so common C syntax.  I kind of
+<a href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/">have a thing</a>
+for stuff like that.  Then we can call it!  The resulting code looks like this.</p>
+
+<p>```c</p>
+
+<h1>include &lt;stdio.h> // printf</h1>
+
+<h1>include &lt;string.h> // memcpy</h1>
+
+<h1>include &lt;sys/mman.h> // mmap, munmap</h1>
+
+<p>int main () {
+// Hexadecimal x86_64 machine code for: int mul (int a, int b) { return a * b; }
+unsigned char code [] = {
+  0x55, // push rbp
+  0x48, 0x89, 0xe5, // mov rbp, rsp
+  0x89, 0x7d, 0xfc, // mov DWORD PTR [rbp-0x4],edi
+  0x89, 0x75, 0xf8, // mov DWORD PTR [rbp-0x8],esi
+  0x8b, 0x75, 0xfc, // mov esi,DWORD PTR [rbp-04x]
+  0x0f, 0xaf, 0x75, 0xf8, // imul esi,DWORD PTR [rbp-0x8]
+  0x89, 0xf0, // mov eax,esi
+  0x5d, // pop rbp
+  0xc3 // ret
+};</p>
+
+<p>  // allocate executable memory via sys call
+  void* mem = mmap(NULL, sizeof(code), PROT_WRITE | PROT_EXEC,</p>
+
+<pre><code>               MAP_ANON | MAP_PRIVATE, -1, 0);
+</code></pre>
+
+<p>  // copy runtime code into allocated memory
+  memcpy(mem, code, sizeof(code));</p>
+
+<p>  // typecast allocated memory to a function pointer
+  int (*func) () = mem;</p>
+
+<p>  // call function pointer
+  printf(&ldquo;%d * %d = %d\n&rdquo;, 5, 11, func(5, 11));</p>
+
+<p>  // Free up allocated memory
+  munmap(mem, sizeof(code));
+}
+```</p>
+
+<p>Voila!  How neat is that!  It works!  Luke&rsquo;s directions, an hour of working on
+this, and
+<a href="http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html">this article</a>
+in particular, and we have a simple JIT working. Again, this simple example is super
+non-portable and dealing with memory in this fashion is generally unsafe.  But
+now I know the basics of JIT'ing code, and now so do you!</p>
+
+<p>Thanks Luke!</p>
+]]></content>
+  </entry>
+  
+</feed>

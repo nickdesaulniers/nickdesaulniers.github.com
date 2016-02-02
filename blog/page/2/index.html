@@ -1,0 +1,2752 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="Just a quick post on something I just discovered and found neat (I always find
+obscure C syntax interesting). I was trying to figure out how to use a &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/page/2">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemy's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/about">About</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/">Blog</a></li>
+  <li><a href="/publications">Publications</a></li>
+  <li><a href="/talks">Talks</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/25/designated-initialization-with-pointers-in-c/">Designated Initialization With Compound Literals in C</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-25T16:48:00-07:00" pubdate data-updated="true">Jul 25<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/07/25/designated-initialization-with-pointers-in-c/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Just a quick post on something I just discovered and found neat (I always find
+obscure C syntax interesting).  I was trying to figure out how to use a C
+designated initializer, where a member was a pointer to another designated
+initializer.  At this point, you need a compound literal.  Just a quick
+background on C initialization:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// verbosely create an array with a known size</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+</span><span class='line'><span class="c1">// =&gt; [1, 2, 3]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// concisely create an array with a known size</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// creates an array with unspecified values initialized to 0</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3, 0]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// truncates declaration</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// based on number of initializers</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s look at how we might have initialized a struct in C89.  In C89, you are
+required to declare local variables at the top of a block.  A previous
+initialization of a point struct might have looked like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">struct</span> <span class="n">point</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">a</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">a</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Just as we can define array literals in C using the initializer list syntax, we
+can use the same concise syntax for initializing structs!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// point a is located at (2, 3)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Well, this can be bad.  Where would point a be located if say a fellow team
+mate came along and modified the definition of the point struct to:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">;</span> <span class="c1">// used to be `int x, y;`</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Suddenly point a points to (3, 2), not (2, 3).  It&rsquo;s better if you use
+designated initializers to declare the values for members of your struct.  It&rsquo;s
+up to the compiler to decide on the order of initialization, but it wont mess
+up where the data is intended to go.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// point b is located at (2, 3)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So now we have designated initializers, cool.  What about if we want to use the
+same syntax to reassign point b?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span>
+</span><span class='line'><span class="c1">//    ^</span>
+</span><span class='line'><span class="c1">// error: expected expression</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>While you are being explicit about the shape of the struct that you are trying
+to assign to b, the compiler cannot figure out that you&rsquo;re trying to assign a
+point struct to another point struct.  A C cast would probably help here and
+that&rsquo;s what the concept of compound literals are.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// works!</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Notice: I just combined a compound literal with a designated initializer.  A
+compound literal on its own would look like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// works!</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To recap we can define points like so:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// C89 (too verbose)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">};</span> <span class="c1">// initializer list (struct member order specific)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">c</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// designated initializer (non struct member order specific)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">8</span> <span class="p">};</span> <span class="c1">// compound literal (cast + designated initialization)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>My favorite part of compound literals is that you can define values inline of
+an argument list.  Say you have a function prototype like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">distance</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">,</span> <span class="k">struct</span> <span class="n">point</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// instead of calling it like this</span>
+</span><span class='line'><span class="c1">// (creating temp objects just to pass in)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">};</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span>
+</span><span class='line'><span class="n">distance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// we can use compound literals</span>
+</span><span class='line'><span class="n">distance</span><span class="p">((</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">},</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So compound literals help with reassignment of structs, and not storing
+temporary variables just to pass as function arguments.  What happens though
+when one of your members is a pointer?  C strings are easy because they already
+have a literal value:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">value</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">struct</span> <span class="n">node</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// just using designated initialization</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">hello</span> <span class="n">world</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But what happens if we want to initialize node.next?  We could do:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">foo</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Again, we have to define b before assigning it to a.next.  That&rsquo;s worthwhile if
+you need to reference b later in that scope, but sometimes you don&rsquo;t (just like
+how compound literals can help with function arguments)!  But that&rsquo;s where I
+was stumped.  How do you nest designated initializers when the a member is a
+pointer to another designated initializer?  A first naïve attempt was:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">c</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">bar</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">baz</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'><span class="c1">//  ^</span>
+</span><span class='line'><span class="c1">// error: designator in initializer for scalar type &#39;struct node *&#39;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>WTF?  Well, if you go back to the example with nodes a and b, we don&rsquo;t assign
+the value of b to a.next, we assign it a pointer to b.  So how can we use
+designated initializers to define, say, the first two nodes of a linked list?
+Compound literals.  Remember, a compound literal is essentially a designated
+initialization + cast.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">d</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">qux</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="o">&amp;</span><span class="p">((</span><span class="k">struct</span> <span class="n">node</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">fred</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
+</span><span class='line'>  <span class="p">})</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And that works, but why?  d.next is assigned an address of a
+compound literal.  Granted, you probably don&rsquo;t want to be declaring your entire
+linked list like this, as nesting gets out of control fast.  I really like this
+style because it reminds me of JavaScript&rsquo;s syntax for declaring object
+literals.  It would look nicer if all of your nested structs were values and
+not references though; then you could just use designated initializers and
+wouldn&rsquo;t need compound literals or address of operators.</p>
+
+<p>What&rsquo;s your favorite or most interesting part of C syntax?</p>
+
+<p>Acknowledgements:</p>
+
+<ul>
+<li><a href="http://louisstowasser.com/">Louis Stowasser</a></li>
+<li><a href="http://fredericiana.com/">Frederic Wenzel</a></li>
+<li><a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/03/why-ill-be-marching-this-4th/">Why I&#8217;ll Be Marching This 4th</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-03T22:27:00-07:00" pubdate data-updated="true">Jul 3<span>rd</span>, 2013</time>
+        
+         | <a href="/blog/2013/07/03/why-ill-be-marching-this-4th/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><blockquote><p>If you&#8217;ve done nothing wrong, then you&#8217;ve got nothing to hide.</p></blockquote>
+
+
+<p>Wrong.  Nothing ever justifies giving up your
+<a href="http://www.un.org/en/documents/udhr/index.shtml#a12">human rights</a>
+, especially to
+prove lack of wrong doing, and any government that asks you to do so is not
+your friend.</p>
+
+<p>Terrorism has become a weapon used against us by those elected to lead to keep
+us
+compliant, like blinders you&rsquo;d put on a horse.  The threat just keeps growing
+and growing instead diminishing, despite the money and lives we throw at
+it.  Terrorism is the new Communism, and the
+<a href="http://www.guardian.co.uk/world/2013/jun/06/us-tech-giants-nsa-data">NSA PRISM program</a>
+and the
+<a href="http://www.technologyreview.com/news/515861/nsa-surveillance-reflects-a-broader-interpretation-of-the-patriot-act/">Patriot Act</a>
+are the modern day overreactions equivalent to
+<a href="https://en.wikipedia.org/wiki/McCarthyism">McCarthyism</a> and
+the <a href="https://en.wikipedia.org/wiki/Red_scare">Red Scare</a>.</p>
+
+<p>A captain and crew of a boat would reflect upon the current state of their
+vessel and make
+corrections.  The cycle of reflection and correction is what keeps the boat
+from running ashore, hitting other boats, or making other costly mistakes.
+Unfortunately, I feel that NSA, enabled by
+<a href="http://www.aclu.org/free-speech-national-security-technology-and-liberty/reform-patriot-act-section-215">section 215 of the Patriot Act</a>,
+have become so powerful that they feel they
+<a href="http://www.motherjones.com/mojo/2013/06/fisa-court-nsa-spying-opinion-reject-request">don&rsquo;t need to reflect upon their actions anymore</a>.</p>
+
+<p>If
+your neighbor was peeking in your window at night, that would probably make you
+very angry, and you would probably never trust that neighbor again.  Think
+about how all of our fellow countries feel about us right now.
+It&rsquo;s really unfortunate that Germany and our allies
+<a href="http://www.washingtontimes.com/news/2013/jun/12/germany-decries-nsa-surveillance-stasi-methods/">now severely distrust us</a>.
+I apologize to
+all non US citizens that my government doesn&rsquo;t respect you enough to extend the
+human right to privacy to you, as it supposedly does to its own citizens, and
+I&rsquo;m ashamed I have to apologize on behalf of them.  It&rsquo;s troubling that the
+NSA <a href="https://www.youtube.com/watch?v=4v7YtTnon90">has trouble</a> telling the
+<a href="http://www.techspot.com/news/53031-senators-demand-that-nsa-fix-inaccuracies-in-prism-factsheet.html">truth</a>.
+It&rsquo;s awesome but ultimately embarrassing that Ecuador
+<a href="http://inserbia.info/news/2013/06/ecuador-offers-to-fund-human-rights-training-in-the-us/">offers to fund Human Rights training to us</a>.</p>
+
+<p>It&rsquo;s hypocritical that we frown upon countries like
+<a href="http://en.wikipedia.org/wiki/Golden_Shield_Project">China spying on their citizens</a>,
+like the East German Stasi, and yet we are doing it to our
+own people!  While this administration may try its best to be benevolent with
+this power, who&rsquo;s to say all future administrations will use it for good?
+Even without content you can
+<a href="https://www.youtube.com/watch?v=raxUNmzgCWE">glean an awful (unacceptable) amount</a>
+of <a href="http://www.ted.com/talks/malte_spitz_your_phone_company_is_watching.html">information about somebody</a>.</p>
+
+<p>So how did we get here?  The justification I keep hearing is that
+<a href="https://soundcloud.com/madiha-1/students-question-the-nsa-at">this is all legal</a>.
+Regardless of whether or not something is legal, we should be asking ourselves
+“but is this right?” and “what were the motivations of those that created this
+law?  Was it to entrench the privileged or represent the constituents?”
+<a href="http://en.wikipedia.org/wiki/First_they_came...">Good people not standing up for the right thing</a>
+is what got us here.  Good people
+not standing up at the Tech companies accused of handing over data to the NSA.
+Good people at the NSA not speaking out about their surveillance programs.
+Good people in Congress not speaking out about programs they&rsquo;ve been briefed
+on.  Everyone just keeps saying how they&rsquo;re just complying with the law while
+looking the other way.
+Sounds to me like the crew hasn&rsquo;t been doing enough reflection.  What about the
+captain?</p>
+
+<blockquote><p>I think it’s important to recognize that you can’t have 100 percent security<br/>and also then have 100 per cent privacy and zero inconvenience.</p><footer><strong>President Obama</strong> <cite><a href='http://www.youtube.com/watch?v=Xec48sUutuA'>www.youtube.com/&hellip;</a></cite></footer></blockquote>
+
+
+<p>Hearing the President of our country say that,
+<a href="http://www.washingtonpost.com/blogs/wonkblog/wp/2013/07/03/how-ed-snowden-became-a-bigger-story-than-nsa-spying-in-two-charts/">the incompetent media&rsquo;s focus on Snowden</a>,
+and
+<a href="http://www.usatoday.com/story/news/politics/2013/06/17/americans-say-snowden-should-be-prosecuted-for-nsa-leaks-in-usa-today-poll/2430583/">the American people&rsquo;s fundamental misunderstand of privacy</a>,
+literally reminds me of the part in Star Wars where in order to stop a growing
+threat and protect the people, a democracy is turned into an authoritarian
+empire.</p>
+
+<blockquote><p>So this is how liberty dies&#8230;with thunderous applause?</p><footer><strong>Padme, Star Wars Ep. 3</strong> <cite><a href='http://vimeo.com/57563428'>vimeo.com/57563428/&hellip;</a></cite></footer></blockquote>
+
+
+<p>Not on my watch.  And not on yours either.  Join us this 4th of July for a
+peaceful rally against infringements on our 4th Amendment rights as part of the
+national
+<a href="http://www.restorethefourth.net/">Restore the Fourth</a>
+movement.  Let&rsquo;s ask the NSA to go
+back to the drawing board and find a way to uncompromisingly provide security
+<strong><em>and</em></strong> privacy.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/13/8-months-in-mozilla/">8 Months in Mozilla</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-13T00:54:00-07:00" pubdate data-updated="true">Jun 13<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/06/13/8-months-in-mozilla/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Besides 3 months interrupted to finish degree requirements, and including an
+internship, I’ve been at Mozilla for about 8 months now.  After reading a
+<a href="http://ahmetalpbalkan.com/blog/8-months-microsoft/">blog post</a>
+of another software engineer’s experience at Microsoft, I count my
+blessings.  Reading that article set off too many alarms in my
+head.  It was well written, and I sugguest you go
+<a href="http://ahmetalpbalkan.com/blog/8-months-microsoft/">read it</a>, but my takeaway
+was that that any big name corporation people dream about working at is
+actually quite dystopian, and I do not feel that that is the case here.</p>
+
+<hr />
+
+<p><del>Expect no documentation in corporations</del></p>
+
+<h2>Expect documentation to be sparse or bit rotted</h2>
+
+<p>When developers are coding at an unhindered pace, writing documentation does
+suck.  But once a project reaches a certain size, it cannot sustain growth
+without additional support from additional developers.  When a project reaches
+this point, it’s worthwhile to step back from unbridled coding to write some
+docs for your new devs.  This is really important for open source projects, to
+get help from volunteers.  I’ve heard roughly 50% of Mozilla’s code comes
+from volunteers; so making their lives easier is a must.  Also,
+writing documentation is a great way to start contributing to an open source
+code
+base.  Documentation is a gift that keeps on giving.  By keeping information to
+yourself, you have power over others, but that doesn’t help your organization
+move forward as a whole.  Depending on the pace of code development,
+documentation tends to bit rot.  I’m all for code that’s clear enough to be
+self documenting, but sometimes comment blocks that describe high level
+overviews of the code base’s architecture can really help newbies.  When you
+update code, you should update the relevant tests and documentation.</p>
+
+<hr />
+
+<p><del>It is not what you do, it is what you sell</del></p>
+
+<h2>It’s all about maintainability</h2>
+
+<p>I’ve had
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=744640">nightmare code reviews</a>.
+Literally reviews so long I’ve had to print
+them out and cross them out one by one as I fixed them to help me keep track
+of what I had left to fix.  But by working through them, I learned an awful lot
+about professional code development.
+It literally taught me to write some bulletproof code.  While it was
+embarrassing for me at the time, and even a little now to admit, I’m glad
+because it helped me grow professionally at an accelerated pace and I can
+appreciate that.  People come and go, but their code lives on.  Think about
+this, some day you will die, but code you’ve written will probably outlast you.
+You wont be around to defend your coding decisions, so commit it right while
+you can.  Imagine the poor bastard who has to maintain your code, why not try
+and make their life a little easier?  As an engineer, ethics and morality are
+the
+<a href="http://courses.cs.vt.edu/cs3604/lib/WorldCodes/Hippocr.Oath.html">Hippocratic Oath</a>
+you answer to, not someone with a business title.  If you
+think this is wrong, if you’re not allowed to offer feedback or criticize the
+decisions made by those above you, then you work for the wrong company.</p>
+
+<hr />
+
+<p><del>Not everbody is passionate for engineering</del></p>
+
+<h2>Everyone here is super passionate about what they do</h2>
+
+<p>While a lot of people here have active family lives, they are all active
+Mozillians.  I’ve yet to meet anyone who didn’t have a common ground in web
+based software (back end, front end, browser, OS, graphics, etc.) to speak the
+same language as me, but also acute knowledge in his or her specialty.  By
+being surrounded be so many smart, enthusiastic people I can tell you all about
+JavaScript performance, about compiler front ends and back ends, about codecs,
+about layout and rendering, about handling billions of hits a day, etc.  If
+you’re the smartest in the group, the group is dragging you down.  I frequently
+feel like I’m not the smartest when surrounded by most of my peers, and I’m
+cool with that.  I am young and naïve and have so much to learn, and Mozilla is
+an awesome place to grow.</p>
+
+<hr />
+
+<p><del>2-3 hours of coding a day is great</del></p>
+
+<h2>Contribute at your pace</h2>
+
+<p>There’s no pressure here about time spent coding.  Time spent or number of
+lines written is not a benchmark to live by, code quality is.  I’m a five
+o’clock developer, but when I go home I’m reading up on various software
+topics and expanding my range of knowledge.  I have a big bookshelf I pride
+myself in filling with various programming and hardware design related books.
+Mozilla provides all kinds of distractions (tech talks, food, pool table, video
+games), because comfortable developers are better developers.  I went to a talk
+today where the senior employee talking told me that we should not waste our
+time in meetings if we feel they are meaningless.  “Just walk out!”</p>
+
+<hr />
+
+<p><del>Not giving back to the public domain is the norm</del></p>
+
+<h2>Giving back to the public domain is the norm</h2>
+
+<p>My very first week as an intern, I had just finished
+<a href="https://github.com/nickdesaulniers/Super-Tip-Calculator">my first project</a>.
+I approached my manager and said “Hey I’m going to publish this now on
+Github.  That’s cool right?”  There was an uncomfortably long pause from my
+manager, then “yeah man go for!”  Literally everything I’ve ever worked on
+here
+<a href="https://github.com/nickdesaulniers?tab=repositories">has been published as open source</a>.
+Writing software is about expression.  To be able to publish my
+code freely, literally the reason the World Wide Web was created, allows me to
+be a
+part of someone else’s professional development; my expressions and code
+mannerisms living on in theirs.  Probably the coolest story I have about
+working here on open source software happened a few weeks ago.  It was a Friday
+afternoon and I was assessing issues in our issue tracker, deciding which I was
+going to tackle first on Monday.  Monday morning I came in to a pull request
+with my name on it.  Literally some person who had never spoken to me, nor any
+other core devs.  Someone who didn’t live in the same country as me or possibly
+speak my language natively, they just picked up an issue and wrote a patch in a
+mutually common language: code.  It didn’t matter that the volunteer was or
+wasn’t employed by Mozilla; they understood the problem they faced enough to
+fix it for themselves and everyone else. Anyone can partake in the development
+process and earn the priviledge and trust to become a core volunteer.</p>
+
+<hr />
+
+<p><del>The world outside is not known here a lot</del></p>
+
+<h2>Everyone here is aware of the outside world</h2>
+
+<p>Seeing as we tend to wind up on HN et al almost daily, many of us frequent HN,
+Reddit, Twitter, and /..  It’s always interesting to see coworkers show up in
+comment threads.  When you say something hurtful about Mozilla or Mozilla
+products in these forums, more than a few people here are going to see this and
+get their feelings hurt.  It’s really unfortunate especially since our issue
+tracker is public, and it takes a few minutes to fill out a simple bug (and a
+few more for steps to reproduce) where we actually look for issues (and not on
+Twitter, for instance).  Anyways, being aware of the new hotness has benefits
+again in terms of expression.  So much of Rust is based on ideas from various
+languages.  So much of ECMAScript 6 comes from CoffeeScript.  So many libraries
+have interesting and useful abstractions.  Saying “bah humbug new hotness
+bullshit” is naïve; new languages and frameworks became popular because people
+found that they made software development marginally better, and by closing
+your mind to them you loose out on being able to take those ideas and
+incorporate them in your current or favorite language/framework/project.  If
+anything, being more informed about your enemy makes your argument stronger.  I
+can’t tell you how many times I’ve heard someone talk shit about Ruby, yet when
+pressed didn’t have the slightest knowledge of the language. Yet I’ve had
+truly great debates with those well versed in Ruby.  Try to only remark on
+positives, and lay off negatives unless they have actually bitten you.</p>
+
+<hr />
+
+<p><del>Copy-pasting code can be okay</del></p>
+
+<h2>Measure once, cut twice [is wrong!]</h2>
+
+<p>Stack overflow is great.  There’s no way to know every little bit of C or C++.
+JavaScript has some bad parts.  But by copying and pasting code that was
+written from another context, you’re probably introducing bugs into your code.
+Don’t repeat yourself, and don’t cut corners just to get shit done.</p>
+
+<hr />
+
+<p><del>Code reviews can be skipped</del></p>
+
+<h2>Code reviews are nothing but beneficial</h2>
+
+<p>If they are taking too long to the point where you’re considering cutting them
+out, your team is probably understaffed and overworked.  Code reviews allow
+others to spot bugs that you may have overlooked.  Seeing as they didn’t write
+the code, they can look at the code objectively without the same assumptions
+you made that may or may not actually be there.  It also allows you to grow
+as a developer, assuming you take the lessons learned to heart.  The reviewer
+may learn a thing or two.  This should obviously occur less frequently
+(otherwise you have the lesser experienced coder reviewing the more experienced
+coder’s code), but you can still teach an old dog new tricks.  If you get to a
+point where you’re getting too bogged down in code reviews, you probably
+haven’t been delegating enough or haven’t communicated well enough with your
+manager or the rest of the team.</p>
+
+<hr />
+
+<p><del>Latest software, meh</del></p>
+
+<h2>Latest software, duh</h2>
+
+<p>Old, unpatched versions of popular software are susceptible to security flaws.
+Java especially.  It may involve work to update your code for new environments,
+but it’s easier to bite the bullet in small increments frequently than it is to
+wait until it’s too late.</p>
+
+<hr />
+
+<p><del>Your specialties usually do not matter</del></p>
+
+<h2>You were hired because of the need for someone on your team to have a certain expertise</h2>
+
+<p>If this is not the case, what the hell is your recruiting department doing?
+You know the part where start-ups say speed is everything?  It’s because of the
+big established players not optimally allocating resources.  Even if you’re not
+happy when you get here, you’re able to move or at least work on something
+else.  I’ve had the freedom to work on Rust compiler, something I never would
+have dreamed of doing before and not something I’m an expert in but something
+that is mentally fulfilling and thought provoking.  Many of the people here are
+famous for one thing or another and many of them work on things similar to
+what they’re known for, while others are free to start new or tackle existing
+projects.  We frequently borrow people from other teams who are able to lend a
+hand in various aspects they specialize in.</p>
+
+<p>Besides these responses, there’s just so much about my job that I love.  The
+<a href="http://www.mozilla.org/en-US/about/manifesto/">Mozilla Manifesto</a>
+is my holy book.  It makes me so happy
+to be a part of such an incredible organization.  We have the transparency and
+accountability the government could only dream of.  Instead of running from
+wrongdoing,
+<a href="https://optin.stopwatching.us/">we fight</a>!
+We have so many interesting projects that anyone can get
+<a href="http://www.whatcanidoformozilla.org/">involved with</a>!
+We have so many employees well known for their contributions.
+We have so much competition that keeps us humble.  We have so many experienced
+and friendly senior software engineers who make great mentors to the new guard.
+We have so many people dedicated to users, who don’t compromise privacy for
+security (as those who do deserve neither).  We have such an amazing community
+of staff, volunteers, reps, advocates, evangelists, users, localizers, testers,
+etc. who understand that they have the power to affect the trajectory of their
+favorite open source browser, mobile operating system, service, or library.</p>
+
+<p>Again, I’m not making any of these points with your experiences
+in mind.  I’m talking about what’s the norm here at my place of employment.</p>
+
+<p>I’ve been told that working at Mozilla out of college spoils you.  If that’s
+the case, if life at M$ is the norm, then my next job will have to be one of my
+own creation.  I can only hope that a company I [will] create be in the image
+of Mozilla.  Even then, I’ll still be a Mozillian; once a Mozillian, always a
+Mozillian.  When people complain about their jobs, it’s completely foreign to
+me.  You always have the power to change your situation, and I view
+disagreement to that point as self-doubt.  I love the work that I do and if
+your company does something that you don’t agree with, then I challenge you to
+change your situation.  Be that speaking out or moving on.</p>
+
+<hr />
+
+<h2>At the end</h2>
+
+<p>It’s about expressing your legacy; that will have repercussions that will shape
+our world.  Chasing paychecks and enduring crappy working conditions is not a
+way to live.  So what do you think, world traveler?</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/07/rust-pattern-matching-and-the-option-type/">Rust: Pattern Matching and the Option Type</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-07T18:41:00-07:00" pubdate data-updated="true">May 7<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/05/07/rust-pattern-matching-and-the-option-type/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The other day I was thinking about the function for performing dynamic memory
+allocation in the C standard library, malloc. From the manual pages,
+<code>If successful, the malloc() function returns a pointer to allocated memory.
+If there is an error, it
+returns a NULL pointer and sets errno to ENOMEM.</code> One of the most common errors
+when using malloc is not checking for allocation failure.  The allocation is not
+guaranteed to succeed and trying to use a NULL reference can lead to program
+crashes.</p>
+
+<p>So a common pattern we&rsquo;ll see is:</p>
+
+<figure class='code'><figcaption><span>C</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span><span class="o">*</span> <span class="n">nums</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">nums</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">// handle error</span>
+</span><span class='line'><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>  <span class="o">*</span><span class="n">nums</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>
+</span><span class='line'>  <span class="c1">// operate on nums</span>
+</span><span class='line'>  <span class="n">free</span><span class="p">(</span><span class="n">nums</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">nums</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we allocated space for an integer, cast the <code>void*</code> returned from malloc
+to an <code>int*</code>, compared it against the <code>NULL</code> pointer, then freed the allocated
+memory and removed the reference.</p>
+
+<p>One of the big problems with the null pointer has to do with
+safely dereferencing it.  In C, dereferencing the null pointer is undefined
+and usually leads to a segfault and program crash.</p>
+
+<p>It can be so unsafe to work with null pointers that
+C. A. R. Hoare refers to them as his billion-dollar mistake:</p>
+
+<blockquote><p>I call it my billion-dollar mistake. It was the invention of the null reference in 1965. At that time, I was designing the first comprehensive type system for references in an object oriented language (ALGOL W). My goal was to ensure that all use of references should be absolutely safe, with checking performed automatically by the compiler. But I couldn&#8217;t resist the temptation to put in a null reference, simply because it was so easy to implement. This has led to innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years.</p><footer><strong>C.A.R. Hoare, InfoQ</strong> <cite><a href='http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare'>Null References: The Billion Dollar Mistake</a></cite></footer></blockquote>
+
+
+<p>So how do we represent the value of nothing?  With an integer, for example, your
+first instinct might be to use 0 to refer to no value.  But 0 <em>is</em> a value, so
+how do we represent the range of integer values but also whether there is a
+value or not?</p>
+
+<p>Rust, a systems programming language with a focus on safety and concurrency,
+does not have the concept of a null pointer.  Instead, it has a different
+construct to represent the absence of value, a whole other structure called an
+<a href="http://static.rust-lang.org/doc/core/option.html">Option<T></a>.  It is an
+<a href="http://static.rust-lang.org/doc/core/option.html#enum-option">enumerated type</a> that can
+either be None (no value) or Some(T) (a specialization of type T).</p>
+
+<p>So what the heck is an option type and how do we use it?  The option type is
+a polymorphic type (generic type that can be specialized) that encapsulates
+either an empty constructor or the constructor of the original data type.  Let&rsquo;s
+take a trip down the rabbit hole to see how we use one.  First, let&rsquo;s look at
+some C++ code, and then translate it to Rust.</p>
+
+<figure class='code'><figcaption><span>option.cpp</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="cp">#include &lt;iostream&gt; </span><span class="c1">// cout, endl</span>
+</span><span class='line'><span class="cp">#include &lt;stdlib.h&gt; </span><span class="c1">// rand</span>
+</span><span class='line'><span class="cp">#include &lt;time.h&gt; </span><span class="c1">// time</span>
+</span><span class='line'><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// If there is a &#39;random error&#39; returns NULL</span>
+</span><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">may_return_null</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">srand</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">?</span> <span class="k">new</span> <span class="kt">int</span><span class="p">(</span><span class="mi">666</span><span class="p">)</span> <span class="o">:</span> <span class="nb">NULL</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="n">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">// if else</span>
+</span><span class='line'>  <span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">x</span> <span class="o">=</span> <span class="n">may_return_null</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="c1">// switch</span>
+</span><span class='line'>    <span class="k">switch</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">case</span> <span class="mi">777</span><span class="o">:</span> <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Lucky Sevens&quot;</span>        <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">case</span> <span class="mi">666</span><span class="o">:</span> <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Number of the Beast&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">case</span> <span class="mi">42</span><span class="o">:</span> <span class="n">cout</span>  <span class="o">&lt;&lt;</span> <span class="s">&quot;Meaning of Life&quot;</span>     <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>      <span class="k">default</span><span class="o">:</span> <span class="n">cout</span>  <span class="o">&lt;&lt;</span> <span class="s">&quot;Nothing special&quot;</span>     <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;No value&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// single if</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="mi">666</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Did I mention that Iron Maiden is my favorite band?&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s step through this program line by line, starting in main.</p>
+
+<figure class='code'><figcaption><span>Line 14</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">x</span> <span class="o">=</span> <span class="n">may_return_null</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we&rsquo;re calling a function that may return null, just like malloc!</p>
+
+<figure class='code'><figcaption><span>Lines 8-9</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">srand</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+</span><span class='line'><span class="k">return</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">?</span> <span class="k">new</span> <span class="kt">int</span><span class="p">(</span><span class="mi">666</span><span class="p">)</span> <span class="o">:</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the body of <code>may_return_null</code> we seed the random number generator, generate a random number, mod it by 2
+(so it can either be 0 or 1, 50-50 chance, hopefully), then either return a
+pointer pointing to memory allocated on the heap or the null pointer.  We also use the succinct
+ternary operator, which gives us the power of a conditional statement in the
+form of a concise expression.</p>
+
+<figure class='code'><figcaption><span>Line 15</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We check if the pointer is valid, that is that it is safe to use, as <code>NULL</code> is
+falsy in a C++ conditional.  If it is, then we can safely dereference it.  Let&rsquo;s
+switch on the (dereferenced) value.  Notice how we need to break to explicitly
+prevent fall through, though
+<a href="http://books.google.com/books?id=4vm2xK3yn34C&amp;pg=PA37&amp;lpg=PA38&amp;dq=expert+c+fallthrough&amp;source=bl&amp;ots=Ho98ZhXF9X&amp;sig=PebysT8-3zA_9B2aRkuvnz4mCmY&amp;hl=en&amp;sa=X&amp;ei=j8CJUdeWMerJiwLQmICoDw&amp;ved=0CC4Q6AEwAA#v=onepage&amp;q=expert%20c%20fallthrough&amp;f=false">97% of the time that&rsquo;s what you intend</a>.</p>
+
+<figure class='code'><figcaption><span>Lines 17-22</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">switch</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">case</span> <span class="mi">777</span><span class="o">:</span> <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Lucky Sevens&quot;</span>        <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">case</span> <span class="mi">666</span><span class="o">:</span> <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Number of the Beast&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">case</span> <span class="mi">42</span><span class="o">:</span> <span class="n">cout</span>  <span class="o">&lt;&lt;</span> <span class="s">&quot;Meaning of Life&quot;</span>     <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">default</span><span class="o">:</span> <span class="n">cout</span>  <span class="o">&lt;&lt;</span> <span class="s">&quot;Nothing special&quot;</span>     <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If the pointer was null, the else branch of the conditional would execute
+printing a different result.</p>
+
+<figure class='code'><figcaption><span>Line 24</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;No value&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally in we check the value pointed to.  Did I forget something here?  Save
+that thought, we&rsquo;ll come back to it.</p>
+
+<figure class='code'><figcaption><span>Lines 28-30</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="mi">666</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Did I mention that Iron Maiden is my favorite band?&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s see my rough translation of this program into Rust.</p>
+
+<figure class='code'><figcaption><span>option.rs</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">use</span> <span class="n">core</span><span class="o">::</span><span class="n">rand</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">may_return_none</span> <span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Option</span><span class="o">&lt;</span><span class="k">int</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">rand</span><span class="o">::</span><span class="n">Rng</span><span class="p">().</span><span class="n">next</span><span class="p">()</span> <span class="o">%</span> <span class="m">2</span> <span class="o">==</span> <span class="m">1</span> <span class="p">{</span> <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">None</span> <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">fn</span> <span class="n">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">x</span><span class="o">:</span> <span class="n">Option</span><span class="o">&lt;</span><span class="k">int</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">may_return_none</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">io</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="n">match</span> <span class="n">x</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="m">777</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Lucky Sevens&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Number of the Beast&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="m">422</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Meaning of Life&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Nothing special&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">None</span> <span class="o">=&gt;</span> <span class="s">&quot;No value&quot;</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">match</span> <span class="n">x</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">io</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="s">&quot;Did I mention that Iron Maiden is my favorite Band?&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="n">_</span> <span class="o">=&gt;</span> <span class="p">{}</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Both programs, when compiled <em>should</em> randomly print either:</p>
+
+<figure class='code'><figcaption><span>option.rs</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">No</span> <span class="n">Value</span>
+</span><span class='line'><span class="c1">// or</span>
+</span><span class='line'><span class="n">Number</span> <span class="n">of</span> <span class="n">the</span> <span class="n">Beast</span>
+</span><span class='line'><span class="n">Did</span> <span class="n">I</span> <span class="n">mention</span> <span class="n">that</span> <span class="n">Iron</span> <span class="n">Maiden</span> <span class="n">is</span> <span class="n">my</span> <span class="n">favorite</span> <span class="n">Band</span><span class="o">?</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now let&rsquo;s walk through the Rust code, starting at main and compare it to the
+equivalent C++ code.</p>
+
+<figure class='code'><figcaption><span>option.rs Line 8</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">x</span><span class="o">:</span> <span class="n">Option</span><span class="o">&lt;</span><span class="k">int</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">may_return_none</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span>option.cpp Line 14</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="k">const</span> <span class="n">x</span> <span class="o">=</span> <span class="n">may_return_null</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I read this Rust code as &lsquo;let x be type Option,
+specialized to type int initialized
+to the return value of may_return_none.&rsquo;  I read the C++ as &lsquo;x is a const pointer
+to a const integer initialized to the return value of may_return_none.&rsquo;  It&rsquo;s
+important to note that values and pointers in Rust default to being immutable,
+where as in c++ they default to being mutable, which is why we need to be
+explicit about their const&#8217;ness.  In Rust, we could declare x as being explicitly
+mutable: <code>let mut x: ... = ...;</code>.  In both, we can also leave the explicit types
+to be inferred by the compiler.</p>
+
+<figure class='code'><figcaption><span>option.rs Line 4</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">if</span> <span class="n">rand</span><span class="o">::</span><span class="n">Rng</span><span class="p">().</span><span class="n">next</span><span class="p">()</span> <span class="o">%</span> <span class="m">2</span> <span class="o">==</span> <span class="m">1</span> <span class="p">{</span> <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">None</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span>option.cpp Lines 8-9</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">srand</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">));</span>
+</span><span class='line'><span class="k">return</span> <span class="n">rand</span><span class="p">()</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">?</span> <span class="k">new</span> <span class="kt">int</span><span class="p">(</span><span class="mi">666</span><span class="p">)</span> <span class="o">:</span> <span class="nb">NULL</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now for the body of <code>may_return_none</code>.  Rust does not have a ternary operator,
+so a single line <code>if {} else {}</code> block will have to do.  We also don&rsquo;t need
+parentheses around the predicate in the conditional statement.  If we add them,
+no harm is done, as we&rsquo;d just be being redundant about order of operations.
+There
+are no semicolons in this expression, nor a return statement in this function.
+Rust will return the last expression in a function or method if the semicolon is
+left off.  Also there is no such thing as a conditional statement, only
+conditional expressions; the if is itself something that can be evaluated and
+assigned to a variable!  We see this later in the code where we pass the evaluation
+of a match expression directly into a call of <code>io::println</code>.
+Rust returns the evaluation of the if expression,
+which is the evaluation of the branch&rsquo;s block specified by the predicate,
+which will randomly be one of the two enumerated types of <code>Option&lt;int&gt;</code>, either
+an encapsulation of a int whose literal value is <code>666</code>, <code>Some&lt;666&gt;</code>, or
+the representation of no value, <code>None</code>.  I believe the RNG code has changed in 0.7,
+this code was written in 0.6.</p>
+
+<p>In Rust, to get the value out of an option type, we pattern match on it.  Pattern
+matching is something I became familiar with through the
+<a href="http://learnyouahaskell.com/syntax-in-functions#pattern-matching">Haskell</a> programming language.  Pattern
+matching is a powerful language construct that can entirely replace conditionals.
+In fact, the one line if expression could have been written using a match
+expression:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">if</span> <span class="n">rand</span><span class="o">::</span><span class="n">Rng</span><span class="p">().</span><span class="n">next</span><span class="p">()</span> <span class="o">%</span> <span class="m">2</span> <span class="o">==</span> <span class="m">1</span> <span class="p">{</span> <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">)</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">None</span> <span class="p">}</span>
+</span><span class='line'><span class="c1">// or</span>
+</span><span class='line'><span class="n">match</span> <span class="n">rand</span><span class="o">::</span><span class="n">Rng</span><span class="p">().</span><span class="n">next</span><span class="p">()</span> <span class="o">%</span> <span class="m">2</span> <span class="p">{</span> <span class="m">1</span> <span class="o">=&gt;</span> <span class="n">Some</span><span class="p">(</span><span class="m">666</span><span class="p">),</span> <span class="n">_</span> <span class="o">=&gt;</span> <span class="n">None</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<p>The basic design pattern
+for accessing the value of an option type in Rust looks like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">match</span> <span class="n">x</span> <span class="p">{</span> <span class="c1">// x: Option&lt;T&gt;</span>
+</span><span class='line'>  <span class="n">Some</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="o">*</span><span class="n">y</span> <span class="p">},</span>
+</span><span class='line'>  <span class="n">None</span> <span class="o">=&gt;</span> <span class="p">{}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The curly braces are optional for one liners (no block needed).
+Pattern matches have to be exhaustive.  That means I have to exhaust all
+possibilities for what the deconstructed value could be.  You can use a branch
+that looks like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">_</span> <span class="o">=&gt;</span> <span class="err">&#39;</span><span class="n">everything</span> <span class="k">else</span><span class="err">&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to catch everything else.  The underscore here means &ldquo;every other possible case.&rdquo;
+So by having to use a match expression (also not a
+statement, as opposed to C++&rsquo;s switch statement), which itself must be exhaustive,
+Rust forces us to handle the case where the optional type is None!  This will
+help us again in the future.
+We also don&rsquo;t need parentheses around the predicate for the match expression, which
+in this case is just a single variable, <code>x</code>.</p>
+
+<p>In the value
+<code>Some(_)</code>, the underscore has an additional meaning here that we would not use a
+variable in the corresponding arm&rsquo;s block.  If we declared it as <code>Some(y)</code> we would get the warning:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">option</span><span class="p">.</span><span class="n">rs</span><span class="o">:</span><span class="m">14</span><span class="o">:</span><span class="m">9</span><span class="o">:</span> <span class="m">14</span><span class="o">:</span><span class="m">11</span> <span class="n">warning</span><span class="o">:</span> <span class="n">unused</span> <span class="n">variable</span><span class="o">:</span> <span class="err">`</span><span class="n">y</span><span class="err">`</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="n">rs</span><span class="o">:</span><span class="m">14</span>     <span class="n">Some</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Nothing special&quot;</span><span class="p">,</span>
+</span><span class='line'>                      <span class="o">^~</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I hope back in my C++ code you spotted the fatal flaw.  On line 28, I just
+dereferenced a raw pointer without checking its validity.  This is a violation
+of memory safety.</p>
+
+<figure class='code'><figcaption><span>option.cpp Line 28</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="mi">666</span><span class="p">)</span> <span class="p">{</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When running the C++ code, instead of seeing <code>No value</code> printed to stdout in the
+case of no value, a segfault occurs.</p>
+
+<figure class='code'><figcaption><span>option.cpp Line 28</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">No</span> <span class="n">value</span>
+</span><span class='line'><span class="p">[</span><span class="mi">1</span><span class="p">]</span>    <span class="mi">80265</span> <span class="n">segmentation</span> <span class="n">fault</span>  <span class="p">.</span><span class="o">/</span><span class="n">option</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What I should have done is something more like:</p>
+
+<figure class='code'><figcaption><span>Line 28 corrected</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">x</span> <span class="o">==</span> <span class="mi">666</span><span class="p">)</span> <span class="p">{</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But, the C++ compiler let me get away with not handling the case where the
+pointer was invalid (even if doing nothing in the case of &ldquo;handling&rdquo; it).  By
+leaving out the check for a valid pointer, I have instructed the machine to
+behave the same or follow the same code path with and without a reference to a
+valid memory location.  Let&rsquo;s see what happens when I don&rsquo;t handle the None case
+by deleting line 15 or option.rs, <code>None =&gt; "No value"</code>:</p>
+
+<figure class='code'><figcaption><span>Line 28 corrected</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">10</span><span class="o">:</span><span class="mi">14</span><span class="o">:</span> <span class="mi">16</span><span class="o">:</span><span class="mi">3</span> <span class="nl">error:</span> <span class="n">non</span><span class="o">-</span><span class="n">exhaustive</span> <span class="nl">patterns:</span> <span class="n">None</span> <span class="n">not</span> <span class="n">covered</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">10</span>   <span class="n">io</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="n">match</span> <span class="n">x</span> <span class="p">{</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">11</span>     <span class="n">Some</span><span class="p">(</span><span class="mi">777</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Lucky Sevens&quot;</span><span class="p">,</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">12</span>     <span class="n">Some</span><span class="p">(</span><span class="mi">666</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Number of the Beast&quot;</span><span class="p">,</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">13</span>     <span class="n">Some</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Meaning of Life&quot;</span><span class="p">,</span>
+</span><span class='line'><span class="n">option</span><span class="p">.</span><span class="nl">rs:</span><span class="mi">14</span>     <span class="n">Some</span><span class="p">(</span><span class="n">_</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s">&quot;Nothing special&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Not only did the compiler prevent me from generating an executable, it told me
+that a pattern was not exhaustive, explicitly which one, and what case that was
+not covered.</p>
+
+<p>Coming back to encoding a lack of value for an int, we had left off that 0 <em>is</em>
+a valid value.  For instance, how should we represent any other integer divided
+by 0, as an integer?
+Signed integers use a single bit to store whether
+their value is positive or negative, the tradeoff being the signed integers
+represent up to one less power of two than unsigned integers.  Maybe we could use an
+additional bit to represent valid or invalid, but this would again cost us in
+terms of representable values.
+The IEEE 754 floating point representation has encodings for <a href="https://en.wikipedia.org/wiki/IEEE_floating_point#Formats">plus and minus
+Infinity, plus and minus 0, and two kinds of NaN</a>.
+To solve the validity problem, we can use enumerated types, which in Rust occur
+as specializations of the Option type.  It&rsquo;s up to the compiler to implement
+either additional information for the type, or use raw null pointers.  And to
+get the value back out of the Option type, we <em>must</em> handle the case where there
+is no valid value.</p>
+
+<p>The key takeaways that I wish to convey are:</p>
+
+<ol>
+<li>In C and C++, I can use NULL to refer to a pointer that has no value.</li>
+<li>A C/C++ compiler, such as clang, will allow me to compile code that violates
+memory safety, such as dereferencing NULL pointers.</li>
+<li>Rust instead uses Option types, an enumeration of a specialized type or None.</li>
+<li>Rust forces me to use a match statement to access the possible value of an
+Option type.</li>
+<li>Pattern matching in Rust must be exhaustive.</li>
+<li>The Rust compiler, rustc, forces me to handle the case where the pointer has
+no value, whereas the C++ compiler, clang++, did not.</li>
+<li>All conditional and switch statements can be replaced with pattern matching.</li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/04/29/the-persistence-of-memory/">The Persistence of Memory</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-29T20:35:00-07:00" pubdate data-updated="true">Apr 29<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/04/29/the-persistence-of-memory/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><blockquote><p>I would like to die on Mars&#8230;</p><footer><strong>Elon Musk, Bloomberg,</strong> <cite><a href='http://www.businessweek.com/articles/2012-09-13/elon-musk-the-21st-century-industrialist#p5,'>Elon Musk, the 21st Century Industrialist</a></cite></footer></blockquote>
+
+
+<p>Well, isn&rsquo;t that forward thinking?  Granted, the full quote
+<em>I would like to die on Mars, just not on impact</em> is meant to sound hopeful of
+his company, <a href="http://www.spacex.com/">SpaceX</a>.  I agree that some day, humans
+will be buried on Mars.  But is it forward thinking, enough?  Does it push the
+needle to where it needs to be pushed?  Does it strive for innovation and push
+our imagination like Star Trek did?  Or is it just a realistic goal for SpaceX?</p>
+
+<blockquote><p>The person with big dreams is more powerful than one with all the facts.</p><footer><strong>Albert Einstein</strong></footer></blockquote>
+
+
+<p>While Elon would like to die on Mars, I think it would be neat to transfer my &ldquo;soul&rdquo; into a
+computer.  We refer to data persistence within a computer as memory, using
+transistors and capacitors to store charges, effectively &ldquo;remembering&rdquo; a
+particular state.  While neurons, dendrites, and synapses within the human
+brain don&rsquo;t quite work the same as RAM, I believe we will find a way to
+interface them some day.  If one could transfer to a computer, maybe they could
+transfer back, or swap even.  One could
+theoretically trade entire bodies.  The jury is still out for me as far my
+opinion of Google&rsquo;s Glass, but I see wearable computing as a step in the right
+direction towards interfacing with the human body.  I guess it reminds me of the
+<a href="http://futurama.wikia.com/wiki/Heads_in_Jars">Heads in Jars from Futurama</a>.
+I recognize that the old guard must give way for the new guard, lest the new be
+held in place, bound socially by the old.</p>
+
+<p>In database systems, there is this notion of
+<a href="http://en.wikipedia.org/wiki/Atomic_transaction">Atomicity</a>, where a set of
+operations is guaranteed to either complete as a group, or all fail should
+at least one fail.  One of the most popular examples is a bank transfer.  Say
+you&rsquo;re transferring $100 from Bank A to Bank B.  Bank A&rsquo;s database should not
+dock your account $100 until Bank B has added $100, and vice versa.  Imagine
+if the power went out after Bank A docked your account, but before Bank B added
+to your account; that money could just disappear.  Bank B may have received it
+but not credited your account, or Bank A may have it, just not a record that
+it&rsquo;s yours.  You may have just doubled your money, or lost all of it.
+The notion of
+Atomicity provides for &ldquo;transactions,&rdquo; or sets of instructions that are
+guaranteed to all pass or all fail.</p>
+
+<p>Atomicity would be important for a memory transference device.  Once you were
+transferred into a machine, would it still be &ldquo;you&rdquo; if you remained in your
+body?  A physical clone, is as much <em>you</em>
+<del><a href="http://www.dailymail.co.uk/sciencetech/article-2232148/Identical-twins-genetically-different-research-suggests.html">as an identical twin</a></del>,
+but will never have the same memories and experiences that shape their mind.  If
+you merely copied your mind to a machine rather than transferred it, then you
+would still remained trapped in your
+<a href="http://www.quotefully.com/q/Jk3y3rG2aP">rotting piece of meat</a>.</p>
+
+<p>This is what I mean by transfer my &ldquo;soul.&rdquo;  An actual atomic transaction moving
+all of your memories and experiences from body to machine, all at once, or not
+at all.  I probably wouldn&rsquo;t want to
+be the first volunteer for such a machine, because if the machine failed at the
+atomic transaction, your soul would either be as lost as the $100 from the
+earlier example, or you&rsquo;d just be copied, not moved.</p>
+
+<p>In a world where diseases are too profitable to cure, I can imagine a world
+where the richest 1% live forever while the poor are forced to die.  Frozen Walt
+Disney just sat up.  An abuse of the technology, not too different a world from
+the one in <a href="http://en.wikipedia.org/wiki/Surrogates_%28film%29">Surrogates</a>.</p>
+
+<blockquote><p>Have you not done tormenting me with your accursed time! It&#8217;s Abominable! When! When! One day, is that not enough for you, one day he went dumb, one day I went blind, one day we&#8217;ll go deaf, one day we were born, one day we shall die, the same day, the same second, is that not enough for you? They give birth astride a grave, the light gleams an instant, then it&#8217;s night once more.</p><footer><strong>Pozzo</strong> <cite>Waiting for Godot by Samuel Becket</cite></footer></blockquote>
+
+
+
+
+<blockquote><p>They say that it is fear of death and what comes after death that makes men turn to religion.</p><footer><strong>Mustafa Mond</strong> <cite>Brave New World by Alduos Huxley</cite></footer></blockquote>
+
+
+<p>Ever since my father passed away, I&rsquo;ve occasionally suffered from existential
+anxiety attacks.  It usually starts with me thinking about those Discovery
+Channel shows about how the old the universe is, and how old it will become.
+Then my mind starts to think of all of the really cool technological
+advancements that have occurred in my lifetime, and how I wont be around to
+experience all future advancements, like a game that others get to play while I
+have to sit on the sidelines and watch.  Of course, if I&rsquo;m dead then I guess I
+won&rsquo;t care.  Currently, I calm myself down my telling myself that such an event
+is a long time away and I will live a long and happy life with many descendants,
+though I have no guarantees.  My father only lived to be 48.</p>
+
+<blockquote><p>&#8216;That&#8217;s such a weak excuse,&#8217; said Valentine. &#8216;Everyone dies. Everyone leaves. What matters is the things you build together before they go. What matters is the part of them that continues in you when they&#8217;re gone.&#8217;</p><footer><strong>Valentine</strong> <cite>Children of the Mind by Orson Scott Card</cite></footer></blockquote>
+
+
+
+
+<blockquote><p>Where before they would bloom and wither in the space of a single day, now they hold their blooms for three and four days at a time. Moistened by the dew of night, bathed in the light of the sun, the white flowers strive to live their lives to the fullest, beautifying the town as if striving to live out the portion of life denied to those whose &#8220;tomorrows&#8221; were snatched away from them forever.</p><footer><strong>White Flowers</strong> <cite>Lost Odyssey</cite></footer></blockquote>
+
+
+
+
+<blockquote><p>Human beings, who cannot live forever, daring to take a journey without end. This might be the ultimate tragedy, but it could just as well be the ultimate comedy. Kaim knows one thing, however: one cannot simply dismiss it as an exercise in futility.</p><footer><strong>The Upstreamers</strong> <cite>Lost Odyssey</cite></footer></blockquote>
+
+
+<p>Randy Pausch&rsquo;s <em>The Last Lecture</em> taught me that legacy is the greatest thing you
+can leave behind.  While I haven&rsquo;t yet started the business I&rsquo;ve always wanted,
+my first legacy I will leave my kiddos is my collection of Iron Maiden vinyl
+records.  They and their children will probably think I was nuts, but there is
+the slim chance they might really appreciate my taste in music.  I also want to
+write a book someday, that way I can marvel at how
+<a href="http://www.goodreads.com/quotes/287093-beneath-this-mask-there-is-more-than-flesh-beneath-this">my ideas will outlast me</a>.</p>
+
+<blockquote><p>I like to think that something survives after you die, it&#8217;s strange to think that you accumulate all this experience, and maybe a little wisdom, and it just goes away.  So I really want to believe that something survives, that maybe your consciousness endures.  But on the other hand, perhaps it&#8217;s like an on-off switch.  &#8220;Click!&#8221; And you&#8217;re gone.</p><footer><strong>Steve Jobs</strong> <cite>Steve Jobs by Walter Isaacson</cite></footer></blockquote>
+
+
+<p>It terrifies me to no end to think what could possibly drive someone to suicide.
+What doom a person would have to be surrounded with to honestly believe that no
+matter what they did, that they could not change their current situation.  I
+believe the journey is ultimately worth it.  It
+terrifies me to think of all of the amazing minds this world has seen, among so
+many who choose not to develop their own, that have come and gone.  Those who
+could change the world yet are snatched away.</p>
+
+<blockquote><p>This body holding me reminds me of my own mortality. Embrace this moment. Remember. We are eternal. All this pain is an illusion.</p><footer><strong>Parabola</strong> <cite>Tool</cite></footer></blockquote>
+
+
+<p>I&rsquo;m sorry this post turned a little dark.  By talking about my fears, I hope to
+not let them control me.  I believe publishing this will be a relief.  I think
+I&rsquo;ll join Elon on Mars, but unlike Elon, I believe I will transcend my physical
+being.  It&rsquo;s important therefor, to treasure your body while it lasts.</p>
+
+<blockquote><p>&#8216;But it [life] won&#8217;t have amounted to anything,&#8217; said Grego. &#8216;If your children die, then it was all a waste.&#8217; &#8216;No&#8217; said Olhado quietly. Grego shook his head. &#8216;Yes it does, Olhado. Death undoes everything.&#8217; Olhado shrugged. &#8216;Then why do you bother doing everything, Grego? Because someday you will die. Why should anyone ever have children? Someday they will die, their children will die, all children will die. Someday stars will wind down or blow up. Someday death will cover us all like the water of a lake and perhaps nothing will ever come to the surface to show that we were there. But we were there, and during the time we lived, we were alive. That&#8217;s the truth-what is, what was, what will be-not what could be, what should have been, what never can be. If we die, then our death has meaning to the rest of the universe. Even if our lives are unknown, the fact that someone lived here, and died, that will have repercussions, that will shape the universe.&#8217;</p><footer><strong>Children of the Mind</strong> <cite>Orson Scott Card</cite></footer></blockquote>
+
+
+
+
+<blockquote><p>There will allways be hope, wherever you are, until you yourself abondon it.</p><footer><strong>Old Revolutionary</strong> <cite>Lost Odyssey</cite></footer></blockquote>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/04/03/basic-jit/">Basic JIT</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-03T00:05:00-07:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2013</time>
+        
+         | <a href="/blog/2013/04/03/basic-jit/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Ever since I learned about
+<a href="`http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
+from the various
+<a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations">Ruby VMs</a>
+and
+<a href="http://www.slideshare.net/newmovie/know-yourengines-velocity2011">JavaScript VMs</a>,
+I&rsquo;ve been inspired.  I could tell you all about how just in time (JIT)
+compilation worked, and how it could give your interpreted language a speed
+boost.  It was so cool.  Well, it still is!  There&rsquo;s a ton of research going on
+around JIT compilation.  But the problem for me is that I could never figure
+out, let alone guess, how it was being done.  How could you compile code at
+runtime, and then execute it?  I asked
+<a href="http://pybites.blogspot.com/">Benjamin Peterson</a>
+about how he had learned so much about JITs, and he referred me to
+<a href="http://pypy.org/">pypy</a> (a Python JIT)&rsquo;s source.  But digging through source
+was too much; I just wanted a simple example I could grok quickly.  So I&rsquo;ve
+always been left wondering.</p>
+
+<p>Luckily, I have an awesome job where I can meet face to face with the people
+who are doing the work on making awesome production JIT compilers.  I spent
+part of last week at <a href="http://www.gdconf.com/">GDC</a> demoing
+<a href="https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/">Unreal Engine 3</a>
+running in the browser.  The demo was actually the hard work of many, and I&rsquo;ll
+dive into it more in another post following up the events, but
+<a href="https://blog.mozilla.org/luke/">Luke Wagner</a>, a Mozillian working on the
+JavaScript engine, added OdinMonkey to SpiderMonkey to allow optimizations of
+<a href="https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/">asm.js</a>.</p>
+
+<p>Luke is super friendly, and just listening to him talk with Dave Herman and
+Alon Zakai is a treat.  I asked Luke the basics of JIT&#8217;ing at tonight&rsquo;s Mozilla
+Research Party and he explained clearly. <em>Compile a simple object file, use
+objdump to get the resulting platform specific assembly, use the mmap system
+call to allocate some memory that you can write to <strong>AND</strong> execute, copy the
+instructions into that buffer, typecast it to a function pointer and finally
+call that.</em></p>
+
+<p>So my goal was to at runtime, create a function that for simplicity&rsquo;s sake
+multiplied two integers.  The first thing I did was write up a simple .c file,
+then compile that to an object file with the -c flag.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// Compile me with: clang -c mul.c -o mul.o</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">mul</span> <span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As a heads up, I&rsquo;m on 64bit OSX.  So the generated assembly may differ on your
+platform.  Obviously, the production JIT maintainers have abstracted away the
+platform dependency, taking into account what platform you&rsquo;re on.  My example
+doesn&rsquo;t, but that why I&rsquo;m walking you through the steps I took to find out the
+x86_64 instructions.  The next step is to grab binutils, which is not installed
+by default in OSX.  I used homebrew to install it: <code>brew install binutils</code>.
+Homebrew installs gobjdump but it works with the same flags.</p>
+
+<p>Once you have binutils and [g]objdump, the next step is to read out the machine
+code from your object file, which is represented in hexadecimal.  By running
+<code>gobjdump -j .text -d mul.o -M intel</code> you should get something similar
+(remember, architecture dependent).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="err">$</span> <span class="n">gobjdump</span> <span class="o">-</span><span class="n">j</span> <span class="p">.</span><span class="n">text</span> <span class="o">-</span><span class="n">d</span> <span class="n">mul</span><span class="p">.</span><span class="n">o</span> <span class="o">-</span><span class="n">M</span> <span class="n">intel</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Disassembly</span> <span class="n">of</span> <span class="n">section</span> <span class="p">.</span><span class="n">text</span><span class="o">:</span>
+</span><span class='line'>
+</span><span class='line'><span class="mo">0000000000000000</span> <span class="o">&lt;</span><span class="n">_mul</span><span class="o">&gt;:</span>
+</span><span class='line'><span class="mi">0</span><span class="o">:</span> <span class="mi">55</span> <span class="n">push</span> <span class="n">rbp</span>
+</span><span class='line'><span class="mi">1</span><span class="o">:</span> <span class="mi">48</span> <span class="mi">89</span> <span class="n">e5</span> <span class="n">mov</span> <span class="n">rbp</span><span class="p">,</span><span class="n">rsp</span>
+</span><span class='line'><span class="mi">4</span><span class="o">:</span> <span class="mi">89</span> <span class="mi">7</span><span class="n">d</span> <span class="n">fc</span> <span class="n">mov</span> <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x4</span><span class="p">],</span><span class="n">edi</span>
+</span><span class='line'><span class="mi">7</span><span class="o">:</span> <span class="mi">89</span> <span class="mi">75</span> <span class="n">f8</span> <span class="n">mov</span> <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x8</span><span class="p">],</span><span class="n">esi</span>
+</span><span class='line'><span class="nl">a:</span> <span class="mi">8</span><span class="n">b</span> <span class="mi">75</span> <span class="n">fc</span> <span class="n">mov</span> <span class="n">esi</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x4</span><span class="p">]</span>
+</span><span class='line'><span class="nl">d:</span> <span class="mf">0f</span> <span class="n">af</span> <span class="mi">75</span> <span class="n">f8</span> <span class="n">imul</span> <span class="n">esi</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x8</span><span class="p">]</span>
+</span><span class='line'><span class="mi">11</span><span class="o">:</span> <span class="mi">89</span> <span class="n">f0</span> <span class="n">mov</span> <span class="n">eax</span><span class="p">,</span><span class="n">esi</span>
+</span><span class='line'><span class="mi">13</span><span class="o">:</span> <span class="mi">5</span><span class="n">d</span> <span class="n">pop</span> <span class="n">rbp</span>
+</span><span class='line'><span class="mi">14</span><span class="o">:</span> <span class="n">c3</span> <span class="n">ret</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ok, so those instructions vary in size.  I don&rsquo;t know any x86 so I can&rsquo;t
+comment too much on that particular
+<a href="http://en.wikipedia.org/wiki/Instruction_set">Instruction Set Architecture</a>
+but they&rsquo;re obviously in pairs of hexadecimal digits.  16<sup>2</sup> == 2<sup>8</sup> meaning that
+each pair of hex digits can be represented by a single byte (or char of memory).
+So these can all be thrown in an unsigned char [].  The man page for mmap explains
+all of the fun flags, but the important point is that this way of allocating
+memory makes it executable, so it can do bad things that memory allocated from
+malloc can&rsquo;t.  I&rsquo;m sure the JavaScript engine guys have fun with that.  Once
+memory is copied in, you can typecast the memory to a function pointer.
+Make sure to check out the syntax that reminds me of a function pointer in an
+argument list, but being used as an L-value.  Of course, you could just put the
+cast right in front of the memory before you use it, but I find this as neat,
+not so common C syntax.  I kind of
+<a href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/">have a thing</a>
+for stuff like that.  Then we can call it!  The resulting code looks like this.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt; </span><span class="c1">// printf</span>
+</span><span class='line'><span class="cp">#include &lt;string.h&gt; </span><span class="c1">// memcpy</span>
+</span><span class='line'><span class="cp">#include &lt;sys/mman.h&gt; </span><span class="c1">// mmap, munmap</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'><span class="c1">// Hexadecimal x86_64 machine code for: int mul (int a, int b) { return a * b; }</span>
+</span><span class='line'><span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">code</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="mh">0x55</span><span class="p">,</span> <span class="c1">// push rbp</span>
+</span><span class='line'>  <span class="mh">0x48</span><span class="p">,</span> <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xe5</span><span class="p">,</span> <span class="c1">// mov rbp, rsp</span>
+</span><span class='line'>  <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0x7d</span><span class="p">,</span> <span class="mh">0xfc</span><span class="p">,</span> <span class="c1">// mov DWORD PTR [rbp-0x4],edi</span>
+</span><span class='line'>  <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0xf8</span><span class="p">,</span> <span class="c1">// mov DWORD PTR [rbp-0x8],esi</span>
+</span><span class='line'>  <span class="mh">0x8b</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0xfc</span><span class="p">,</span> <span class="c1">// mov esi,DWORD PTR [rbp-04x]</span>
+</span><span class='line'>  <span class="mh">0x0f</span><span class="p">,</span> <span class="mh">0xaf</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0xf8</span><span class="p">,</span> <span class="c1">// imul esi,DWORD PTR [rbp-0x8]</span>
+</span><span class='line'>  <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xf0</span><span class="p">,</span> <span class="c1">// mov eax,esi</span>
+</span><span class='line'>  <span class="mh">0x5d</span><span class="p">,</span> <span class="c1">// pop rbp</span>
+</span><span class='line'>  <span class="mh">0xc3</span> <span class="c1">// ret</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// allocate executable memory via sys call</span>
+</span><span class='line'>  <span class="kt">void</span><span class="o">*</span> <span class="n">mem</span> <span class="o">=</span> <span class="n">mmap</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">code</span><span class="p">),</span> <span class="n">PROT_WRITE</span> <span class="o">|</span> <span class="n">PROT_EXEC</span><span class="p">,</span>
+</span><span class='line'>                   <span class="n">MAP_ANON</span> <span class="o">|</span> <span class="n">MAP_PRIVATE</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// copy runtime code into allocated memory</span>
+</span><span class='line'>  <span class="n">memcpy</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">code</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// typecast allocated memory to a function pointer</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">func</span><span class="p">)</span> <span class="p">()</span> <span class="o">=</span> <span class="n">mem</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// call function pointer</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d * %d = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">func</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">11</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// Free up allocated memory</span>
+</span><span class='line'>  <span class="n">munmap</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">code</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Voila!  How neat is that!  It works!  Luke&rsquo;s directions, an hour of working on
+this, and
+<a href="http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html">this article</a>
+in particular, and we have a simple JIT working. Again, this simple example is super
+non-portable and dealing with memory in this fashion is generally unsafe.  But
+now I know the basics of JIT&#8217;ing code, and now so do you!</p>
+
+<p>Thanks Luke!</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/02/28/commandments-of-a-mobile-web/">Commandments of a Mobile Web</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-28T22:43:00-08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/02/28/commandments-of-a-mobile-web/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Over the past few years, there&rsquo;s been certain
+<a href="http://en.wikipedia.org/wiki/Paradigm_shift">paradigm shifts</a>
+in web development. When you think of milestones that really changed how
+development on the web was done, the two biggest were
+<a href="https://www.ibm.com/developerworks/mydeveloperworks/blogs/BobZurek/entry/the_ajax_paradigm_shift?lang=en">Ajax</a>
+and <a href="http://www.html5rocks.com/en/why">HTML5</a>.  Development was identifiably
+different before and after such technological advancements.  There were
+<a href="http://java.sys-con.com/node/315210">some</a> who initially
+<a href="http://blog.tobie.me/post/31366970040/when-im-introspective-about-the-last-few-years-i">doubted</a>
+the technologies, but I&rsquo;m sure such doubters eventually
+<a href="http://www.sencha.com/blog/the-making-of-fastbook-an-html5-love-story/">saw the light</a>.
+After spending time working on applications for Mozilla&rsquo;s upcoming mobile
+operating system, Firefox OS, and talking with my fellow employees, I feel that
+the mobile web is another one of those shifts in how we
+approach web development that looking back will be an identifiable point in
+time where we can say that we did things differently before and after.
+So in that sense, I want to share some of the insights I&rsquo;ve found to
+help other developers wrap their heads around how developing for the mobile web
+isn&rsquo;t their traditional cup of tea.</p>
+
+<h1>Internet connectivity is not guaranteed</h1>
+
+<p>This is a fundamental divorce from the World Wide Web and the Internet. I feel
+that a lot of people having trouble differentiating the Web from the Internet;
+where you&rsquo;ve had one, you&rsquo;ve always had the other. Don&rsquo;t
+assume your application will always have a valid connection.  When a user
+is on a wifi connection, or hardwired, it&rsquo;s so obvious that if they&rsquo;re on your
+website, then they must be connected to the Internet.  Right?  But what happens
+now when one of your users loads up your site or app on a mobile device, then enters
+a tunnel?  What does it do when offline?  Does it work?  Maybe it
+doesn&rsquo;t make sense if you&rsquo;re offering a service that requires data from the
+back end, but does that mean that the front end should totally look like crap
+or break when the back end can&rsquo;t be reached?  Do your Ajax requests have error
+callbacks?  Do you try and reconnect your WebSocket connections after they&rsquo;ve
+failed?  Do you cache previous requests or use one of the many forms of offline
+storage to show something to the user?  Developing on the loopback is literally
+the best case for connectivity, but it gives the developer a false sense of
+how latency and connectivity issues affect their application.  It&rsquo;s literally
+shocking the first time you encounter your site/application offline if you
+didn&rsquo;t think about the user experience up front.</p>
+
+<h1>Bandwidth is not free</h1>
+
+<p>The advent of broadband made it acceptable for sites to utilize massive amounts
+of assets.  Seeing sites that load up so much stuff makes my heart sink when
+I wonder about viewing such a site on my mobile device.  I only pay for so much
+mobile data per month, then I&rsquo;m billed ridiculous amounts as a
+<a href="http://forums.att.com/t5/Data-Messaging-Features-Internet/What-does-quot-Data-MB-Overage-quot-mean/td-p/2872883">&ldquo;Data Overage&rdquo;</a>.
+Users in other countries frequently have a more pay as you go style plan, so
+they&rsquo;re being billed for each bit across the wire.  In countries without the
+infrastructure necessary to get broadband Internet to every household, mobile
+is more prolific in getting users connected.</p>
+
+<p>Things like minification and gzip certainly help, but deferred loading of
+assets until they&rsquo;re necessary is frequently overlooked.
+Massive libraries are nice for devs, but may end up giving mobile users more
+problems than they are worth. There exist more advanced techniques such as
+<a href="http://buildnewgames.com/optimizing-websockets-bandwidth/">WebSocket compression</a>.</p>
+
+<p>How much does your site <a href="http://www.sitepoint.com/minimizing-page-weight-matters/">weigh</a>?</p>
+
+<h1>An expensive website does not make an awesome app</h1>
+
+<blockquote><p>Why doesn&#8217;t my million dollar website make a kick ass web app?</p></blockquote>
+
+
+<p>This point is brought to you by <a href="http://www.mattbasta.com/">Matt Basta</a>.  The
+point is that there is something fundamentally different between a web &ldquo;site&rdquo;
+and a web &ldquo;app&rdquo;.  In a web site the usual flow involves loading up a page
+and maybe navigating between pages.  An app more often than not will be a
+single page that loads data asynchronously and dynamically modifies the content
+displayed to the user.  Some web sites make great use of things like Ajax, and
+are great example of single page sites.  But not all are.  Some still haven&rsquo;t
+come around to loading all data asynchronously on request.  And it&rsquo;s not that
+they necessarily even have to, they can be a website and never have to be
+anything more.  But you&rsquo;ll find that some sites make better apps than others.</p>
+
+<h2>No chrome</h2>
+
+<p>Not the browser made by Google, Google Chrome; the actual
+<a href="https://developer.mozilla.org/en-US/docs/Chrome">controls</a> on the top
+of your browser such as the back and reload buttons, and the url bar.  This
+point comes from <a href="https://github.com/cvan">Chris Van Wiemeersch</a>.  One of
+the things you&rsquo;ll find when evaluating whether a site makes a good app is
+whether it relies on chrome to navigate.  If it does, then it&rsquo;s not really
+going to cut it as an app.  If you&rsquo;re going to make a single page app, try
+making it fullscreen in your browser and try navigating around. Are you
+hindered without the chrome?  One thing I
+found recently was an error condition where I notified the user that they had
+to be online to check for an update.  But when I was developing, I would just
+refresh the page to clear the error message and try again.  On a device, as an
+app, where there was no chrome, this meant closing and restarting the app.
+That sucked, so I made it so the user could click/touch, after figuring out
+their connectivity issues, to retry the fetch.  Even better may have
+been to listen for online events!</p>
+
+<h2>Traditional forms of input are not fun</h2>
+
+<p>Here&rsquo;s some tips from <a href="http://potch.me/">Matthew &ldquo;Potch&rdquo; Claypotch</a>.</p>
+
+<h3>Fingers aren&rsquo;t as precise as cursors</h3>
+
+<p>Having tiny click
+targets is really frustrating.  How many times have you clicked the wrong
+thing on a mobile device?  Tiny buttons are not the easiest thing for users
+to specify, especially when groups of them are clustered nearby.  Custom
+buttons enabled by <a href="http://www.cssbuttongenerator.com/">a little CSS</a> can go a
+long way.</p>
+
+<h3>Typing on little keyboards in tedious</h3>
+
+<p>This is an effect of tiny buttons, but requiring the user to type in large
+strings gets annoying fast.  Sometimes this can&rsquo;t be avoided, but it should be
+when it can.  Just as typing in a long, complex url to a mobile browser is
+not enjoyable, neither is doing so in an app.</p>
+
+<h1>Detect features not browser engine (User agent sniffing is a sin)</h1>
+
+<p>Print <a href="http://diveintohtml5.com/everything.html">this</a> and staple it to your
+wall above your workspace.  This should be
+<a href="http://www.nczonline.net/blog/2009/12/29/feature-detection-is-not-browser-detection/">old</a>
+<a href="http://msdn.microsoft.com/en-us/magazine/hh475813.aspx">news</a> at this point.</p>
+
+<h2>Vendor prefixes are meant for browser vendors to test, not production code</h2>
+
+<p>I place a majority of the blame for this on vendors; prefixes should never see
+the light of day in release builds.  It&rsquo;s ridiculous to have to write four
+copies of the same rule, when you&rsquo;re trying to express one thing.  I should
+rewrite this sentence four different ways to prove a point.  -o-Do you understand
+what I&rsquo;m getting at?  -ms-It&rsquo;s almost like rambling. -moz-Repetitive department
+of repetition. -webkit-This is ridiculous.</p>
+
+<p>But developers need to recognize the habit as an addiction, and not feed it.
+If you have, I forgive you.  Now stop doing it.</p>
+
+<p>These two particular articles are just so good, it wouldn&rsquo;t do them justice to
+try and summarize them.  Please go read them, I&rsquo;ll wait.
+<a href="http://hsivonen.iki.fi/vendor-prefixes/">this</a>
+and
+<a href="http://www.quirksmode.org/blog/archives/2010/03/css_vendor_pref.html">this</a></p>
+
+<h2>Developing towards WebKit and not HTML5 is a sin</h2>
+
+<p>I understand that Google Chrome is your favorite browser, and I am so happy for
+you; but it is not mine.  I&rsquo;ll be the first to admit that Google
+caught all of the other browser vendors with their pants down, but when I see
+pages that look flawless in Chrome and
+not so hot in others, it reminds me of days when sites only worked in IE6.
+Surely you remember <em>those</em> days.  I hate when content publishers try and
+dictate which browser I should use to view their content.  I understand WebKit
+based browsers dominant in mobile, but so did IE6 in desktop share at one point.
+It&rsquo;s not unreasonable to expect users to use the most updated version of their
+browser, but empower your users to choose their browser.  Don&rsquo;t take that
+choice away from them.</p>
+
+<p>A neat <a href="http://robertnyman.com/2013/02/14/webkit-an-objective-view/">point</a> by
+<a href="http://robertnyman.com/">Robert Nyman</a> is that WebKit itself already has forks.
+Can you imagine if there were eventually vendor prefixes for forks of WebKit?
+Continuing with vendor prefixes means that we&rsquo;ll now have seven vendor prefixes:
+unprefixed, -moz-, -o-, -ms-, -webkit-o-, -webkit-chrome-, -webkit-safari-.
+Awesome!  Maybe I should rewrite this sentence seven different ways to make a
+point!</p>
+
+<p>I&rsquo;m also curious if Google, Apple, and the WebKit maintainers are turning a
+blind eye to this, or what their opinions are? Being a vendor and wanting an
+open web are almost conflicts of interest; you want your browser to &ldquo;win&rdquo; or
+dominate in marketshare, but at the same time you don&rsquo;t want any one browser
+having too much marketshare.</p>
+
+<h1>Design Responsively</h1>
+
+<p>What is
+<a href="http://mashable.com/2012/12/11/responsive-web-design/">responsive design</a>?
+<a href="http://www.smashingmagazine.com/responsive-web-design-guidelines-tutorials/">Responsive design</a>
+is making a site look great on
+any size screen, without duplicating assets or sniffing a user agent string.
+Firefox has a neat web dev tool called
+<a href="https://developer.mozilla.org/en-US/docs/Tools/Responsive_Design_View">&ldquo;Responsive Design View&rdquo;</a>.
+It&rsquo;s great for testing out your site on various screen sizes.
+<a href="http://twitter.github.com/bootstrap/index.html">Twitter Bootstrap</a> is an
+excellent example of a framework for developing a single app that looks great
+on any screen size.  Even if you don&rsquo;t want to use a whole big framework,
+simple things like using CSS rules in terms of percentages instead of hard
+coded pixels can go a long way.</p>
+
+<p>Sites that are trying to become more app like have trouble with conforming to
+responsive design.  Instead of starting with a site and trying to figure out
+how to hide
+or not display information as the screen gets smaller, you&rsquo;ll find it much
+<a href="http://johnpolacek.github.com/scrolldeck.js/decks/responsive/">easier</a> to
+start small, and dynamically add content as the screen gets bigger.</p>
+
+<h1>High performance code respects battery life</h1>
+
+<p>In the end of the day, all of the code you write that runs in the browser is
+a set of instructions the processor can decode, not necessarily the high level
+JavaScript you wrote.  While it&rsquo;s important to avoid premature optimizations,
+having a few
+<a href="http://christianheilmann.com/2013/01/25/five-things-you-can-do-to-make-html5-perform-better/">rules of thumb</a>
+up front will help you write better, faster code.
+If the same overall action can be expressed in one instruction or one hundred,
+which do you think will use
+<a href="http://coding.smashingmagazine.com/2012/11/05/writing-fast-memory-efficient-javascript/">less power</a>?
+Keep in mind that transistors leak current while switching.</p>
+
+<h2>Native methods over library methods, CSS over JS</h2>
+
+<p>What do I mean by &ldquo;native methods?&rdquo; Like C++?  Well, yes.  You see under the
+hood the DOM bindings that you&rsquo;re calling are probably written in C++.  Call
+<code>toSource()</code> on <code>document.getElementById()</code>.  The <code>[native code]</code> statement
+in the returned string refers to the implementation.  While type specialized
+code emitted by the JIT can match or even beat native code, you can only count
+on that for hot loops.  In the same vein, library code is going to be
+<a href="http://jsperf.com/getelementbyid-vs-jquery-id/25">slower</a> than any code
+written natively.  I&rsquo;m not saying that you shouldn&rsquo;t use libraries, just know
+that the use of libraries can incur some overhead.  Things like animations will
+also be faster
+when handled by natively implemented CSS over JS.  You can use JS to
+dynamically add classes to elements to get finer resolution over events, but
+then get the performance of CSS.</p>
+
+<h2>Avoid JIT bailout</h2>
+
+<p>The Just In Time (JIT) interpreter is a
+<a href="http://www.slideshare.net/amdgigabyte/know-your-javascript-engine">new breed</a>
+of VM that most browser
+vendors are now using.  The JIT can
+<a href="http://s3.mrale.ph/nodecamp.eu/#1">analyze</a> running code, and
+<a href="http://en.wikipedia.org/wiki/Code_generation_%28compiler%29#Runtime_code_generation">emit</a>
+native code
+that is faster than reinterpreting code again, and even higher-optimized code
+for type stable JavaScript, as long as certain &ldquo;guard&rdquo; conditions are met.
+When a guard fails, the JIT has to
+<a href="http://mxr.mozilla.org/mozilla-central/source/js/src/ion/Bailouts.h#19">bailout</a>
+the emitted native code and start reinterpreting code again.</p>
+
+<h2>Keep up to date on new APIs</h2>
+
+<p>HTML5 is a big
+<a href="http://www.w3.org/html/wg/drafts/html/master/single-page.html">spec</a>, and is
+getting bigger.  So big that some recommendations are
+being <a href="http://www.websocket.org/aboutwebsocket.html">spun off</a> from the
+original HTML5 spec.  As an engineer, I&rsquo;m painfully aware that you need to
+<a href="http://bonsaiden.github.com/JavaScript-Garden/">keep up</a>
+in whatever industry you work in in order to stay relevant.
+The complacent are the most vulnerable.  There&rsquo;s
+<a href="http://caniuse.com/">a lot to keep track of</a> with
+HTML5 and CSS3, but many new features offer higher performance methods of
+skinning the cat.</p>
+
+<h3>requestAnimationFrame</h3>
+
+<p>window.requestAnimation frame is a godsend for animation.  Not too long ago, I
+wrote up a quick
+<a href="https://github.com/nickdesaulniers/canvas2dcontext/blob/master/examples/sprite.html#L6">example</a>
+of various ways of implementing animation loops and their issues; you should
+check it out.</p>
+
+<h3>indexedDB over localstorage</h3>
+
+<p>The indexedDB api might not be as simple as localstorage&rsquo;s is, but localstorage
+is synchronous and is noticeably slow on mobile.  If you can bite the bullet
+and use indexedDB, you&rsquo;ll find you&rsquo;re JS isn&rsquo;t blocking on
+serializing/deserializing objects for storage.
+<a href="https://twitter.com/fabricedesre">Fabrice Desré</a> shared this with me.</p>
+
+<h3>WebWorkers</h3>
+
+<p>Webworkers can&rsquo;t modify the DOM, but they can do heavy lifting without blocking
+the main thread.</p>
+
+<h3>CSS translate over absolute top and left rules</h3>
+
+<p><a href="http://digitarald.de/">Harald Kirschner</a> recommends CSS translates over top
+and left rules for absolutely positioning some elements.</p>
+
+<h3>Gradients are expensive</h3>
+
+<p><a href="http://www.backalleycoder.com/">Dan Buchner</a> notes that without beefy graphics
+processing units of their desktop counterparts to enable hardware acceleration,
+things like gradients will give you noticeable performance hits.</p>
+
+<h3>createDocumentFragment</h3>
+
+<p>Dan also suggests queuing up DOM changes.
+Whenever you manipulate items in the DOM, you&rsquo;re going to trigger a reflow,
+which may consist of an update to the layout and/or a repaint.  Minimizing these
+makes for a faster update to the DOM.  For example, it can be faster to use
+document.createDocumentFragment and append child nodes to it, and then append
+that to the DOM, instead of appending lots of child nodes in between timer calls.
+Surprise, this isn&rsquo;t actually a
+<a href="http://ejohn.org/blog/dom-documentfragments/">new</a> DOM binding from HTML5.</p>
+
+<h1>Conclusion</h1>
+
+<p>These are just some tips I have for application developers.  I am by no means
+an expert; I&rsquo;m sure if you dig deep enough, you can find plenty of examples of
+my past work that contradicts some of my recommendations from this article.  But
+I&rsquo;m a little smarter today than I was yesterday, and now so are you!  What are some
+tips that you have to share that you&rsquo;ve found helpful developing for the
+mobile web?</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/">C Function Pointers Alternate Syntax</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-26T17:49:00-08:00" pubdate data-updated="true">Jan 26<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>On an interview with <a href="https://squareup.com/">Square</a>, I made the mistake
+of stating that one of the benefits of working with JavaScript over C is
+that functions are <a href="http://en.wikipedia.org/wiki/First-class_function">first class</a>
+in JavaScript, therefore they may be <a href="http://eloquentjavascript.net/chapter6.html">passed around</a>.  To which the
+interviewer replied, &ldquo;Well, C can do that, what about function pointers?&rdquo;  What? Luckily, I
+was able to get out of that jam by guessing that JavaScript had a nicer
+syntax.</p>
+
+<p>While I was taught some C in university, we had never gone over function
+pointers or more in depth topics such as <a href="http://en.wikipedia.org/wiki/Static_library">static</a>
+or <a href="http://en.wikipedia.org/wiki/Dynamic_library">dynamic</a> <a href="http://www.yolinux.com/TUTORIALS/LibraryArchives-StaticAndDynamic.html">linkage</a>.
+I was so embarrassed that my expensive (read <a href="http://online.wsj.com/article/SB10001424127887324442304578231922159602676.html?mod=WSJ_hps_LEFTTopStories">overpriced</a>)
+degree had not taught me more about
+the C programming language, especially from the Computer Engineering
+department that focuses on software <strong>AND</strong> hardware.  On my exit
+interview with the dean, I was very opinionated on the amount of C that
+was (or wasn&rsquo;t) taught at my university.  His argument was that there
+are only so much of so many languages you can cover in a university, which
+to some extent is valid.  My problem has been that I&rsquo;ve enjoyed learning
+many different programming languages, though I didn&rsquo;t really get it the
+first time around (with Java).  I think knowing many different languages
+and their respective paradigms makes you a better programmer in other
+languages, since you can bring a <a href="http://therubyway.org/">Ruby Way</a> to
+<a href="http://www.rust-lang.org/">Rust</a> or a <a href="http://www.ibm.com/developerworks/library/wa-javascript/index.html">JavaScript functional</a>
+<a href="http://interglacial.com/hoj/hoj.html">style</a> into C.</p>
+
+<p>I had read two books in the meantime that really flushed out more of the
+C language to me and I would definitely recommend them to those who want
+to learn more about the language. They are <a href="http://shop.oreilly.com/product/0636920015482.do">Head First C</a> by Dave and Dawn
+Griffiths and <a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a> by Ben Klemens.
+I&rsquo;m also aware that <a href="http://en.wikipedia.org/wiki/The_C_Programming_Language">The C Programming Language</a> by
+Brian Kernighan and Dennis Ritchie is also known as the canonical text.
+The book is often referred to as &lsquo;K&amp;R&rsquo; after the authors&#8217; initials, and Dennis
+Ritchie was the original creators of the C language and co-developer of
+Unix.  I&rsquo;d love to get a chance to read it someday.</p>
+
+<p><a href="http://blog.charlescary.com/?p=95">This article</a> appeared on
+<a href="http://news.ycombinator.com/">Hacker News</a> and really piqued my
+interest.  Defenitely a great read.  What really stuck out to me was one
+of the <a href="http://blog.charlescary.com/?p=95#comment-31">comments</a> though.
+The author of the comment mentioned a less ugly syntax for function
+pointers, with a <a href="http://pastebin.com/MsJLY22j">link to an example</a>.
+Now I&rsquo;m not sure what the commenter meant by &ldquo;these params decay
+naturally to function pointers&rdquo; but I was skeptical about this different
+syntax.  Event the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
+used the syntax that I was familiar with.  So I wrote up a quick example
+to try it:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// compiled with:</span>
+</span><span class='line'><span class="c1">// clang -Wall -Wextra function_pointers.c -o function_pointers</span>
+</span><span class='line'><span class="cp">#include &quot;stdio.h&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">usual_syntax</span> <span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">fn</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;usual syntax start&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">fn</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;usual syntax end&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">other_syntax</span> <span class="p">(</span><span class="kt">void</span> <span class="n">fn</span> <span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">))</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;other syntax start&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">fn</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;other syntax end&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">hello</span> <span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;hello %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;hello world&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">usual_syntax</span><span class="p">(</span><span class="n">hello</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">other_syntax</span><span class="p">(</span><span class="n">hello</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Sure enough we get:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">hello</span> <span class="n">world</span>
+</span><span class='line'><span class="n">usual</span> <span class="n">syntax</span> <span class="n">start</span>
+</span><span class='line'><span class="n">hello</span> <span class="mi">1</span>
+</span><span class='line'><span class="n">usual</span> <span class="n">syntax</span> <span class="n">end</span>
+</span><span class='line'><span class="n">other</span> <span class="n">syntax</span> <span class="n">start</span>
+</span><span class='line'><span class="n">hello</span> <span class="mi">2</span>
+</span><span class='line'><span class="n">other</span> <span class="n">syntax</span> <span class="n">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So the moral to the story I guess is that there&rsquo;s always more to your
+favorite language.  From using <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/variadic_macros.c">variadic macros</a>
+with <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/compound_literal.c">compound literals</a>
+to enable a more <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/foreach.c">functional style</a>
+in C to reflecting upon a function&rsquo;s <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/length">number of arguments</a>
+or <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/name">name</a>
+or <a href="http://taylodl.wordpress.com/2012/09/03/functional-javascript-memoization-part-ii/">adding attributes to a function</a>
+or the
+<a href="http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/">y-combinator</a>
+in JavaScript, I learn something new every day.  And I hope that you did
+too!  Thanks for reading!  If you have some other recommendations on
+good programming books, or design patterns, please leave a comment or
+write a reply blog post!</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/01/19/internet-freedom-is-not-free/">[Internet] Freedom Is Not Free</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-19T20:12:00-08:00" pubdate data-updated="true">Jan 19<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/01/19/internet-freedom-is-not-free/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Last week, the Internet community
+<a href="http://tech.mit.edu/V132/N61/swartz.html">lost</a> a member in the on going war
+against the copyright industry.  While I&rsquo;ve never met the deceased, or
+even heard of the deceased before his suicide, I&rsquo;m horrified.  I&rsquo;m
+horrified that the government we are asked to put so much faith in,
+would give someone, not that different from myself, such a <a href="http://www.techdirt.com/articles/20120917/17393320412/us-government-ups-felony-count-jstoraaron-swartz-case-four-to-thirteen.shtml">ridiculous sentence</a>.
+That I could be thrown away, locked away from the things that
+I love for 35 years, for freeing information that
+<a href="http://arstechnica.com/tech-policy/2013/01/aaron-swartz-memorial-jstor-liberator-sets-public-domain-academic-articles-free/">should</a>
+have been free, and was later
+<a href="http://www.3news.co.nz/Reddit-co-founder-dies-weeks-before-trial/tabid/412/articleID/282905/Default.aspx">made</a> free.</p>
+
+<p>That my government would strike such fear into someone&rsquo;s life that they
+would prefer death by their own hands to punishment.  Why do we put up
+with this?</p>
+
+<p>The Internet, and the technology sector evolves so quickly.  It&rsquo;s
+amazing that the law the deceased was being prosecuted under, pertaining
+to computers, is from
+<a href="http://en.wikipedia.org/wiki/Computer_Fraud_and_Abuse_Act">1986</a>.  Can
+you even remember what computers were like in 1986?  I didn&rsquo;t even
+exist!  My first family computer ran Windows 95.  I can only imagine how
+archaic laws would be that were based on such rapidly evolving tech.</p>
+
+<p>The limiting of information is problematic to me.  How do the people of
+China, Iran, and others feel about their government?  I assume they are
+aware that the government is limiting their body of knowledge.  Even the
+US television news agencies can&rsquo;t get the story straight.  It
+reminds me of George Orwell&rsquo;s <em>1984</em>, where the language is limited to
+curtail expression.  If the free world uses the Internet as <a href="http://en.wikipedia.org/wiki/Transactive_memory">Transactive Memory</a>, does the
+oppressed world know what they&rsquo;re missing?  Can you know what you&rsquo;re
+missing, before you&rsquo;ve lost it?</p>
+
+<p>The media and copyright lobby disgust me.  I&rsquo;m disgusted that <a href="http://www.mpaa.org/about/ceo">my former state senator</a>
+is now the Chairman and
+CEO of the MPAA.  Remember learning in high school civics the term
+<a href="http://en.wikipedia.org/wiki/Revolving_door_%28politics%29">&ldquo;Revolving Door&rdquo;</a>? Case
+in point.</p>
+
+<p>America was constitutionalized as a republic, but through
+amendment has <a href="http://en.wikipedia.org/wiki/Democratic_republic">evolved</a>
+into a democratic republic.  The idea of a republic was important to an
+<a href="http://seattletimes.com/html/nationworld/2003332210_tuesday31.html">agrarian society</a>,
+and we still feel the effects every first Tuesday in
+November; the least convenient day of the week.  Voting for someone
+just to represent you was convenient when your form of long-range
+communication was a man on a pony.  With the rise of the Internet, and
+representatives who work for their lobbies and not the people,
+why do we still elect officials?  Why are we a republic?  Why not just a
+democracy?  Allow voters to authenticate and cast their vote online.
+Everyone.  No computer or internet?  I&rsquo;m sure your local library offers
+both free for public use.  &ldquo;But people don&rsquo;t always know what&rsquo;s right.&rdquo;
+Sure, I think some people aren&rsquo;t too bright.  But then I see the
+deadlock in congress, fiscal cliff after fiscal cliff, and I can&rsquo;t help
+but think we could do better if we just fired all of these assholes.</p>
+
+<p>Why can&rsquo;t the difference in viewpoints be celebrated?  A good leader
+recognizes both sides of the coin.  I love having a diverse team of
+people with varying backgrounds, because they come up with solutions I
+never could have.  And if you want to beat your enemy, you have to know
+your enemy.  That means empathizing, understanding where they come from.</p>
+
+<blockquote><p>If you give orders and explain nothing, you might get obedience, but<br/>you&#8217;ll get no creativity. If you tell them your purpose, then when your<br/>original plan is shown to be faulty, they&#8217;ll find another way to achieve<br/>your goal. Explaining to your men doesn&#8217;t weaken their respect for you,<br/>it proves your respect for them.</p><footer><strong>Han Tzu</strong> <cite>Shadow of the Giant Pg. 303 by Orson Scott Card</cite></footer></blockquote>
+
+
+<p>I don&rsquo;t hate anyone for what they believe, nor do I
+try to persuade them otherwise.  I just feel like the technologically
+minded are under represented in Washington.  I wish we had a
+technological party.  We need a
+party that strives to protect the internet, the ideals behind
+the freedom and preservation of information, the technical investment in
+sovereign energy and our failing infrastructure, and internet access
+speeds that are unrivaled in the world, not stagnated by corporations
+who are relatively regional monopolies.  One where social
+issues are open to debate, but also where protecting our greatest asset and
+achievement is top priority.  One where the media industry is invited to
+the table, unlike the back door <a href="http://en.wikipedia.org/wiki/Stop_Online_Piracy_Act">policies</a>
+they would try to slip in under our noses.  My dad advocated a turn the
+other cheek policy.  That&rsquo;s called acting like an adult.</p>
+
+<p>My belief of good vs. evil is that there is no good or evil, but that people
+are inherently selfish.  They
+do things that are perceived by others as evil.  But they don&rsquo;t do
+things because those actions are evil, they do them because they gain
+some form of personal utility from the action; they perceive the action
+as good.  And it is good&hellip;to them.  It&rsquo;s easy to be evil.  It&rsquo;s the easy
+way out.  It&rsquo;s harder to think about other people.  It&rsquo;s tougher to do
+the right thing.  Being good is so recognizably hard; it&rsquo;s impressive.</p>
+
+<p>The president of MIT, L. Rafael Reif, had this to say regarding the
+deceased: <a href="http://touch.latimes.com/#section/-1/article/p2p-74009443/">&ldquo;It pains me to think that MIT played any role in a series of events that have ended in tragedy&hellip;&rdquo;</a>
+Fuck you. Maybe if MIT&rsquo;s bottom line wasn&rsquo;t their acceptance rate, they
+might be able to look out for more than just their own.</p>
+
+<blockquote><p>All that is necessary for the triumph of evil is that good men do<br/>nothing.</p><footer><strong>Edmund Burke</strong> <cite>Thoughts on the Cause of Present Discontents</cite></footer></blockquote>
+
+
+<p>Suicide is never the answer.  No matter how shitty your current
+situation is, no matter if things will never go back to the way they
+were, you will always be able to change your situation.  Maybe not
+immediately, but that&rsquo;s what goals are for.  Anyone who ever committed
+suicide to prove a point could have done more for their cause dedicating
+the rest of their life to it.  If you&rsquo;re feeling depressed, talk to
+someone.  It will make you feel so much better to talk to someone about
+what&rsquo;s upsetting you.  As much as people like to shit on the Catholic
+Church, I feel like the Catholic practice of penance (confession),
+provides a cathartic placebo effect.  If you are depressed or hurting, and
+you need someone to talk to, even a complete stranger, feel free to
+contact me.  I will always provide an ear and a shoulder.</p>
+
+<blockquote><p>It seems strange that my life should end in such a terrible place, but<br/>for three years I had roses and apologized to no one. I shall die here.<br/>Every inch of me shall perish. Every inch, but one. An inch. It is small<br/>and it is fragile and it is the only thing in the world worth having. We<br/>must never lose it or give it away. We must NEVER let them take it from<br/>us. I hope that whoever you are, you escape this place. I hope that the<br/>world turns, and that things get better. But what I hope most of all is<br/>that you understand what I mean when I tell you that, even though I do<br/>not know you, and even though I may never meet you, laugh with you, cry<br/>with you, or kiss you, I love you. With all my heart, I love you.</p><footer><strong>Valerie</strong> <cite>V for Vendetta</cite></footer></blockquote>
+
+
+<p>The next time the media industry tries to limit what you have access to
+on the Internet, make a big ruckus.  Inform everyone you know about the
+facts.  Pushing for an increase in media piracy activities is not the
+right answer.  Instead we should push to boycott working for
+organizations like the RIAA and MPAA and their ilk.  Think about how
+much better off we would be in the United States if teachers were paid
+like rock stars and rock stars were paid like teachers?  Instead, everyone
+in the media industry needs a fat paycheck.  Celebrity is the case in
+point of the blind leading the blind.  Did you know that EMI
+<a href="https://mashable.com/2013/01/18/i-have-a-dream-internet-freedom/">owns</a>
+the copyright to the footage of Martin Luther King&rsquo;s &ldquo;I have a
+dream&rdquo; speech?  If you can find it, I bet it wont be up long.  Frankly,
+I&rsquo;m surprised EMI doesn&rsquo;t also own the Declaration of Independence and
+Constitution, charging admission.</p>
+
+<p>Revolutions are a continuation of the battle between sword and shield.
+Something new is created and shows potential, then doubters pop up
+seeking to curtail that which upsets their competitive edge.  In the
+case of information, many make money and become powerful off
+limiting the access to knowledge.  I think all knowledge that is
+beneficial to mankind should be open, and that the Internet is the ultimate
+utility for the sharing of our collective knowledge.  Where do you draw
+the line, you might ask?  I think the knowledge required to make atomic
+weapons and 3D-print receivers is decidedly unbefitting of society,
+for instance.
+And in the end, you can&rsquo;t take any of the knowledge you protect with
+you.  If everyone shared what they knew, then you&rsquo;d have a more
+improved life, since then the right people would be
+in the know to advance our being.  Technology would advance even faster
+than it does currently if we weren&rsquo;t limited to
+<a href="http://www.techradar.com/us/news/computing-components/processors/why-intels-new-cpus-disappoint-1077260">tick-tock</a> product
+cycles and business secrets.</p>
+
+<p>So what does a rant about government, antiquated laws, corrupt
+representatives, celebrating diversity, hypothetical political parties,
+inaction, and established industries have to do with anything?
+They&rsquo;re all anchored to a suicide.  They&rsquo;re all that&rsquo;s been running
+through my mind lately.  What I see in the deceased, I see in myself.
+Standing amongst my peers, celebrating <a href="http://www.internetfreedomday.net/">Internet Freedom Day</a>
+, listening to <a href="https://www.eff.org/about/staff/peter-eckersley">Peter Eckersley</a> of the
+<a href="https://www.eff.org/">EFF</a> talk, I realized <a href="http://www.youtube.com/watch?v=Vo0D6bzxLLw">&lsquo;The power is
+yours!&rsquo;</a>.
+So now I add my voice to the or so 20 Internet activists that will continue to
+spring up as one falls.</p>
+
+<p>What will you do to shape the world you live in?  What are you going to do to
+fix it?  If you don&rsquo;t, I will.  Because if you want something done
+right, you have to do it yourself.</p>
+
+<blockquote><p>It has to start somewhere It has to start sometime<br/>What better place than here, what better time than now?</p><footer><strong>Rage Against the Machine</strong> <cite>Guerrilla Radio</cite></footer></blockquote>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/01/14/closures-javascript/">Closures: JavaScript, Ruby, and Rust</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-14T20:28:00-08:00" pubdate data-updated="true">Jan 14<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/01/14/closures-javascript/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It&rsquo;s all about <a href="http://en.wikipedia.org/wiki/Closure_%28computer_science%29">closures</a>.  Understanding <a href="http://en.wikipedia.org/wiki/Scope_%28computer_science%29">scope</a> is paramount to coding.
+What can you access and what can&rsquo;t you access.  Closures allow us to
+access variables that otherwise might be awkward to pass into a
+function.  Closures can help us out of tricky situations, but can
+confuse those from backgrounds with (typically) <a href="http://en.wikipedia.org/wiki/Statically_typed#Static_typing">statically typed</a> languages that
+may not support closing over variables.</p>
+
+<p><a href="http://www.rust-lang.org/">Rust</a> is an up and coming systems level programming language being
+developed at <a href="http://www.mozilla.org">Mozilla</a>.  Let&rsquo;s take a look at the
+syntax of closures in Rust, but first let&rsquo;s see how closures are
+implemented in some other, more popular languages.</p>
+
+<p>In <a href="https://developer.mozilla.org/en-US/docs/JavaScript">JavaScript</a>, closures are super common.  Here&rsquo;s a simple example.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">function</span> <span class="nx">myClosure</span> <span class="p">(</span><span class="nx">y</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="nx">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">myClosure</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span> <span class="c1">// 6</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>JavaScript has function scope; the definition of a new function creates
+a new scope.  But if a reference to an identifier is not found within
+the local scope, the next outer scope is consulted and so on until it is
+either found, or a ReferenceError is raised.  We could prevent this for
+example by shadowing the variable name by naming it in the parameter
+list:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">function</span> <span class="nx">myClosure</span> <span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="nx">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">myClosure</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span> <span class="c1">// 11</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Notice how in the above snippet, we cannot close over the outer x?  This
+is called <a href="http://en.wikipedia.org/wiki/Variable_shadowing">variable
+shadowing</a>.  In JavaScript, no matter if you use a
+<a href="http://stackoverflow.com/q/1013385/1027966">function definition or function expression</a> to define a function, as long
+as you do not shadow a particular variable, then you may close over it.</p>
+
+<p>Let&rsquo;s see how <a href="http://www.ruby-lang.org">Ruby</a> handles closures.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">my_closure</span> <span class="n">y</span>
+</span><span class='line'>  <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="n">my_closure</span> <span class="mi">10</span> <span class="c1"># NameError: undefined local variable or method `x&#39; for main:Object</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Oops.  Looks like Ruby doesn&rsquo;t support closures!  But I thought it was
+supposed to be easier to write than <a href="http://www.java.com">Java</a>!  Well, it turns out Ruby <em>does</em> support
+closures, it just has an alternate syntax for functions that close over
+references to variables in the outer scope.  This alternate syntax
+actually creates a new object containing the captured scope.  Lets take
+advantage of Ruby&rsquo;s
+<a href="http://en.wikipedia.org/wiki/Anonymous_function#Ruby">lambdas</a> to close over variables:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">my_closure</span> <span class="o">=</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="n">my_closure</span><span class="o">.</span><span class="n">call</span> <span class="mi">10</span> <span class="c1"># 6</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note, we could have also used the older lambda syntax, or even a Proc
+object.  I won&rsquo;t cover the difference between the two here; there are
+<a href="http://www.robertsosinski.com/2008/12/21/understanding-ruby-blocks-procs-and-lambdas/">better blog posts on the differences</a>.  My point is that <strong><em>not all
+languages support closures with their default function declaration
+syntax (like in JavaScript)</em></strong>.  This provides a nice syntax into closures in Rust.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">fn</span> <span class="n">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">x</span><span class="o">:</span> <span class="k">int</span> <span class="o">=</span> <span class="m">5</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">let</span> <span class="n">my_closure</span> <span class="o">=</span> <span class="o">|</span><span class="n">_</span><span class="o">:</span> <span class="k">int</span><span class="o">|</span> <span class="o">-&gt;</span> <span class="k">int</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">x</span> <span class="o">+</span> <span class="m">1</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">io</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="n">fmt</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;%d&quot;</span><span class="p">,</span><span class="n">my_closure</span><span class="p">(</span><span class="m">10</span><span class="p">)));</span> <span class="c1">// 6</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note: Rust has some really nice <a href="http://en.wikipedia.org/wiki/Type_inference">type inference</a>.  We can write the
+previous snippet more succinctly:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">fn</span> <span class="n">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">//let x: int = 5;</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">x</span> <span class="o">=</span> <span class="m">5</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">//let my_closure = |_: int| -&gt; int {</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">my_closure</span> <span class="o">=</span> <span class="o">|</span><span class="n">_</span><span class="o">|</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">x</span> <span class="o">+</span> <span class="m">1</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">io</span><span class="o">::</span><span class="n">println</span><span class="p">(</span><span class="n">fmt</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;%?&quot;</span><span class="p">,</span><span class="n">my_closure</span><span class="p">(</span><span class="m">10</span><span class="p">)));</span> <span class="c1">// 6</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It might seem obvious that my point about different languages having
+different syntaxes.  I guess a better stating of that point is that
+<strong><em>closure definitions in Rust differ from vanilla function definitions like
+Ruby and as opposed to JavaScript</em></strong>.</p>
+
+<p>Rust aims to be a systems level programming language to replace C and
+C++.  With closures, type inference, and a syntax that faintly reminds
+me of Ruby&rsquo;s block lambda syntax, I&rsquo;ll take it!</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/">Intro to Debugging X86-64 Assembly</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/08/14/my-siggraph-2015-experience/">My SIGGRAPH 2015 Experience</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/">Additional C/C++ Tooling</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/05/25/interpreter-compiler-jit/">Interpreter, Compiler, JIT</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/02/22/public-key-crypto-code-example/">Hidden in Plain Sight - Public Key Crypto</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

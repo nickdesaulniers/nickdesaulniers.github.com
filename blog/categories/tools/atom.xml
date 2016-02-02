@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: tools | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/tools/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2016-02-02T09:52:16-08:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Additional C/C++ Tooling]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/"/>
+    <updated>2015-07-23T21:10:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling</id>
+    <content type="html"><![CDATA[<p><a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C by Ben Klemens</a>
+was a great read. It had a section with an
+intro to autotools, git, and gdb.
+There are a few other useful tools that came to mind that I&rsquo;ve used when
+working with C and C++ codebases. These tools are a great way to start
+contributing to
+<a href="https://github.com/nickdesaulniers/What-Open-Source-Means-To-Me#what-open-source-means-to-me">Open Source</a>
+C &amp; C++ codebases; running these tools on
+the code or adding them to the codebases.  A lot of these favor command line,
+open source utilities. See how many you are familiar with!</p>
+
+<h2>Build Tools</h2>
+
+<h3>CMake</h3>
+
+<p>The first tool I&rsquo;d like to take a look at is
+<a href="http://www.cmake.org/overview/">CMake</a>.  CMake is yet another build tool; I
+realize how contentious it is to even discuss one of the many.  From my
+experience working with
+<a href="https://kripken.github.io/emscripten-site/docs/introducing_emscripten/about_emscripten.html">Emscripten</a>,
+we recommend the use of CMake for people
+writing portable C/C++ programs.  CMake is able to emit Makefiles for unixes,
+project files for Xcode on OSX, and project files for Visual Studio on Windows.
+There are also a few other &ldquo;generators&rdquo; that you can use.</p>
+
+<p>I&rsquo;ve been really impressed with CMake&rsquo;s modules for
+<a href="http://www.cmake.org/cmake/help/v3.0/command/find_package.html">finding dependencies</a>
+and
+<a href="http://www.cmake.org/cmake/help/v3.0/module/ExternalProject.html">another for fetching and building external dependencies</a>.
+I think
+<a href="https://www.youtube.com/watch?v=nshzjMDD79w">C++ needs a package manager badly</a>,
+and I think CMake would be a solid foundation for one.</p>
+
+<p>The syntax isn&rsquo;t the greatest, but when I wanted to try to build one of my C++
+projects on Windows which I know nothing about developing on, I was able to
+install CMake and Visual Studio and get my project building.  If you can build
+your code on one platform, it will usually build on the others.</p>
+
+<p>If you&rsquo;re not worried about writing cross platform C/C++, maybe CMake is not
+worth the effort, but I find it useful.  I wrestle with the syntax sometimes,
+but documentation is not bad and it&rsquo;s something you deal with early on in the
+development of a project and hopefully never have to touch again (how I wish
+that were true).</p>
+
+<h2>Code Formatters</h2>
+
+<h3>ClangFormat</h3>
+
+<p>Another contentious point of concern amongst developers is code style.
+<a href="http://google-styleguide.googlecode.com/svn/trunk/cppguide.html">Big companies</a>
+with lots of C++ code have
+<a href="https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Coding_Style#CC_practices">documents</a>
+explaining their stylistic choices.  Don&rsquo;t waste another hour of your life
+arguing about something that really doesn&rsquo;t matter.
+<a href="http://clang.llvm.org/docs/ClangFormat.html">ClangFormat</a> will help you
+codify your style and format your code for you to match the style.  Simply
+write the code however you want, and run the formatter on it before commiting
+it.</p>
+
+<p>It can also emit a .clang-format file that you can commit and clang-format will automatically look for that file and use the rules codified there.</p>
+
+<h2>Linters</h2>
+
+<h3>Flint / Flint++</h3>
+
+<p><a href="https://github.com/facebook/flint">Flint</a> is a C++ linter in use at Facebook.
+Since it moved from being
+implemented in C++ to D, I&rsquo;ve had issues building it.  I&rsquo;ve had better luck
+with a fork that&rsquo;s pure C++ without any of the third party dependencies Flint
+originally had, called
+<a href="https://github.com/L2Program/FlintPlusPlus">Flint++</a>.  While not quite full-on
+static analyzers, both can be used for finding potential issues in your code
+ahead of time. Linters can look at individual files in isolation; you don&rsquo;t
+have to wait for long recompiles like you would with a static analyzer.</p>
+
+<h2>Static Analyzers</h2>
+
+<h3>Scan-build</h3>
+
+<p><a href="http://clang-analyzer.llvm.org/scan-build.html">Scan-build</a> is a static
+analyzer for C and C++ code.  You build your code &ldquo;through&rdquo; it, then use the
+sibling tool scan-view to see the results.  Scan-view will emit and open an
+html file that shows a list of the errors it detected.  It will insert
+hyperlinks into the resulting document that step you through how certain
+conditions could lead to a null pointer dereference, for example.  You can also
+save and share those html files with others in the project. Static analyzers
+will help you catch bugs at compile time before you run the code.</p>
+
+<h2>Runtime Sanitizers</h2>
+
+<h3>ASan and UBSan</h3>
+
+<p>Clang&rsquo;s Address (ASan) and Undefined Behavior (UBSan) sanitizers are simply
+compiler flags that can be used to detect errors at runtime.  ASan and UBSan
+two of the more popular tools, but there are actually a ton and more being
+implemented.  See the list
+<a href="http://clang.llvm.org/docs/UsersManual.html#controlling-code-generation">here</a>.
+These sanitizers will catch bugs at runtime, so you&rsquo;ll have to run the code
+to notice any violations, at variable runtime performance costs per sanitizer.
+ASan and TSan (Thread Sanitizer) made it into gcc4.8 and UBSan is in gcc4.9.</p>
+
+<h2>Header Analysis</h2>
+
+<h3>Include What You Use</h3>
+
+<p><a href="https://github.com/include-what-you-use/include-what-you-use">Include What You Use</a>
+(IWYU) helps you find unused or unnecessary <code>#include</code> preprocessor directives.
+It should be obvious how this can help improve compile times. IWYU can also
+help cut down on recompiles by recommending forward declarations under certain
+conditions.
+I look forward to the C++ module proposal being adopted, but until then this
+tool can help you spot cruft that can be removed.</p>
+
+<h2>Rapid Recompiles</h2>
+
+<h3>ccache</h3>
+
+<p><a href="https://ccache.samba.org/">ccache</a> greatly improves recompile times by caching
+the results of parts of the compilation process.
+<a href="https://github.com/nickdesaulniers/dotfiles/blob/49984b3e82022e5ce82e778fc8ce990f8e1e554a/.mozconfig#L1">I use when building Firefox</a>,
+and it saves a great deal of time.</p>
+
+<h3>distcc</h3>
+
+<p><a href="https://github.com/distcc/distcc">distcc</a> is a distributed build system.
+<a href="http://blog.dholbert.org/">Some folks at Mozilla</a> speed up their Firefox builds with it.</p>
+
+<h2>Memory Leak Detectors</h2>
+
+<h3>Valgrind</h3>
+
+<p><a href="http://valgrind.org/info/about.html">Valgrind</a> has a
+<a href="http://valgrind.org/info/about.html">suite of tools</a>, my
+favorite being memcheck for finding memory leaks. Unfortunately, it doesn&rsquo;t
+seem to work on OSX since 10.10.
+<a href="https://code.google.com/p/address-sanitizer/wiki/ComparisonOfMemoryTools">This page</a>
+referring to ASan seems to indicate that it can do everything Valgrind&rsquo;s
+Memcheck can, at less of a runtime performance cost, but I&rsquo;m not sure how true
+this is exactly.</p>
+
+<h3>leaks</h3>
+
+<p>A much more primitive tool for finding leaks from the command line, BSD&rsquo;s have
+<code>leaks</code>.</p>
+
+<p><code>bash
+MallocStackLogging=1 ./a.out
+leaks a.out
+...
+</code></p>
+
+<h2>Profilers</h2>
+
+<h3>Perf</h3>
+
+<p>Perf, and
+<a href="http://www.brendangregg.com/flamegraphs.html">Brendan Gregg&rsquo;s tools for emitting SVG flamegraphs</a>
+from the output
+are helpful for finding where time is spent in a program. In fact, there are
+numerous perfomance analysis tools that are Linux specific.  My recommendation
+is spend some time on <a href="http://www.brendangregg.com/linuxperf.html">Brendan Gregg&rsquo;s blog</a>.</p>
+
+<h3>DTrace</h3>
+
+<p>OSX doesn&rsquo;t have the same tooling as Linux, but DTrace was ported to it.  I&rsquo;ve
+used it to find sampling profiles of my code before. Again,
+<a href="http://www.brendangregg.com/dtrace.html">Brendan Gregg&rsquo;s blog</a> is a good
+resource; there are some fantastic DTrace one liners.</p>
+
+<h2>Debuggers</h2>
+
+<h3>lldb</h3>
+
+<p>lldb is analogous to gdb.  I can&rsquo;t say I have enough experience with LLDB and GDB to note the difference between the two, but LLDB did show the relative statements forward and back from the current statement by default.  I&rsquo;m informed by my friends/mortal enemies using emacs that this is less of an issue when using emacs/gdb in combination.</p>
+
+<h2>Fuzzers</h2>
+
+<h3>American Fuzzy Lop</h3>
+
+<p><a href="http://lcamtuf.coredump.cx/afl/">American Fuzzy Lop</a> (AFL) is a neat program
+that performs fuzzing on programs
+that take inputs from files and repeatedly runs the program, modifies the
+input trying to get full code coverage, and tries to find crashes.  It&rsquo;s been
+getting lots of attention lately, and while I haven&rsquo;t used it myself yet, it
+seems like a very powerful tool. Mozilla employs the use of fuzzers on their
+JavaScript engine, for instance (not AFL, but
+<a href="http://www.squarefree.com/2007/08/02/introducing-jsfunfuzz/">one developed in house</a>).</p>
+
+<h2>Disassemblers</h2>
+
+<h3>gobjdump</h3>
+
+<p>If you really need to make sure the higher level code you&rsquo;re writing is getting
+translated into the assembly your expecting, <code>gobjdump -S</code> will intermix the
+emitted binary&rsquo;s disassembled assembly and the source code.  This was used
+extensively while developing <a href="/blog/2015/05/25/interpreter-compiler-jit/">my Brainfuck JIT</a>.</p>
+
+<h2>Conclusion</h2>
+
+<p>Hopefully you learned of some useful tools that you should know about when
+working with C or C++.  What did I miss?</p>
+]]></content>
+  </entry>
+  
+</feed>
