@@ -20,8 +20,8 @@ unsigned long integer, and address up to 2^64-1 (16 EiB) different addresses in
 memory.
 
 Further, word size limits the possible combinations of operations the processor
-can perform, length of immediate values used, size of binary files, memory
-needed to store pointers, and puts pressure on instruction caches.
+can perform, length of immediate values used, inflates the size of binary files
+and memory needed to store pointers, and puts pressure on instruction caches.
 
 Word size also has implications on loads and stores based on alignment, as
 we'll see in a follow up post.
