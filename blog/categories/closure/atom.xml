@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Closure | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/closure/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2016-05-15T19:32:52-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Closures: JavaScript, Ruby, and Rust]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2013/01/14/closures-javascript/"/>
+    <updated>2013-01-14T20:28:00-08:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2013/01/14/closures-javascript</id>
+    <content type="html"><![CDATA[<p>It&rsquo;s all about <a href="http://en.wikipedia.org/wiki/Closure_%28computer_science%29">closures</a>.  Understanding <a href="http://en.wikipedia.org/wiki/Scope_%28computer_science%29">scope</a> is paramount to coding.
+What can you access and what can&rsquo;t you access.  Closures allow us to
+access variables that otherwise might be awkward to pass into a
+function.  Closures can help us out of tricky situations, but can
+confuse those from backgrounds with (typically) <a href="http://en.wikipedia.org/wiki/Statically_typed#Static_typing">statically typed</a> languages that
+may not support closing over variables.</p>
+
+<p><a href="http://www.rust-lang.org/">Rust</a> is an up and coming systems level programming language being
+developed at <a href="http://www.mozilla.org">Mozilla</a>.  Let&rsquo;s take a look at the
+syntax of closures in Rust, but first let&rsquo;s see how closures are
+implemented in some other, more popular languages.</p>
+
+<p>In <a href="https://developer.mozilla.org/en-US/docs/JavaScript">JavaScript</a>, closures are super common.  Here&rsquo;s a simple example.</p>
+
+<p>```javascript
+var x = 5;</p>
+
+<p>function myClosure (y) {
+  return x + 1;
+};</p>
+
+<p>console.log(myClosure(10)); // 6
+```</p>
+
+<p>JavaScript has function scope; the definition of a new function creates
+a new scope.  But if a reference to an identifier is not found within
+the local scope, the next outer scope is consulted and so on until it is
+either found, or a ReferenceError is raised.  We could prevent this for
+example by shadowing the variable name by naming it in the parameter
+list:</p>
+
+<p>```javascript
+var x = 5;</p>
+
+<p>function myClosure (x) {
+  return x + 1;
+};</p>
+
+<p>console.log(myClosure(10)); // 11
+```</p>
+
+<p>Notice how in the above snippet, we cannot close over the outer x?  This
+is called <a href="http://en.wikipedia.org/wiki/Variable_shadowing">variable
+shadowing</a>.  In JavaScript, no matter if you use a
+<a href="http://stackoverflow.com/q/1013385/1027966">function definition or function expression</a> to define a function, as long
+as you do not shadow a particular variable, then you may close over it.</p>
+
+<p>Let&rsquo;s see how <a href="http://www.ruby-lang.org">Ruby</a> handles closures.</p>
+
+<p>```ruby
+x = 5</p>
+
+<p>def my_closure y
+  x + 1
+end</p>
+
+<p>puts my_closure 10 # NameError: undefined local variable or method `x' for main:Object
+```</p>
+
+<p>Oops.  Looks like Ruby doesn&rsquo;t support closures!  But I thought it was
+supposed to be easier to write than <a href="http://www.java.com">Java</a>!  Well, it turns out Ruby <em>does</em> support
+closures, it just has an alternate syntax for functions that close over
+references to variables in the outer scope.  This alternate syntax
+actually creates a new object containing the captured scope.  Lets take
+advantage of Ruby&rsquo;s
+<a href="http://en.wikipedia.org/wiki/Anonymous_function#Ruby">lambdas</a> to close over variables:</p>
+
+<p>```ruby
+x = 5</p>
+
+<p>my_closure = &ndash;> x do
+  x + 1
+end</p>
+
+<p>puts my_closure.call 10 # 6
+```</p>
+
+<p>Note, we could have also used the older lambda syntax, or even a Proc
+object.  I won&rsquo;t cover the difference between the two here; there are
+<a href="http://www.robertsosinski.com/2008/12/21/understanding-ruby-blocks-procs-and-lambdas/">better blog posts on the differences</a>.  My point is that <strong><em>not all
+languages support closures with their default function declaration
+syntax (like in JavaScript)</em></strong>.  This provides a nice syntax into closures in Rust.</p>
+
+<p>```rust
+fn main () {
+  let x: int = 5;</p>
+
+<p>  let my_closure = |_: int| &ndash;> int {</p>
+
+<pre><code>x + 1
+</code></pre>
+
+<p>  };</p>
+
+<p>  io::println(fmt!(&ldquo;%d&rdquo;,my_closure(10))); // 6
+}
+```</p>
+
+<p>Note: Rust has some really nice <a href="http://en.wikipedia.org/wiki/Type_inference">type inference</a>.  We can write the
+previous snippet more succinctly:</p>
+
+<p>```rust
+fn main () {
+  //let x: int = 5;
+  let x = 5;</p>
+
+<p>  //let my_closure = |<em>: int| &ndash;> int {
+  let my_closure = |</em>| {</p>
+
+<pre><code>x + 1
+</code></pre>
+
+<p>  };</p>
+
+<p>  io::println(fmt!(&ldquo;%?&rdquo;,my_closure(10))); // 6
+}
+```</p>
+
+<p>It might seem obvious that my point about different languages having
+different syntaxes.  I guess a better stating of that point is that
+<strong><em>closure definitions in Rust differ from vanilla function definitions like
+Ruby and as opposed to JavaScript</em></strong>.</p>
+
+<p>Rust aims to be a systems level programming language to replace C and
+C++.  With closures, type inference, and a syntax that faintly reminds
+me of Ruby&rsquo;s block lambda syntax, I&rsquo;ll take it!</p>
+]]></content>
+  </entry>
+  
+</feed>

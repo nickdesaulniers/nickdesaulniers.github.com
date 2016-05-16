@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: function, | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/function/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2016-05-15T19:32:52-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Function.prototype.bind Edge Cases]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/"/>
+    <updated>2013-09-26T21:00:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases</id>
+    <content type="html"><![CDATA[<p>ECMAScript 5&rsquo;s
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind">Function.prototype.bind</a>
+is a great tool that&rsquo;s implemented in all
+<a href="http://kangax.github.io/es5-compat-table/#Function.prototype.bind">modern browser JavaScript engines</a>.
+It allows you to modify the context,
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this">this</a>,
+of a function when it is evaluated in the future.  Knowing what <code>this</code> refers to
+in various contexts is key to being a professional JavaScript developer; don&rsquo;t
+show up to an interview without knowing all about it.</p>
+
+<p>Here&rsquo;s a common use case that developers need to watch for.  Can you spot the
+mistake?</p>
+
+<p>```javascript
+var person = &ldquo;Bill&rdquo;;</p>
+
+<p>var obj = {
+  person: &ldquo;Nick&rdquo;,
+  hi: function () {</p>
+
+<pre><code>console.log("Hi " + this.person);
+</code></pre>
+
+<p>  }
+};</p>
+
+<p>window.addEventListener(&ldquo;DOMContentLoaded&rdquo;, obj.hi);
+```</p>
+
+<p>Ooops!!! Turns out that since we added the event listener to the window object,
+<code>this</code> in the event handler or callback refers to <code>window</code>.  So this code prints
+<code>"Hi Bill"</code> instead of <code>"Hi Nick"</code>.  We could wrap <code>obj.hi</code> in an anonymous function:</p>
+
+<p><code>javascript
+window.addEventListener("DOMContentLoaded", function () {
+  obj.hi();
+});
+</code></p>
+
+<p>But that is so needlessly verbose and what we were trying to avoid in the first
+place.  The three functions you should know for modifying <code>this</code> (a question I
+ask all
+my interview candidates) are
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call">Function.prototype.call</a>,
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply">Function.prototype.apply</a>,
+and
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind">Function.prototype.bind</a>.
+<code>call</code> is variadic, while <code>apply</code> takes an array of
+arguments, but the two both immediately invoke the function.  We don&rsquo;t want to
+do that just yet.  The fix we need is <code>Function.prototype.bind</code>.</p>
+
+<p><code>javascript
+window.addEventListener("DOMContentLoaded", obj.hi.bind(obj));
+</code></p>
+
+<p>There, now isn&rsquo;t that nice and short?  Instead of saving <code>this</code> as another
+variable then closing over it, you can instead use <code>bind</code>!</p>
+
+<p>```javascript
+var obj = {
+  person: &ldquo;Nick&rdquo;,
+  wait: function () {</p>
+
+<pre><code>var self = this;
+someButton.onclick = function () {
+  console.log(self.person + " clicked!");
+};
+</code></pre>
+
+<p>  },
+};
+<code>
+becomes
+</code>javascript
+var obj = {
+  person: &ldquo;Nick&rdquo;,
+  wait: function () {</p>
+
+<pre><code>someButton.onclick = function () {
+  console.log(this.person + " clicked!");
+}.bind(this);
+</code></pre>
+
+<p>  },
+};
+```</p>
+
+<p>No need to store <code>this</code> into <code>self</code>, then close over it.  One great shortcut I
+use all the time is creating an alias for <code>document.getElementById</code>.</p>
+
+<p><code>javascript
+var $ = document.getElementById.bind(document);
+$('someElementsId').doSomething();
+$('anotherElement').doSomethingElse();
+$('aThirdElement').doSomethingDifferent();
+$('theFifthElementOops').doSomethingFun();
+</code></p>
+
+<p>Why did I bind <code>getElementById</code> back to <code>document</code>?  Try it without the call to
+bind.  Any luck?</p>
+
+<p><code>bind</code> can also be great for partially applying functions, too.</p>
+
+<p><code>javascript
+function add (a, b) {
+  console.log("a: " + a);
+  console.log("b: " + b);
+  return a + b;
+};
+var todo = add.bind(null, 4);
+console.log(todo(7));
+</code>
+will print
+<code>
+a: 4
+b: 7
+11
+</code></p>
+
+<p>What <code>Function.prototype.bind</code> is essentially doing is wrapping <code>add</code> in a
+function that essentially looks like:</p>
+
+<p><code>javascript
+var todo = function () {
+  add.apply(null, [4].concat(Array.prototype.slice.call(arguments)));
+};
+</code></p>
+
+<p>The array has the captured arguments (just <code>4</code>), and is converting <code>todo</code>&rsquo;s
+<code>arguments</code> into an array (a common idiom for converting &ldquo;Array-like&rdquo; objects
+into
+Arrays), then joining (<code>concat</code>) them and invoking the bound function (<code>apply</code>)
+with
+the value for <code>this</code> (in this case, <code>null</code>).</p>
+
+<p>In fact, if you look at
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Compatibility">the compatibility section of the MDN page for bind</a>,
+you&rsquo;ll see a function that returns a function that is essentially the above.
+One caveat is that this approach only allows you to partially apply variables in
+order.</p>
+
+<p>So <code>bind</code> is a great addition to the language.  Now to the point I wanted to
+make;
+there are edge cases when <code>bind</code> doesn&rsquo;t work or might trip you up.  The first
+is that <code>bind</code>
+evaluates
+its <code>arguments</code> when bound, not when invoked.  The other is that <code>bind</code> returns
+a new
+function, always.  And the final is to be careful binding to variadic functions
+when you don&rsquo;t intend to use all of the passed in variables.  Um, duh right?
+Well, let me show you three examples that have bitten me (recently).  The first
+is with ajax calls.</p>
+
+<p>```javascript
+function crunch (data) {
+  // operate on data
+};</p>
+
+<p>var xhr = new XMLHttpRequest;
+xhr.open(&ldquo;GET&rdquo;, &ldquo;data.json&rdquo;);
+xhr.onload = crunch.bind(this.response);
+xhr.send();
+```</p>
+
+<p>Oops, while I do want to operate on <code>this.result</code> within <code>crunch</code> with <code>this</code>
+referring to <code>xhr</code>, <code>this</code> at the time of binding was referring to <code>window</code>!
+Let&rsquo;s
+hope <code>window.results</code> is <code>undefined</code>!  What if we changed <code>this.result</code> with
+<code>xhr.result</code>?  Well, we&rsquo;re no longer referring to the <code>window</code> object, but
+<code>xhr.result</code> is evaluated at bind time (and for an unsent <code>XMLHttpRequest</code>
+object,
+is <code>null</code>), so we&rsquo;ve bound <code>null</code> as the first argument.  We must delay the
+handling
+of <code>xhr.onload</code>; either use an anonymous function inline or named function to
+control nesting depth.</p>
+
+<p><code>javascript
+xhr.onload = function () {
+  crunch(this.result);
+};
+</code></p>
+
+<p>The next is that <code>bind</code> always returns a new function.  Dude, it says that in
+the docs,
+<a href="http://xkcd.com/293/">RTFM</a>.
+Yeah I know, but this case still caught me.  When removing an event
+listener, you need to supply the <strong>same</strong> handler function.  Example, a <code>once</code>
+function:</p>
+
+<p>```javascript
+function todo () {
+  document.removeEventListener(&ldquo;myCustomEvent&rdquo;, todo);
+  console.log(this.person);
+});</p>
+
+<p>document.addEventListener(&ldquo;myCustomEvent&rdquo;, todo.bind({ person: &ldquo;Nick&rdquo; }));
+```</p>
+
+<p>Try firing <code>myCustomEvent</code> twice, see what happens!  <code>"Nick"</code> is logged twice.
+A <code>once</code> function that handles two separate events is not very good.  In fact,
+it will continue
+to handle events, since <code>document</code> does not have <code>todo</code> as an event handler for
+<code>myCustomEvent</code>
+events.  The event listener you bound was a new function; <code>bind</code> always returns
+a new function.  The solution:</p>
+
+<p><code>javascript
+var todo = function () {
+  console.log(this.person);
+  document.removeEventListener("myCustomEvent", todo);
+}.bind({ person: "Nick" });
+document.addEventListener("myCustomEvent", todo);
+</code></p>
+
+<p>That would be a good interview question.  The final gotcha is with functions
+that are variadic.  Extending one of my earlier examples:
+```javascript
+var obj = {
+  person: &ldquo;Nick&rdquo;,
+  wait: function () {</p>
+
+<pre><code>var someButton = document.createElement("button");
+someButton.onclick = function () {
+  console.log(this.person + " clicked!");
+}.bind(this);
+someButton.click();
+</code></pre>
+
+<p>  },
+};
+obj.wait();
+```</p>
+
+<p>Let&rsquo;s say I thought I could use bind to simplify the <code>onclick</code> using the trick I
+did with <code>document.getElementById</code>:</p>
+
+<p>```javascript
+var obj = {
+  person: &ldquo;Nick&rdquo;,
+  wait: function () {</p>
+
+<pre><code>var someButton = document.createElement("button");
+someButton.onclick = console.log.bind(console, this.person + " clicked!");
+someButton.click();
+</code></pre>
+
+<p>  },
+};
+obj.wait();
+```</p>
+
+<p>Can you guess what this prints?  It does prints the expected, but with an
+unexpected addition.  Think about what I said about variadic functions.  What
+might be wrong here?</p>
+
+<p>Turns out this prints
+<code>"Nick clicked! [object MouseEvent]"</code>  This one took me a while to think
+through, but luckily I had other experiences with <code>bind</code> that helped me understand
+why this occurred.</p>
+
+<p><code>console.log</code> is variadic, so it prints all of its arguments.  When we called
+<code>bind</code>
+on <code>console.log</code>, we set the <code>onclick</code> handler to be a new function that applied
+that expected output with any additional arguments.  Well, <code>onclick</code> handlers are
+passed a <code>MouseEvent</code> object (think <code>e.target</code>), which winds up being passed as
+the second
+argument to <code>console.log</code>.  If this was the example with <code>add</code> from earlier,
+<code>this.person + " clicked!"</code> would be the <code>4</code> and the <code>MouseEvent</code> would be the
+<code>7</code>:</p>
+
+<p>```javascript
+someButton.onclick = function (e) {
+  console.log.apply(console, [&ldquo;Nick clicked!&rdquo;].concat([e]));
+};</p>
+
+<p>```</p>
+
+<p>I love <code>bind</code>, but sometimes, it will get you.  What are some examples of times
+when you&rsquo;ve been bitten by <code>bind</code>?</p>
+]]></content>
+  </entry>
+  
+</feed>

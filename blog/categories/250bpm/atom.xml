@@ -1,0 +1,807 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: 250bpm | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/250bpm/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2016-05-15T19:32:52-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Making great Node.js modules with CoffeeScript]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript/"/>
+    <updated>2013-08-28T10:51:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript</id>
+    <content type="html"><![CDATA[<p><a href="http://nodejs.org/">Node.js</a>
+is a great runtime for writing applications in JavaScript, the language
+I primarily develop in.
+<a href="http://coffeescript.org/">CoffeeScript</a>
+is a programming language that compiles
+to JavaScript.  Why would we write a reusable piece of code, a
+<a href="http://nodejs.org/api/modules.html">module</a>
+, in
+CoffeeScript?  CoffeeScript is a very high level language and
+<a href="http://railscasts.com/episodes/267-coffeescript-basics">beautifully brings together</a>
+my favorite aspects of JavaScript,
+Ruby, and Python.  In this tutorial, I&rsquo;ll show you how I create reusable open
+source modules for Node.js from CoffeeScript, which is something I recently
+discovered while creating a
+<a href="https://github.com/nickdesaulniers/javascript-playlist-parser">playlist parser module</a>.
+The point is to focus on how to turn a quick hack into a nicely laid
+out Node.js module.</p>
+
+<p>The steps are as follows:</p>
+
+<ol>
+<li>Turn an idea into a git repo.</li>
+<li>Add directory structure.</li>
+<li>Split library functions from testing.</li>
+<li>Add a Build script.</li>
+<li>Create node module.</li>
+<li>Add LICENSE and README.</li>
+<li>Publish.</li>
+</ol>
+
+
+<p>First thing&rsquo;s first, we have to have an idea.  It doesn&rsquo;t have to be
+revolutionary, just do one thing and do it well.  That is the first rule of
+<a href="http://www.faqs.org/docs/artu/ch01s06.html">UNIX <del>fightclub</del> philosophy</a>,
+which resonates well within
+<a href="http://blog.izs.me/post/48281998870/unix-philosophy-and-node-js">the Node.js community</a>.
+When I&rsquo;m hacking on
+something, I start out with a single file to test something out.  Then I
+progressively refine the example until it&rsquo;s something reusable.  That way, I
+can reuse it, others can reuse it, others can learn from it, and the world can
+be a better place.</p>
+
+<p>For this tutorial, I&rsquo;ll show you my process for creating a binding for
+<a href="http://nanomsg.org/index.html">nanomsg</a>,
+the latest scalability protocol library from the creator of
+<a href="http://zeromq.org/">ZeroMQ</a>,
+<a href="http://250bpm.com/">Martin Sústrik</a>.
+I had played with ZeroMQ in the past and thought that it was really
+awesome, and I was excited to see a new library from it&rsquo;s creator, based on C,
+since I also really enjoyed his post on why he
+<a href="http://250bpm.com/blog:4">shouldn&rsquo;t have written it in C++</a>.</p>
+
+<p>So messing around real quick, let&rsquo;s make sure we have node up to date.  I like
+to use
+<a href="https://github.com/creationix/nvm">nvm</a>
+and the latest stable minor version of node (stable versions have
+even minor patch numbers where versions are in the format <code>major.minor.patch</code>,
+so v0.11.0 is unstable).  <code>node -v</code> &ndash;> v0.10.17</p>
+
+<p>Then I need to download and install the library that I&rsquo;ll be dynamically
+linking to, build, and install it.</p>
+
+<p><code>text
+curl -O http://download.nanomsg.org/nanomsg-0.1-alpha.zip &amp;&amp; \
+unzip nanomsg-0.1-alpha.zip &amp;&amp; \
+cd nanomsg-0.1-alpha &amp;&amp; \
+mkdir build &amp;&amp; \
+cd build &amp;&amp; \
+../configure &amp;&amp; \
+make &amp;&amp; \
+make install
+</code></p>
+
+<p>We&rsquo;ll use
+<a href="https://github.com/rbranson/node-ffi">node&rsquo;s FFI module</a>
+to interface with the dynamically linked library,
+because it&rsquo;s easier to write bindings than using
+<a href="http://nodejs.org/api/addons.html">native addons</a>,
+and
+<a href="https://github.com/rvagg/node-addon-examples/blob/master/README.md#compatibility-notes">v8&rsquo;s API has recently changed causing some headaches for native extensions</a>.</p>
+
+<p><code>npm install ffi</code></p>
+
+<p>We&rsquo;ll be writing the example in CoffeeScript.</p>
+
+<p><code>npm install -g coffee-script</code></p>
+
+<p>Now to mess around we can create main.coffee based on
+<a href="https://github.com/250bpm/cppnanomsg/blob/9becc3d5116ab33a7d2c5f06d68a8fea1b781194/binding.cpp#L29">the C++ binding&rsquo;s example</a>:
+```coffeescript main.coffee
+ffi = require &lsquo;ffi&rsquo;
+assert = require &lsquo;assert&rsquo;</p>
+
+<p>AF_SP = 1
+NN_PAIR = 16</p>
+
+<p>nanomsg = ffi.Library &lsquo;libnanomsg&rsquo;,
+  nn_socket: [ &lsquo;int&rsquo;, [ &lsquo;int&rsquo;, &lsquo;int&rsquo; ]]
+  nn_bind: [ &lsquo;int&rsquo;, [ &lsquo;int&rsquo;, &lsquo;string&rsquo; ]]
+  nn_connect: [ &lsquo;int&rsquo;, [&lsquo;int&rsquo;, &lsquo;string&rsquo; ]]
+  nn_send: [ &lsquo;int&rsquo;, [&lsquo;int&rsquo;, &lsquo;pointer&rsquo;, &lsquo;int&rsquo;, &lsquo;int&rsquo;]]
+  nn_recv: [ &lsquo;int&rsquo;, [&lsquo;int&rsquo;, &lsquo;pointer&rsquo;, &lsquo;int&rsquo;, &lsquo;int&rsquo;]]
+  nn_errno: [ &lsquo;int&rsquo;, []]</p>
+
+<h1>test</h1>
+
+<p>s1 = nanomsg.nn_socket AF_SP, NN_PAIR
+assert s1 >= 0, &lsquo;s1: &rsquo; + nanomsg.nn_errno()</p>
+
+<p>ret = nanomsg.nn_bind s1, &lsquo;inproc://a&rsquo;
+assert ret > 0, &lsquo;bind&rsquo;</p>
+
+<p>s2 = nanomsg.nn_socket AF_SP, NN_PAIR
+assert s2 >= 0, &lsquo;s2: &rsquo; + nanomsg.nn_errno()</p>
+
+<p>ret = nanomsg.nn_connect s2, &lsquo;inproc://a&rsquo;
+assert ret > 0, &lsquo;connect&rsquo;</p>
+
+<p>msg = new Buffer &lsquo;hello&rsquo;
+ret = nanomsg.nn_send s2, msg, msg.length, 0
+assert ret > 0, &lsquo;send&rsquo;</p>
+
+<p>recv = new Buffer msg.length
+ret = nanomsg.nn_recv s1, recv, recv.length, 0
+assert ret > 0, &lsquo;recv&rsquo;</p>
+
+<p>console.log recv.toString()
+assert msg.toString() is recv.toString(), &lsquo;received message did not match sent&rsquo;
+<code>``
+</code>coffee main.coffee` &ndash;> hello</p>
+
+<p>This quick example shows that we have something working.  Currently our working
+directory should look like:
+```text
+tree -L 2
+.
+├── main.coffee
+└── node_modules</p>
+
+<pre><code>└── ffi
+</code></pre>
+
+<p>2 directories, 1 file
+```</p>
+
+<h2>Turn an idea into a git repo</h2>
+
+<p>Next up is to create a repository using a version control system like
+<a href="http://git-scm.com/">git</a> and
+start saving our work.
+<a href="http://www.codinghorror.com/blog/2008/08/check-in-early-check-in-often.html">Check in early, check in often</a>.</p>
+
+<p>Let&rsquo;s add a .gitignore so that were not adding files that really don&rsquo;t need to
+be committed.  The node_modules folder is unnecessary because when this node
+module is installed, its dependencies will be recursively installed, so
+there&rsquo;s no need to commit them to source control.  The swap files are because I
+use
+<a href="http://www.vim.org/">vim</a>
+and I accidentally commit the swap files from open buffers all the time
+like a noob.</p>
+
+<p><code>text .gitignore
+node_modules/
+*.swp
+</code></p>
+
+<p>Let&rsquo;s turn this into a git repo:
+<code>text
+git init &amp;&amp; \
+git add . &amp;&amp; \
+git commit -am “initial commit”
+</code></p>
+
+<p>Up on github, let&rsquo;s <a href="https://github.com/new">create an uninitialized repo</a>
+and push to it:
+<code>text
+git remote add origin git@github.com:nickdesaulniers/node-nanomsg.git &amp;&amp; \
+git push -u origin master
+</code></p>
+
+<p>So we
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/19211e7520de9384a0d5b0ce4c08a623c4f2e0b9">have</a>:
+```text
+tree -L 2 -a
+.
+├── .gitignore
+├── main.coffee
+└── node_modules</p>
+
+<pre><code>└── ffi
+</code></pre>
+
+<p>2 directories, 2 files
+```</p>
+
+<h2>Add directory structure</h2>
+
+<p>Now that we have our repo under version control, let&rsquo;s start adding some
+structure. Let&rsquo;s create
+<code>src/</code>, <code>lib/</code>, and <code>test/</code> directories.  Our CoffeeScript will live in
+<code>src/</code>, compiled JavaScript will be in <code>lib/</code>, and our test code will be in
+<code>test/</code>.</p>
+
+<p><code>mkdir src lib test</code></p>
+
+<h2>Split library functions from testing</h2>
+
+<p>Now let&rsquo;s move a copy of <code>main.coffee</code> into <code>src/</code> and one into <code>test/</code>.  We
+are going to split the library definition away from the testing logic.
+<code>text
+cp main.coffee test/test.coffee &amp;&amp; \
+git add test/test.coffee &amp;&amp; \
+git mv main.coffee src/nanomsg.coffee
+</code></p>
+
+<p>This way <code>git status</code> tells us:
+```text</p>
+
+<h1>On branch master</h1>
+
+<h1>Changes to be committed:</h1>
+
+<h1>(use &ldquo;git reset HEAD <file>&hellip;&rdquo; to unstage)</h1>
+
+<p>#</p>
+
+<h1>renamed:    main.coffee &ndash;> src/nanomsg.coffee</h1>
+
+<h1>new file:   test/test.coffee</h1>
+
+<p>#
+```</p>
+
+<p>Let&rsquo;s edit src/main.coffee to look like:
+```coffeescript src/main.coffee
+ffi = require &lsquo;ffi&rsquo;</p>
+
+<p>exports = module.exports = ffi.Library &lsquo;libnanomsg&rsquo;,
+  nn_socket: [ &lsquo;int&rsquo;, [ &lsquo;int&rsquo;, &lsquo;int&rsquo; ]]
+  nn_bind: [ &lsquo;int&rsquo;, [ &lsquo;int&rsquo;, &lsquo;string&rsquo; ]]
+  nn_connect: [ &lsquo;int&rsquo;, [&lsquo;int&rsquo;, &lsquo;string&rsquo; ]]
+  nn_send: [ &lsquo;int&rsquo;, [&lsquo;int&rsquo;, &lsquo;pointer&rsquo;, &lsquo;int&rsquo;, &lsquo;int&rsquo;]]
+  nn_recv: [ &lsquo;int&rsquo;, [&lsquo;int&rsquo;, &lsquo;pointer&rsquo;, &lsquo;int&rsquo;, &lsquo;int&rsquo;]]
+  nn_errno: [ &lsquo;int&rsquo;, []]</p>
+
+<p>exports.AF_SP = 1
+exports.NN_PAIR = 16
+```</p>
+
+<p>and edit the tests to:
+```coffeescript test/test.coffee
+assert = require &lsquo;assert&rsquo;
+nanomsg = require &lsquo;../lib/nanomsg.js&rsquo;</p>
+
+<p>{ AF_SP, NN_PAIR } = nanomsg</p>
+
+<p>s1 = nanomsg.nn_socket AF_SP, NN_PAIR
+assert s1 >= 0, &lsquo;s1: &rsquo; + nanomsg.nn_errno()</p>
+
+<p>ret = nanomsg.nn_bind s1, &lsquo;inproc://a&rsquo;
+assert ret > 0, &lsquo;bind&rsquo;</p>
+
+<p>s2 = nanomsg.nn_socket AF_SP, NN_PAIR
+assert s2 >= 0, &lsquo;s2: &rsquo; + nanomsg.nn_errno()</p>
+
+<p>ret = nanomsg.nn_connect s2, &lsquo;inproc://a&rsquo;
+assert ret > 0, &lsquo;connect&rsquo;</p>
+
+<p>msg = new Buffer &lsquo;hello&rsquo;
+ret = nanomsg.nn_send s2, msg, msg.length, 0
+assert ret > 0, &lsquo;send&rsquo;</p>
+
+<p>recv = new Buffer msg.length
+ret = nanomsg.nn_recv s1, recv, recv.length, 0
+assert ret > 0, &lsquo;recv&rsquo;</p>
+
+<p>assert msg.toString() is recv.toString(), &lsquo;received message did not match sent&rsquo;
+```</p>
+
+<p>Notice how in the test we&rsquo;re including the compiled javascript from <code>lib/</code>
+which doesn&rsquo;t exist yet?  If you try running <code>coffee test/test.coffee</code> it
+should crash.  Let&rsquo;s make the compiled version.
+<code>coffee -o lib -c src/nanomsg.coffee</code></p>
+
+<p>Once the compiled lib exists, we can run our tests with
+<code>coffee test/test.coffee</code> and shouldn&rsquo;t see any errors.</p>
+
+<p>Now we should have a little more order, let&rsquo;s
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/3e3e3918971e2eddbe95e91e0c3cf32e7f8becba">commit</a>.
+Hold off on adding
+<code>lib/</code> to version control, I&rsquo;ll explain why in a bit.
+```text
+tree -L 2 -C -a -I &lsquo;.git&rsquo;
+.
+├── .gitignore
+├── lib
+│   └── nanomsg.js
+├── node_modules
+│   └── ffi
+├── src
+│   └── nanomsg.coffee
+└── test</p>
+
+<pre><code>└── test.coffee
+</code></pre>
+
+<p>5 directories, 4 files
+```</p>
+
+<p>At this point, if we add features and want to rerun our tests, we need to
+execute:</p>
+
+<p><code>coffee -o lib -c src/nanomsg.coffee &amp;&amp; coffee test/test.coffee</code></p>
+
+<p>While this command is simple now and easy to reverse search, anyone else
+contributing to you project is going to have to know the commands to run the
+tests.  Let&rsquo;s use
+<a href="http://gruntjs.com/">Grunt</a>,
+the JavaScript task runner, to automate our build and test process.</p>
+
+<h2>Add a Build script</h2>
+
+<p><code>text
+npm install -g grunt-cli &amp;&amp; \
+npm install grunt-contrib-coffee
+</code></p>
+
+<p>Create a simple Gruntfile which can also be written in CoffeeScript:
+```coffeescript Gruntfile.coffee
+module.exports = (grunt) &ndash;>
+  grunt.initConfig</p>
+
+<pre><code>coffee:
+  compile:
+    files:
+      'lib/nanomsg.js': ['src/*.coffee']
+</code></pre>
+
+<p>  grunt.loadNpmTasks &lsquo;grunt-contrib-coffee&rsquo;
+  grunt.registerTask &lsquo;default&rsquo;, [&lsquo;coffee&rsquo;]
+```</p>
+
+<p>Running <code>grunt</code> builds our lib which is a start, so let&rsquo;s
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/293e7378225c761ec496d9dcd09e1f2d331628a2">commit</a>
+that.</p>
+
+<p>But <code>grunt</code> is not running our tests.  And our tests don&rsquo;t have nice output.
+Let&rsquo;s change that:
+<code>text
+npm install -g mocha &amp;&amp; \
+npm install chai grunt-mocha-test
+</code></p>
+
+<p>edit test/test.coffee to:</p>
+
+<p>```coffeescript test/test.coffee
+assert = require &lsquo;assert&rsquo;
+should = require(&lsquo;chai&rsquo;).should()
+nanomsg = require &lsquo;../lib/nanomsg.js&rsquo;</p>
+
+<p>describe &lsquo;nanomsg&rsquo;, &ndash;>
+  it &lsquo;should at least work&rsquo;, &ndash;></p>
+
+<pre><code>{ AF_SP, NN_PAIR } = nanomsg
+
+s1 = nanomsg.nn_socket AF_SP, NN_PAIR
+s1.should.be.at.least 0
+
+ret = nanomsg.nn_bind s1, 'inproc://a'
+ret.should.be.above 0
+
+s2 = nanomsg.nn_socket AF_SP, NN_PAIR
+s2.should.be.at.least 0
+
+ret = nanomsg.nn_connect s2, 'inproc://a'
+ret.should.be.above 0
+
+msg = new Buffer 'hello'
+ret = nanomsg.nn_send s2, msg, msg.length, 0
+ret.should.be.above 0
+
+recv = new Buffer msg.length
+ret = nanomsg.nn_recv s1, recv, recv.length, 0
+ret.should.be.above 0
+
+msg.toString().should.equal recv.toString()
+</code></pre>
+
+<p>```</p>
+
+<p>and modify your gruntfile to add a testing step:</p>
+
+<p>```coffeescript Gruntfile.coffee
+module.exports = (grunt) &ndash;>
+  grunt.initConfig</p>
+
+<pre><code>coffee:
+  compile:
+    files:
+      'lib/nanomsg.js': ['src/*.coffee']
+mochaTest:
+  options:
+    reporter: 'nyan'
+  src: ['test/test.coffee']
+</code></pre>
+
+<p>  grunt.loadNpmTasks &lsquo;grunt-contrib-coffee&rsquo;
+  grunt.loadNpmTasks &lsquo;grunt-mocha-test&rsquo;</p>
+
+<p>  grunt.registerTask &lsquo;default&rsquo;, [&lsquo;coffee&rsquo;, &lsquo;mochaTest&rsquo;]
+```</p>
+
+<p>Now when we run <code>grunt</code>, our build process will run, then our test process,
+then we should see one incredibly happy
+<a href="http://www.nyan.cat/">nyan cat</a>.
+The
+<a href="http://visionmedia.github.io/mocha/#reporters">nyan cat mocha test reporter</a>
+is basically the pinnacle of human intellectual achievement.</p>
+
+<p>```text
+grunt
+Running &ldquo;coffee:compile&rdquo; (coffee) task
+File lib/nanomsg.js created.</p>
+
+<p>Running &ldquo;mochaTest:src&rdquo; (mochaTest) task
+ 1   &ndash;<strong>,&mdash;&mdash;&mdash;,
+ 0   &ndash;</strong>|  /_/\
+ 0   &ndash;<em>~|</em>( ^ .^)</p>
+
+<pre><code> -_ ""  ""
+</code></pre>
+
+<p>  1 passing (5 ms)</p>
+
+<p>Done, without errors.
+```
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/a43bcb3f69ca20bb1902472ecc954317e5fe0fe3">Commit time</a>.</p>
+
+<p>```text
+tree -L 2 -C -a -I &lsquo;.git&rsquo;
+.
+├── .gitignore
+├── Gruntfile.coffee
+├── lib
+│   └── nanomsg.js
+├── node_modules
+│   ├── ffi
+│   ├── grunt
+│   └── grunt-contrib-coffee
+├── src
+│   └── nanomsg.coffee
+└── test</p>
+
+<pre><code>└── test.coffee
+</code></pre>
+
+<p>7 directories, 5 files
+```</p>
+
+<h2>Create node module</h2>
+
+<p>Now that we have a more modular design with build and test logic built in,
+let&rsquo;s make this module redistributable.  First, let&rsquo;s talk about ignoring
+files.  Create a <code>.npmignore</code> file that will specify what not to include in the
+module that is downloaded.  Node Package Manager,
+<a href="https://npmjs.org/">npm</a>,
+will
+<a href="https://npmjs.org/doc/developers.html#Keeping-files-out-of-your-package">ignore a bunch of files by default</a>
+for us.</p>
+
+<p><code>text .npmignore
+Gruntfile.coffee
+src/
+test/
+</code></p>
+
+<p>Here we&rsquo;re ignoring the <code>src/</code> dir, where in our <code>.gitignore</code> we are going to
+ignore <code>lib/</code>.</p>
+
+<p><code>text .gitignore
+node_modules/
+lib/
+*.swp
+</code></p>
+
+<p>Why are we doing this?  Admittedly, none of this is strictly necessary, but
+here&rsquo;s why I think it is useful.  When someone is checking out the source, they
+don&rsquo;t need the results of the compilation step, as they can make modifications
+and would need to recompile anyways.  Adding <code>lib/nanomsg.js</code> would just be
+another thing to download (though its size is relatively insignificant).
+Likewise, when someone downloads the module, they most likely just want the
+results of the compilation step, not the source, build script, or test suite.
+If I was planned on making the compiled JavaScript accessible to a web browser,
+I would not add <code>lib/</code> to <code>.gitignore</code>, that way it could be referenced from the
+github raw URL.
+Again, these are generalizations that are not always true.  To make up for not
+having the entire source when installed as a module, we&rsquo;ll make up for it by
+adding a link to the repo from of manifest, but first let&rsquo;s
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/61458d964eaaee2ae6501bfbd186a1fe0d03d827">commit</a>!</p>
+
+<p>Time to create a manifest file that has some basic info about our app.  It&rsquo;s a
+pretty good idea to run <code>npm search &lt;packagename&gt;</code> before hand to make sure
+your planned package name is not taken.  Since we have all of our dependencies
+in a row, let&rsquo;s run
+<code>npm init</code>.</p>
+
+<p>```text
+This utility will walk you through creating a package.json file.
+It only covers the most common items, and tries to guess sane defaults.</p>
+
+<p>See <code>npm help json</code> for definitive documentation on these fields
+and exactly what they do.</p>
+
+<p>Use <code>npm install &lt;pkg&gt; --save</code> afterwards to install a package and
+save it as a dependency in the package.json file.</p>
+
+<p>Press ^C at any time to quit.
+name: (nanomsg)
+version: (0.0.0)
+description: nanomsg bindings
+entry point: (index.js) lib/nanomsg.js
+test command: grunt
+git repository: (git://github.com/nickdesaulniers/node-nanomsg.git)
+keywords: nanomsg
+author: Nick Desaulniers
+license: (BSD-2-Clause) Beerware
+About to write to /Users/Nicholas/code/c/nanomsg/package.json:</p>
+
+<p>{
+  &ldquo;name&rdquo;: &ldquo;nanomsg&rdquo;,
+  &ldquo;version&rdquo;: &ldquo;0.0.0&rdquo;,
+  &ldquo;description&rdquo;: &ldquo;nanomsg bindings&rdquo;,
+  &ldquo;main&rdquo;: &ldquo;lib/nanomsg.js&rdquo;,
+  &ldquo;directories&rdquo;: {</p>
+
+<pre><code>"test": "test"
+</code></pre>
+
+<p>  },
+  &ldquo;dependencies&rdquo;: {</p>
+
+<pre><code>"chai": "~1.7.2",
+"ffi": "~1.2.5",
+"grunt": "~0.4.1",
+"grunt-mocha-test": "~0.6.3",
+"grunt-contrib-coffee": "~0.7.0"
+</code></pre>
+
+<p>  },
+  &ldquo;devDependencies&rdquo;: {},
+  &ldquo;scripts&rdquo;: {</p>
+
+<pre><code>"test": "grunt"
+</code></pre>
+
+<p>  },
+  &ldquo;repository&rdquo;: {</p>
+
+<pre><code>"type": "git",
+"url": "git://github.com/nickdesaulniers/node-nanomsg.git"
+</code></pre>
+
+<p>  },
+  &ldquo;keywords&rdquo;: [</p>
+
+<pre><code>"nanomsg"
+</code></pre>
+
+<p>  ],
+  &ldquo;author&rdquo;: &ldquo;Nick Desaulniers&rdquo;,
+  &ldquo;license&rdquo;: &ldquo;Beerware&rdquo;,
+  &ldquo;bugs&rdquo;: {</p>
+
+<pre><code>"url": "https://github.com/nickdesaulniers/node-nanomsg/issues"
+</code></pre>
+
+<p>  }
+}</p>
+
+<p>Is this ok? (yes)
+```</p>
+
+<p>That should create for us a nice package.json manifest file for npm.</p>
+
+<p>We can now run our tests with the command <code>npm test</code> in addition to <code>grunt</code>.
+Let&rsquo;s hold off on publishing just yet,
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/6ac3425005c69683df85f75c49e27c9cb634ada6">committing</a>
+instead.</p>
+
+<p>```
+tree -L 2 -C -a -I &lsquo;.git&rsquo;
+.
+├── .gitignore
+├── .npmignore
+├── Gruntfile.coffee
+├── lib
+│   └── nanomsg.js
+├── node_modules
+│   ├── .bin
+│   ├── chai
+│   ├── ffi
+│   ├── grunt
+│   ├── grunt-contrib-coffee
+│   └── grunt-mocha-test
+├── package.json
+├── src
+│   └── nanomsg.coffee
+└── test</p>
+
+<pre><code>└── test.coffee
+</code></pre>
+
+<p>10 directories, 7 files
+```</p>
+
+<h2>Add LICENSE and README</h2>
+
+<p>So we have a module that&rsquo;s almost ready to go.  But how will developers know
+how to reuse this code?  As much as I like to
+<em><a href="http://bartaz.github.io/impress.js/#/source">view the source, Luke</a></em>,
+npm will complain without a readme.  The
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/95e5a7203740f8ab31758f54491d095567accf70">readme</a>
+also looks nice on the github repo.</p>
+
+<pre><code># Node-NanoMSG
+Node.js binding for [nanomsg](http://nanomsg.org/index.html).
+
+## Usage
+
+`npm install nanomsg`
+
+```javascript
+var nanomsg = require('nanomsg');
+var assert = require('assert');
+var AF_SP = nanomsg.AF_SP;
+var NN_PAIR = nanomsg.NN_PAIR;
+var msg = new Buffer('hello');
+var recv = new Buffer(msg.length);
+var s1, s2, ret;
+
+s1 = nanomsg.nn_socket(AF_SP, NN_PAIR);
+assert(s1 &gt;= 0, 's1: ' + nanomsg.errno());
+
+ret = nanomsg.nn_bind(s1, 'inproc://a');
+assert(ret &gt; 0, 'bind');
+
+s2 = nanomsg.nn_socket(AF_SP, NN_PAIR);
+assert(s2 &gt;= 0, 's2: ' + nanomsg.errno());
+
+ret = nanomsg.nn_connect(s2, 'inproc://a');
+assert(ret &gt; 0, 'connect');
+
+ret = nanomsg.nn_send(s2, msg, msg.length, 0);
+assert(ret &gt; 0, 'send');
+
+ret = nanomsg.recv(s1, recv, recv.length, 0);
+assert(ret &gt; 0, 'recv');
+
+assert(msg.toString() === recv.toString(), "didn't receive sent message");
+console.log(recv.toString());
+</code></pre>
+
+<p>Before we publish, let&rsquo;s create a
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/48a55d0c51099f6b90cae5f190a8eb2b94140eae">license</a>
+file, because though we are making
+our code publicly viewable,
+<a href="https://help.github.com/articles/open-source-licensing#what-happens-if-i-dont-choose-a-license">public source code without an explicit license is still under copyright and cannot be reused</a>.</p>
+
+<p><code>text LICENSE
+/*
+ * ----------------------------------------------------------------------------
+ * "THE BEER-WARE LICENSE" (Revision 42):
+ * &lt;nick@mozilla.com&gt; wrote this file. As long as you retain this notice you
+ * can do whatever you want with this stuff. If we meet some day, and you think
+ * this stuff is worth it, you can buy me a beer in return. Nick Desaulniers
+ * ----------------------------------------------------------------------------
+ */
+</code></p>
+
+<p>If you want to be more serious, maybe instead shoot for an MIT or BSD style
+license if you don&rsquo;t care what your repo gets used for or GPL style if you do.
+<a href="http://www.tldrlegal.com/">TLDRLegal</a> has a great breakdown on common licenses.</p>
+
+<p>```text
+tree -L 2 -C -a -I &lsquo;.git&rsquo;
+.
+├── .gitignore
+├── .npmignore
+├── Gruntfile.coffee
+├── LICENSE
+├── README.md
+├── lib
+│   └── nanomsg.js
+├── node_modules
+│   ├── .bin
+│   ├── chai
+│   ├── ffi
+│   ├── grunt
+│   ├── grunt-contrib-coffee
+│   └── grunt-mocha-test
+├── package.json
+├── src
+│   └── nanomsg.coffee
+└── test</p>
+
+<pre><code>└── test.coffee
+</code></pre>
+
+<p>10 directories, 9 files
+```</p>
+
+<h2>Publish</h2>
+
+<p><code>npm publish</code>
+<code>text
+npm http PUT https://registry.npmjs.org/nanomsg
+npm http 201 https://registry.npmjs.org/nanomsg
+npm http GET https://registry.npmjs.org/nanomsg
+npm http 200 https://registry.npmjs.org/nanomsg
+npm http PUT https://registry.npmjs.org/nanomsg/-/nanomsg-0.0.0.tgz/-rev/1-20f1ec5ca2eed51e840feff22479bb5d
+npm http 201 https://registry.npmjs.org/nanomsg/-/nanomsg-0.0.0.tgz/-rev/1-20f1ec5ca2eed51e840feff22479bb5d
+npm http PUT https://registry.npmjs.org/nanomsg/0.0.0/-tag/latest
+npm http 201 https://registry.npmjs.org/nanomsg/0.0.0/-tag/latest
++ nanomsg@0.0.0
+</code></p>
+
+<p>Finally as a sanity check, I like to make a new folder elsewhere, and run
+through the steps in the readme manually to make sure the package is reuseable.
+Which is good, since in the readme I
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/c145d3b3a8e85354f1bfb61d8342531ec6bbaa0a">accidentally forgot</a>
+the <code>nn_</code> prefix in
+front of errno and recv!</p>
+
+<p>After updating the example in the readme, let&rsquo;s
+<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/a6280ca85c4b9cbaac36f5b427bc052961d7e972">bump the version number</a>
+and
+republish.  Use <code>npm version</code> without arguments to find the current version,
+then <code>npm version patch</code> to bump it.  You have to commit the readme changes
+before bumping the version.  Finally don&rsquo;t forget to rerun <code>npm publish</code>.</p>
+
+<p>Our
+<a href="https://github.com/nickdesaulniers/node-nanomsg/tree/a6280ca85c4b9cbaac36f5b427bc052961d7e972">final directory structure</a>
+ends up looking like:
+```text
+tree -L 2 -C -a -I &lsquo;.git&rsquo;
+.
+├── .gitignore
+├── .npmignore
+├── Gruntfile.coffee
+├── LICENSE
+├── README.md
+├── lib
+│   └── nanomsg.js
+├── node_modules
+│   ├── .bin
+│   ├── chai
+│   ├── ffi
+│   ├── grunt
+│   ├── grunt-contrib-coffee
+│   └── grunt-mocha-test
+├── package.json
+├── src
+│   └── nanomsg.coffee
+└── test</p>
+
+<pre><code>└── test.coffee
+</code></pre>
+
+<p>10 directories, 9 files
+```
+Lastly, I&rsquo;ll
+<a href="https://github.com/250bpm/nanomsg/pull/122">reach out to</a>
+Martin Sústrik and let him know that nanomsg has a new binding.</p>
+
+<p>The bindings are far from complete, the test coverage could be better, and the
+API is very C like and could use some OO syntactic sugar, but we&rsquo;re at a great
+starting point and ready to rock and roll.  If you&rsquo;d like to help out, fork
+<a href="https://github.com/nickdesaulniers/node-nanomsg.git">https://github.com/nickdesaulniers/node-nanomsg.git</a>.</p>
+
+<p>What are some of your thoughts on build steps, testing, and directory layout of
+node module?  This
+tutorial was definitely not meant to be an authoritarian guide.  I look forward
+to your comments on your experiences!</p>
+]]></content>
+  </entry>
+  
+</feed>

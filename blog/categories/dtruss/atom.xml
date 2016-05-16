@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: dtruss | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/dtruss/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2016-05-15T19:32:52-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Intro to Debugging x86-64 Assembly]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/"/>
+    <updated>2016-01-20T20:04:00-08:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace</id>
+    <content type="html"><![CDATA[<p>I&rsquo;m hacking on an assembly project, and wanted to document some of the tricks I
+was using for figuring out what was going on.  This post might seem a little
+basic for folks who spend all day heads down in gdb or who do this stuff
+professionally, but I just wanted to share a quick intro to some tools that
+others may find useful.
+(<a href="https://pchiusano.github.io/2014-10-11/defensive-writing.html">oh god, I&rsquo;m doing it</a>)</p>
+
+<p>If your coming from gdb to lldb, there&rsquo;s a few differences in commands.  LLDB
+has
+<a href="http://lldb.llvm.org/lldb-gdb.html">great documentation</a>
+on some of the differences. Everything in this post about LLDB is pretty much
+there.</p>
+
+<p>The bread and butter commands when working with gdb or lldb are:</p>
+
+<ul>
+<li>r (run the program)</li>
+<li>s (step in)</li>
+<li>n (step over)</li>
+<li>finish (step out)</li>
+<li>c (continue)</li>
+<li>q (quit the program)</li>
+</ul>
+
+
+<p>You can hit enter if you want to run the last command again, which is really
+useful if you want to keep stepping over statements repeatedly.</p>
+
+<p>I&rsquo;ve been using LLDB on OSX.  Let&rsquo;s say I want to debug a program I can build,
+but is crashing or something:
+<code>sh
+$ sudo lldb ./asmttpd web_root
+</code>
+Setting a breakpoint on jump to label:
+<code>sh
+(lldb) b sys_write
+Breakpoint 3: where = asmttpd`sys_write, address = 0x00000000000029ae
+</code>
+Running the program until breakpoint hit:
+<code>``sh
+(lldb) r
+Process 32236 launched: './asmttpd' (x86_64)
+Process 32236 stopped
+* thread #1: tid = 0xe69b9, 0x00000000000029ae asmttpd</code>sys_write, queue = &lsquo;com.apple.main-thread&rsquo;, stop reason = breakpoint 3.1</p>
+
+<pre><code>frame #0: 0x00000000000029ae asmttpd`sys_write
+</code></pre>
+
+<p>asmttpd`sys_write:
+&ndash;>  0x29ae &lt;+0>: pushq  %rdi</p>
+
+<pre><code>0x29af &lt;+1&gt;: pushq  %rsi
+0x29b0 &lt;+2&gt;: pushq  %rdx
+0x29b1 &lt;+3&gt;: pushq  %r10
+</code></pre>
+
+<p><code>
+Seeing more of the current stack frame:
+</code>sh
+(lldb) d
+asmttpd`sys_write:
+&ndash;>  0x29ae &lt;+0>:  pushq  %rdi</p>
+
+<pre><code>0x29af &lt;+1&gt;:  pushq  %rsi
+0x29b0 &lt;+2&gt;:  pushq  %rdx
+0x29b1 &lt;+3&gt;:  pushq  %r10
+0x29b3 &lt;+5&gt;:  pushq  %r8
+0x29b5 &lt;+7&gt;:  pushq  %r9
+0x29b7 &lt;+9&gt;:  pushq  %rbx
+0x29b8 &lt;+10&gt;: pushq  %rcx
+0x29b9 &lt;+11&gt;: movq   %rsi, %rdx
+0x29bc &lt;+14&gt;: movq   %rdi, %rsi
+0x29bf &lt;+17&gt;: movq   $0x1, %rdi
+0x29c6 &lt;+24&gt;: movq   $0x2000004, %rax
+0x29cd &lt;+31&gt;: syscall
+0x29cf &lt;+33&gt;: popq   %rcx
+0x29d0 &lt;+34&gt;: popq   %rbx
+0x29d1 &lt;+35&gt;: popq   %r9
+0x29d3 &lt;+37&gt;: popq   %r8
+0x29 &lt;+39&gt;: popq   %r10
+0x29d7 &lt;+41&gt;: popq   %rdx
+0x29d8 &lt;+42&gt;: popq   %rsi
+0x29d9 &lt;+43&gt;: popq   %rdi
+0x29da &lt;+44&gt;: retq
+</code></pre>
+
+<p><code>
+Getting a back trace (call stack):
+</code>sh
+(lldb) bt
+* thread #1: tid = 0xe69b9, 0x00000000000029ae asmttpd<code>sys_write, queue = 'com.apple.main-thread', stop reason = breakpoint 3.1
+  * frame #0: 0x00000000000029ae asmttpd</code>sys_write</p>
+
+<pre><code>frame #1: 0x00000000000021b6 asmttpd`print_line + 16
+frame #2: 0x0000000000002ab3 asmttpd`start + 35
+frame #3: 0x00007fff9900c5ad libdyld.dylib`start + 1
+frame #4: 0x00007fff9900c5ad libdyld.dylib`start + 1
+</code></pre>
+
+<p><code>
+peeking at the upper stack frame:
+</code>sh
+(lldb) up
+frame #1: 0x00000000000021b6 asmttpd<code>print_line + 16
+asmttpd</code>print_line:</p>
+
+<pre><code>0x21b6 &lt;+16&gt;: movabsq $0x30cb, %rdi
+0x21c0 &lt;+26&gt;: movq   $0x1, %rsi
+0x21c7 &lt;+33&gt;: callq  0x29ae                    ; sys_write
+0x21cc &lt;+38&gt;: popq   %rcx
+</code></pre>
+
+<p><code>
+back down to the breakpoint-halted stack frame:
+</code>sh
+(lldb) down
+frame #0: 0x00000000000029ae asmttpd<code>sys_write
+asmttpd</code>sys_write:
+&ndash;>  0x29ae &lt;+0>: pushq  %rdi</p>
+
+<pre><code>0x29af &lt;+1&gt;: pushq  %rsi
+0x29b0 &lt;+2&gt;: pushq  %rdx
+0x29b1 &lt;+3&gt;: pushq  %r10
+</code></pre>
+
+<p><code>
+dumping the values of registers:
+</code>sh
+(lldb) register read
+General Purpose Registers:</p>
+
+<pre><code>   rax = 0x0000000000002a90  asmttpd`start
+   rbx = 0x0000000000000000
+   rcx = 0x00007fff5fbffaf8
+   rdx = 0x00007fff5fbffa40
+   rdi = 0x00000000000030cc  start_text
+   rsi = 0x000000000000000f
+   rbp = 0x00007fff5fbffa18
+   rsp = 0x00007fff5fbff9b8
+    r8 = 0x0000000000000000
+    r9 = 0x00007fff7b1670c8  atexit_mutex + 24
+   r10 = 0x00000000ffffffff
+   r11 = 0xffffffff00000000
+   r12 = 0x0000000000000000
+   r13 = 0x0000000000000000
+   r14 = 0x0000000000000000
+   r15 = 0x0000000000000000
+   rip = 0x00000000000029ae  asmttpd`sys_write
+rflags = 0x0000000000000246
+    cs = 0x000000000000002b
+    fs = 0x0000000000000000
+    gs = 0x0000000000000000
+</code></pre>
+
+<p><code>
+read just one register:
+</code>sh
+(lldb) register read rdi</p>
+
+<pre><code> rdi = 0x00000000000030cc  start_text
+</code></pre>
+
+<p><code>
+When you're trying to figure out what system calls are made by some C code,
+using dtruss is very helpful.  dtruss is available on OSX and seems to be some
+kind of wrapper around DTrace.
+</code>sh
+$ cat sleep.c</p>
+
+<h1>include &lt;time.h></h1>
+
+<p>int main () {
+  struct timespec rqtp = {</p>
+
+<pre><code>2,
+0
+</code></pre>
+
+<p>  };</p>
+
+<p>  nanosleep(&amp;rqtp, NULL);
+}</p>
+
+<p>$ clang sleep.c</p>
+
+<p>$ sudo dtruss ./a.out
+&hellip;all kinds of fun stuff
+__semwait_signal(0xB03, 0x0, 0x1)    = -1 Err#60
+<code>
+If you compile with `-g` to emit debug symbols, you can use lldb's disassemble
+command to get the equivalent assembly:
+</code>sh
+$ clang sleep.c -g
+$ lldb a.out
+(lldb) target create &ldquo;a.out&rdquo;
+Current executable set to &lsquo;a.out&rsquo; (x86_64).
+(lldb) b main
+Breakpoint 1: where = a.out<code>main + 16 at sleep.c:3, address = 0x0000000100000f40
+(lldb) r
+Process 33213 launched: '/Users/Nicholas/code/assembly/asmttpd/a.out' (x86_64)
+Process 33213 stopped
+* thread #1: tid = 0xeca04, 0x0000000100000f40 a.out</code>main + 16 at sleep.c:3, queue = &lsquo;com.apple.main-thread&rsquo;, stop reason = breakpoint 1.1</p>
+
+<pre><code>frame #0: 0x0000000100000f40 a.out`main + 16 at sleep.c:3
+</code></pre>
+
+<p>   1    #include &lt;time.h>
+   2    int main () {
+&ndash;> 3      struct timespec rqtp = {
+   4        2,
+   5        0
+   6      };
+   7
+(lldb) disassemble
+a.out`main:</p>
+
+<pre><code>0x100000f30 &lt;+0&gt;:  pushq  %rbp
+0x100000f31 &lt;+1&gt;:  movq   %rsp, %rbp
+0x100000f34 &lt;+4&gt;:  subq   $0x20, %rsp
+0x100000f38 &lt;+8&gt;:  leaq   -0x10(%rbp), %rdi
+0x100000f3c &lt;+12&gt;: xorl   %eax, %eax
+0x100000f3e &lt;+14&gt;: movl   %eax, %esi
+</code></pre>
+
+<p>&ndash;>  0x100000f40 &lt;+16>: movq   0x49(%rip), %rcx</p>
+
+<pre><code>0x100000f47 &lt;+23&gt;: movq   %rcx, -0x10(%rbp)
+0x100000f4b &lt;+27&gt;: movq   0x46(%rip), %rcx
+0x100000f52 &lt;+34&gt;: movq   %rcx, -0x8(%rbp)
+0x100000f56 &lt;+38&gt;: callq  0x100000f68               ; symbol stub for: nanosleep
+0x100000f5b &lt;+43&gt;: xorl   %edx, %edx
+0x100000f5d &lt;+45&gt;: movl   %eax, -0x14(%rbp)
+0x100000f60 &lt;+48&gt;: movl   %edx, %eax
+0x100000f62 &lt;+50&gt;: addq   $0x20, %rsp
+0x100000f66 &lt;+54&gt;: popq   %rbp
+0x100000f67 &lt;+55&gt;: retq
+</code></pre>
+
+<p>```</p>
+
+<p>Anyways, I&rsquo;ve been learning some interesting things about OSX that I&rsquo;ll be
+sharing soon. If you&rsquo;d like to learn more about x86-64 assembly programming,
+you should read my other posts about
+<a href="/blog/2014/04/18/lets-write-some-x86-64/">writing x86-64</a>
+and a toy
+<a href="/blog/2015/05/25/interpreter-compiler-jit/">JIT for Brainfuck</a>
+(<a href="https://www.reddit.com/r/programming/comments/377ov9/interpreter_compiler_jit/crkkrz4">the creator of Brainfuck liked it</a>).</p>
+
+<p>I should also do a post on
+<a href="http://rr-project.org/">Mozilla&rsquo;s rr</a>,
+because it can do amazing things like step backwards.  Another day&hellip;</p>
+]]></content>
+  </entry>
+  
+</feed>

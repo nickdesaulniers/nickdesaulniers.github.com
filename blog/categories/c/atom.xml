@@ -1,0 +1,1469 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: C | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/c/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2016-05-15T19:32:52-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Additional C/C++ Tooling]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/"/>
+    <updated>2015-07-23T21:10:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling</id>
+    <content type="html"><![CDATA[<p><a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C by Ben Klemens</a>
+was a great read. It had a section with an
+intro to autotools, git, and gdb.
+There are a few other useful tools that came to mind that I&rsquo;ve used when
+working with C and C++ codebases. These tools are a great way to start
+contributing to
+<a href="https://github.com/nickdesaulniers/What-Open-Source-Means-To-Me#what-open-source-means-to-me">Open Source</a>
+C &amp; C++ codebases; running these tools on
+the code or adding them to the codebases.  A lot of these favor command line,
+open source utilities. See how many you are familiar with!</p>
+
+<h2>Build Tools</h2>
+
+<h3>CMake</h3>
+
+<p>The first tool I&rsquo;d like to take a look at is
+<a href="http://www.cmake.org/overview/">CMake</a>.  CMake is yet another build tool; I
+realize how contentious it is to even discuss one of the many.  From my
+experience working with
+<a href="https://kripken.github.io/emscripten-site/docs/introducing_emscripten/about_emscripten.html">Emscripten</a>,
+we recommend the use of CMake for people
+writing portable C/C++ programs.  CMake is able to emit Makefiles for unixes,
+project files for Xcode on OSX, and project files for Visual Studio on Windows.
+There are also a few other &ldquo;generators&rdquo; that you can use.</p>
+
+<p>I&rsquo;ve been really impressed with CMake&rsquo;s modules for
+<a href="http://www.cmake.org/cmake/help/v3.0/command/find_package.html">finding dependencies</a>
+and
+<a href="http://www.cmake.org/cmake/help/v3.0/module/ExternalProject.html">another for fetching and building external dependencies</a>.
+I think
+<a href="https://www.youtube.com/watch?v=nshzjMDD79w">C++ needs a package manager badly</a>,
+and I think CMake would be a solid foundation for one.</p>
+
+<p>The syntax isn&rsquo;t the greatest, but when I wanted to try to build one of my C++
+projects on Windows which I know nothing about developing on, I was able to
+install CMake and Visual Studio and get my project building.  If you can build
+your code on one platform, it will usually build on the others.</p>
+
+<p>If you&rsquo;re not worried about writing cross platform C/C++, maybe CMake is not
+worth the effort, but I find it useful.  I wrestle with the syntax sometimes,
+but documentation is not bad and it&rsquo;s something you deal with early on in the
+development of a project and hopefully never have to touch again (how I wish
+that were true).</p>
+
+<h2>Code Formatters</h2>
+
+<h3>ClangFormat</h3>
+
+<p>Another contentious point of concern amongst developers is code style.
+<a href="http://google-styleguide.googlecode.com/svn/trunk/cppguide.html">Big companies</a>
+with lots of C++ code have
+<a href="https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Coding_Style#CC_practices">documents</a>
+explaining their stylistic choices.  Don&rsquo;t waste another hour of your life
+arguing about something that really doesn&rsquo;t matter.
+<a href="http://clang.llvm.org/docs/ClangFormat.html">ClangFormat</a> will help you
+codify your style and format your code for you to match the style.  Simply
+write the code however you want, and run the formatter on it before commiting
+it.</p>
+
+<p>It can also emit a .clang-format file that you can commit and clang-format will automatically look for that file and use the rules codified there.</p>
+
+<h2>Linters</h2>
+
+<h3>Flint / Flint++</h3>
+
+<p><a href="https://github.com/facebook/flint">Flint</a> is a C++ linter in use at Facebook.
+Since it moved from being
+implemented in C++ to D, I&rsquo;ve had issues building it.  I&rsquo;ve had better luck
+with a fork that&rsquo;s pure C++ without any of the third party dependencies Flint
+originally had, called
+<a href="https://github.com/L2Program/FlintPlusPlus">Flint++</a>.  While not quite full-on
+static analyzers, both can be used for finding potential issues in your code
+ahead of time. Linters can look at individual files in isolation; you don&rsquo;t
+have to wait for long recompiles like you would with a static analyzer.</p>
+
+<h2>Static Analyzers</h2>
+
+<h3>Scan-build</h3>
+
+<p><a href="http://clang-analyzer.llvm.org/scan-build.html">Scan-build</a> is a static
+analyzer for C and C++ code.  You build your code &ldquo;through&rdquo; it, then use the
+sibling tool scan-view to see the results.  Scan-view will emit and open an
+html file that shows a list of the errors it detected.  It will insert
+hyperlinks into the resulting document that step you through how certain
+conditions could lead to a null pointer dereference, for example.  You can also
+save and share those html files with others in the project. Static analyzers
+will help you catch bugs at compile time before you run the code.</p>
+
+<h2>Runtime Sanitizers</h2>
+
+<h3>ASan and UBSan</h3>
+
+<p>Clang&rsquo;s Address (ASan) and Undefined Behavior (UBSan) sanitizers are simply
+compiler flags that can be used to detect errors at runtime.  ASan and UBSan
+two of the more popular tools, but there are actually a ton and more being
+implemented.  See the list
+<a href="http://clang.llvm.org/docs/UsersManual.html#controlling-code-generation">here</a>.
+These sanitizers will catch bugs at runtime, so you&rsquo;ll have to run the code
+to notice any violations, at variable runtime performance costs per sanitizer.
+ASan and TSan (Thread Sanitizer) made it into gcc4.8 and UBSan is in gcc4.9.</p>
+
+<h2>Header Analysis</h2>
+
+<h3>Include What You Use</h3>
+
+<p><a href="https://github.com/include-what-you-use/include-what-you-use">Include What You Use</a>
+(IWYU) helps you find unused or unnecessary <code>#include</code> preprocessor directives.
+It should be obvious how this can help improve compile times. IWYU can also
+help cut down on recompiles by recommending forward declarations under certain
+conditions.
+I look forward to the C++ module proposal being adopted, but until then this
+tool can help you spot cruft that can be removed.</p>
+
+<h2>Rapid Recompiles</h2>
+
+<h3>ccache</h3>
+
+<p><a href="https://ccache.samba.org/">ccache</a> greatly improves recompile times by caching
+the results of parts of the compilation process.
+<a href="https://github.com/nickdesaulniers/dotfiles/blob/49984b3e82022e5ce82e778fc8ce990f8e1e554a/.mozconfig#L1">I use when building Firefox</a>,
+and it saves a great deal of time.</p>
+
+<h3>distcc</h3>
+
+<p><a href="https://github.com/distcc/distcc">distcc</a> is a distributed build system.
+<a href="http://blog.dholbert.org/">Some folks at Mozilla</a> speed up their Firefox builds with it.</p>
+
+<h2>Memory Leak Detectors</h2>
+
+<h3>Valgrind</h3>
+
+<p><a href="http://valgrind.org/info/about.html">Valgrind</a> has a
+<a href="http://valgrind.org/info/about.html">suite of tools</a>, my
+favorite being memcheck for finding memory leaks. Unfortunately, it doesn&rsquo;t
+seem to work on OSX since 10.10.
+<a href="https://code.google.com/p/address-sanitizer/wiki/ComparisonOfMemoryTools">This page</a>
+referring to ASan seems to indicate that it can do everything Valgrind&rsquo;s
+Memcheck can, at less of a runtime performance cost, but I&rsquo;m not sure how true
+this is exactly.</p>
+
+<h3>leaks</h3>
+
+<p>A much more primitive tool for finding leaks from the command line, BSD&rsquo;s have
+<code>leaks</code>.</p>
+
+<p><code>bash
+MallocStackLogging=1 ./a.out
+leaks a.out
+...
+</code></p>
+
+<h2>Profilers</h2>
+
+<h3>Perf</h3>
+
+<p>Perf, and
+<a href="http://www.brendangregg.com/flamegraphs.html">Brendan Gregg&rsquo;s tools for emitting SVG flamegraphs</a>
+from the output
+are helpful for finding where time is spent in a program. In fact, there are
+numerous perfomance analysis tools that are Linux specific.  My recommendation
+is spend some time on <a href="http://www.brendangregg.com/linuxperf.html">Brendan Gregg&rsquo;s blog</a>.</p>
+
+<h3>DTrace</h3>
+
+<p>OSX doesn&rsquo;t have the same tooling as Linux, but DTrace was ported to it.  I&rsquo;ve
+used it to find sampling profiles of my code before. Again,
+<a href="http://www.brendangregg.com/dtrace.html">Brendan Gregg&rsquo;s blog</a> is a good
+resource; there are some fantastic DTrace one liners.</p>
+
+<h2>Debuggers</h2>
+
+<h3>lldb</h3>
+
+<p>lldb is analogous to gdb.  I can&rsquo;t say I have enough experience with LLDB and GDB to note the difference between the two, but LLDB did show the relative statements forward and back from the current statement by default.  I&rsquo;m informed by my friends/mortal enemies using emacs that this is less of an issue when using emacs/gdb in combination.</p>
+
+<h2>Fuzzers</h2>
+
+<h3>American Fuzzy Lop</h3>
+
+<p><a href="http://lcamtuf.coredump.cx/afl/">American Fuzzy Lop</a> (AFL) is a neat program
+that performs fuzzing on programs
+that take inputs from files and repeatedly runs the program, modifies the
+input trying to get full code coverage, and tries to find crashes.  It&rsquo;s been
+getting lots of attention lately, and while I haven&rsquo;t used it myself yet, it
+seems like a very powerful tool. Mozilla employs the use of fuzzers on their
+JavaScript engine, for instance (not AFL, but
+<a href="http://www.squarefree.com/2007/08/02/introducing-jsfunfuzz/">one developed in house</a>).</p>
+
+<h2>Disassemblers</h2>
+
+<h3>gobjdump</h3>
+
+<p>If you really need to make sure the higher level code you&rsquo;re writing is getting
+translated into the assembly your expecting, <code>gobjdump -S</code> will intermix the
+emitted binary&rsquo;s disassembled assembly and the source code.  This was used
+extensively while developing <a href="/blog/2015/05/25/interpreter-compiler-jit/">my Brainfuck JIT</a>.</p>
+
+<h2>Conclusion</h2>
+
+<p>Hopefully you learned of some useful tools that you should know about when
+working with C or C++.  What did I miss?</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Interpreter, Compiler, JIT]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/"/>
+    <updated>2015-05-25T08:35:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit</id>
+    <content type="html"><![CDATA[<p>Interpreters and compilers are interesting programs, themselves used to run or
+translate other programs, respectively.  Those other programs that might be
+interpreted might be languages like JavaScript, Ruby, Python, PHP, and Perl.  The
+other programs that might be compiled are C, C++, and to some extent Java and
+C#.</p>
+
+<p>Taking the time to do translation to native machine code ahead of
+time can result in better performance at runtime, but an interpreter can get to work right away without spending any time translating.  There happens to be a sweet spot
+somewhere in between interpretation and compilation that combines the best of
+both worlds.  Such a technique
+is called Just In Time (JIT) compiling.  While interpreting, compiling, and JIT'ing code might sound radically different, they&rsquo;re actually strikingly similar.  In
+this post, I hope to show how similar by comparing the code for an interpreter,
+a compiler, and a JIT compiler for the language Brainfuck in around 100 lines
+of C code each.</p>
+
+<p>All of the code in the post is up on <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler">GitHub</a>.</p>
+
+<p><div class="embed-video-container"><iframe src="//www.youtube.com/embed/_C5AHaS1mOA" allowfullscreen></iframe></div></p>
+
+<p>Brainfuck is an interesting, if hard to read, language.  It only has eight
+operations it can perform <code>&gt; &lt; + - . , [ ]</code>, yet is Turing complete.  There&rsquo;s nothing really to
+lex; each character is a token, and if the token is not one of the eight
+operators, it&rsquo;s ignored.  There&rsquo;s also not much of a grammar to parse; the
+forward jumping and backwards jumping operators should be matched for well
+formed input, but that&rsquo;s about it.  In this post, we&rsquo;ll skip over validating
+input assuming well formed input so we can focus on the interpretation/code
+generation.  You can read more about it on the
+<a href="http://en.wikipedia.org/wiki/Brainfuck">Wikipedia page</a>,
+which we&rsquo;ll be using as a reference throughout.</p>
+
+<p>A Brainfuck program operates on a 30,000 element byte array initialized to all
+zeros.  It starts off with an instruction pointer, that initially points to the
+first element in the data array or &ldquo;tape.&rdquo;  In C code for an interpreter that
+might look like:</p>
+
+<p>```c
+// Initialize the tape with 30,000 zeroes.
+unsigned char tape [30000] = { 0 };</p>
+
+<p>// Set the pointer to point at the left most cell of the tape.
+unsigned char* ptr = tape;
+```</p>
+
+<p>Then, since we&rsquo;re performing an operation for each character in the Brainfuck
+source, we can have a for loop over every character with a nested switch
+statement containing case statements for each operator.</p>
+
+<p>The first two operators, <code>&gt;</code> and <code>&lt;</code> increment and decrement the data pointer.</p>
+
+<p><code>c
+case '&gt;': ++ptr; break;
+case '&lt;': --ptr; break;
+</code></p>
+
+<p>One thing that could be bad is that because the interpreter is written in C and
+we&rsquo;re representing the tape as an array but we&rsquo;re not validating our inputs,
+there&rsquo;s potential for stack buffer overrun since we&rsquo;re not performing bounds
+checks.  Again, punting and assuming well formed input to keep the code and the
+point more precise.</p>
+
+<p>Next up are the <code>+</code> and <code>-</code> operators, used for incrementing and decrementing
+the cell pointed to by the data pointer by one.
+<code>c
+case '+': ++(*ptr); break;
+case '-': --(*ptr); break;
+</code></p>
+
+<p>The operators <code>.</code> and <code>,</code> provide Brainfuck&rsquo;s only means of input or output, by
+writing the value pointed to by the instruction pointer to stdout as an ASCII
+value, or reading one byte from stdin as an ASCII value and writing it to the
+cell pointed to by the instruction pointer.</p>
+
+<p><code>c
+case '.': putchar(*ptr); break;
+case ',': *ptr = getchar(); break;
+</code></p>
+
+<p>Finally, our looping constructs, <code>[</code> and <code>]</code>.  From the definition on Wikipedia
+for <code>[</code>: <code>if the byte at the data pointer is zero, then instead of moving the
+instruction pointer forward to the next command, jump it forward to the command
+after the matching ] command</code> and for <code>]</code>: <code>if the byte at the data pointer is
+nonzero, then instead of moving the instruction pointer forward to the next
+command, jump it back to the command after the matching [ command.</code></p>
+
+<p>I interpret that as:</p>
+
+<p>```c
+case &lsquo;[&rsquo;:
+  if (!(*ptr)) {</p>
+
+<pre><code>int loop = 1;
+while (loop &gt; 0) {
+  unsigned char current_char = input[++i];
+  if (current_char == ']') {
+    --loop;
+  } else if (current_char == '[') {
+    ++loop;
+  }
+}
+</code></pre>
+
+<p>  }
+  break;
+case &lsquo;]&rsquo;:
+  if (*ptr) {</p>
+
+<pre><code>int loop = 1;
+while (loop &gt; 0) {
+  unsigned char current_char = input[--i];
+  if (current_char == '[') {
+    --loop;
+  } else if (current_char == ']') {
+    ++loop;
+  }
+}
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>Where the variable <code>loop</code> keeps track of open brackets for which we&rsquo;ve not seen
+a matching close bracket, aka our nested depth.</p>
+
+<p>So <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/interpreter.c">we can see the interpreter is quite basic</a>, in around 50 SLOC were able to
+read a byte, and immediately perform an action based on the operator.  How we
+perform that operation might not be the fastest though.</p>
+
+<p>How about if we want to compile the Brainfuck source code to native machine
+code?  Well, we need to know a little bit about our host machine&rsquo;s Instruction
+Set Architecture (ISA) and Application Binary Interface (ABI).  The rest of the
+code in this post will not be as portable as the above C code, since it assumes
+an x86-64 ISA and UNIX ABI.  Now would be a good time to <a href="/blog/2014/04/18/lets-write-some-x86-64/">take a detour and learn more about writing assembly for x86-64</a>.  The interpreter is even portable enough to <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler#emscripten">build with Emscripten and run in a browser</a>!</p>
+
+<p>For our compiler, we&rsquo;ll iterate over every character in the source file again,
+switching on the recognized operator.  This time, instead of performing an
+action right away, we&rsquo;ll print assembly instructions to stdout.  Doing so
+requires running the compiler on an input file, redirecting stdout to a file,
+then running the system assembler and linker on that file.  We&rsquo;ll stick with
+just compiling and not assembling (though it&rsquo;s not too difficult), and linking
+(for now).</p>
+
+<p>First, we need to print a prologue for our compiled code:</p>
+
+<p><code>c
+const char* const prologue =
+  ".text\n"
+  ".globl _main\n"
+  "_main:\n"
+  "  pushq %rbp\n"
+  "  movq %rsp, %rbp\n"
+  "  pushq %r12\n"        // store callee saved register
+  "  subq $30008, %rsp\n" // allocate 30,008 B on stack, and realign
+  "  leaq (%rsp), %rdi\n" // address of beginning of tape
+  "  movl $0, %esi\n"     // fill with 0's
+  "  movq $30000, %rdx\n" // length 30,000 B
+  "  call _memset\n"      // memset
+  "  movq %rsp, %r12";
+puts(prologue);
+</code></p>
+
+<p>During the linking phase, we&rsquo;ll make sure to link in libc so we can call
+memset.  What we&rsquo;re doing is backing up callee saved registers we&rsquo;ll be using,
+stack allocating the tape, realigning the stack (<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #1</a>), copying
+the address of the only item on the stack into a register for our first
+argument, setting the second argument to the constant <code>0</code>, the third arg to
+<code>30000</code>, then calling memset.  Finally, we use the callee saved register %r12
+as our instruction pointer, which is the address into a value on the stack.</p>
+
+<p>We
+can expect the call to memset to result in a segfault if simply subtract just
+30000B, and not realign for the 2 registers (64 b each, 8 B each) we pushed on
+the stack.  The first pushed register aligns the stack on a 16 B boundary, the
+second misaligns it; that&rsquo;s why we allocate an additional 8 B on the stack
+(<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #1</a>).  The stack is mis-aligned upon function entry in x86-64.
+30000 is a multiple of 16.</p>
+
+<p><img class="center" src="/images/compiler_stack_alignment.png"></p>
+
+<p>Moving the instruction pointer (<code>&gt;</code>, <code>&lt;</code>) and modifying the pointed to value
+(<code>+</code>, <code>-</code>) are straight-forward:</p>
+
+<p><code>c
+case '&gt;':
+  puts("  inc %r12");
+  break;
+case '&lt;':
+  puts("  dec %r12");
+  break;
+case '+':
+  puts("  incb (%r12)");
+  break;
+case '-':
+  puts("  decb (%r12)");
+  break;
+</code></p>
+
+<p>For output, <code>.</code>, we need to copy the pointed to byte into the register for the
+first argument to putchar.  We
+explicitly zero out the register before calling putchar, since it takes an int
+(32 b), but we&rsquo;re only copying a char (8 b) (Look up C&rsquo;s type promotion rules for more info).  x86-64 has an instruction that does both, movzXX, Where the first X is the source size (b, w) and the second is the destination size (w, l, q).  Thus movzbl moves a <strong>b</strong>yte (8 b) into a doub<strong>l</strong>e word (32 b).  %rdi and %edi are the same register, but %rdi is the full
+64 b register, while %edi is the lowest (or least significant) 32 b.</p>
+
+<p><code>c
+case '.':
+  // move byte to double word and zero upper bits since putchar takes an
+  // int.
+  puts("  movzbl (%r12), %edi");
+  puts("  call _putchar");
+  break;
+</code></p>
+
+<p>Input (<code>,</code>) is easy; call getchar, move the resulting lowest byte into the cell
+pointed to by the instruction pointer.  %al is the lowest 8 b of the 64 b %rax register.</p>
+
+<p><code>c
+case ',':
+  puts("  call _getchar");
+  puts("  movb %al, (%r12)");
+  break;    
+</code></p>
+
+<p>As usual, the looping constructs (<code>[</code> &amp; <code>]</code>) are much more work.  We have to
+match up jumps to matching labels, but for an assembly program, labels must be
+unique.  One way we can solve for this is whenever we encounter an opening
+brace, push a monotonically increasing number that represents the numbers of
+opening brackets we&rsquo;ve seen so far onto a stack like data structure.  Then, we
+do our comparison and jump to what will be the label that should be produced by
+the matching close label.  Next, we insert our starting label, and finally
+increment the number of brackets seen.</p>
+
+<p><code>c
+case '[':
+  stack_push(&amp;stack, num_brackets);
+  puts("  cmpb $0, (%r12)");
+  printf("  je bracket_%d_end\n", num_brackets);
+  printf("bracket_%d_start:\n", num_brackets++);
+  break;
+</code></p>
+
+<p>For close brackets, we pop the number of brackets seen (or rather, number of
+pending open brackets which we have yet to see a matching close bracket) off of
+the stack, do our comparison, jump to the matching start label, and finally
+place our end label.</p>
+
+<p><code>c
+case ']':
+  stack_pop(&amp;stack, &amp;matching_bracket);
+  puts("  cmpb $0, (%r12)");
+  printf("  jne bracket_%d_start\n", matching_bracket);
+  printf("bracket_%d_end:\n", matching_bracket);
+  break;
+</code></p>
+
+<p>So for sequential loops (<code>[][]</code>) we can expect the relevant assembly to look
+like:</p>
+
+<p>```gas
+  cmpb $0, (%r12)
+  je bracket_0_end
+bracket_0_start:</p>
+
+<p>  cmpb $0, (%r12)
+  jne bracket_0_start
+bracket_0_end:</p>
+
+<p>  cmpb $0, (%r12)
+  je bracket_1_end
+bracket_1_start:</p>
+
+<p>  cmpb $0, (%r12)
+  jne bracket_1_start
+bracket_1_end:
+```</p>
+
+<p>and for nested loops (<code>[[]]</code>), we can expect assembly like the following (note
+the difference in the order of numbered start and end labels):</p>
+
+<p>```gas
+  cmpb $0, (%r12)
+  je bracket_0_end
+bracket_0_start:</p>
+
+<p>  cmpb $0, (%r12)
+  je bracket_1_end
+bracket_1_start:</p>
+
+<p>  cmpb $0, (%r12)
+  jne bracket_1_start
+bracket_1_end:</p>
+
+<p>  cmpb $0, (%r12)
+  jne bracket_0_start
+bracket_0_end:
+```</p>
+
+<p>Finally, we need an epilogue to clean up the stack and callee saved registers
+after ourselves.</p>
+
+<p><code>c
+const char* const epilogue =
+  "  addq $30008, %rsp\n" // clean up tape from stack.
+  "  popq %r12\n" // restore callee saved register
+  "  popq %rbp\n"
+  "  ret\n";
+puts(epilogue);
+</code></p>
+
+<p>The compiler is a pain when modifying and running a Brainfuck
+program; it takes a couple extra commands to compile the Brainfuck program to
+assembly, assemble the assembly into an object file, link it into an
+executable, and run it whereas with the interpreter we can just run it.  The
+trade off is that the compiled version is quite a bit faster.  How much faster?
+Let&rsquo;s save that for later.</p>
+
+<p>Wouldn&rsquo;t it be nice if there was a translation &amp; execution technique that
+didn&rsquo;t force us to compile our code every time we changed it and wanted to run
+it, but also performance closer to that of compiled code?  That&rsquo;s where a JIT
+compiler comes in!</p>
+
+<p>For the basics of JITing code, make sure you read <a href="/blog/2013/04/03/basic-jit/">my previous article on the basics of JITing code in C</a>.  We&rsquo;re going to follow the same technique of
+creating executable memory, copying bytes into that memory, casting it to a
+function pointer, then calling it.  Just like the interpreter and the compiler,
+we&rsquo;re going to do a unique action for each recognized token.  What&rsquo;s different is
+that for each operator, we&rsquo;re going to push opcodes into a dynamic array, that
+way it can grow based on our sequential reading of input and will simplify our calculation of relative offsets for branching operations.</p>
+
+<p>The other special thing we&rsquo;re going to do it that we&rsquo;re going to pass
+the address of our libc functions (memset, putchar, and getchar) into our
+JIT'ed function at runtime.  This avoids those kooky stub functions you might
+see in a disassembled executable.  That means we&rsquo;ll be invoking our JIT'ed
+function like:</p>
+
+<p><code>c
+typedef void* fn_memset (void*, int, size_t);
+typedef int fn_putchar (int);
+typedef int fn_getchar ();
+void (*jitted_func) (fn_memset, fn_putchar, fn_getchar) = mem;
+jitted_func(memset, putchar, getchar);
+</code></p>
+
+<p>Where mem is our mmap'ed executable memory with our opcodes copied into it, and
+the typedef&rsquo;s are for the respective function signatures for our function
+pointers we&rsquo;ll be passing to our JIT'ed code.  We&rsquo;re kind of getting ahead of
+ourselves, but knowing how we will invoke the dynamically created executable
+code will give us an idea of how the code itself will work.</p>
+
+<p>The prologue is quite a bit involved, so we&rsquo;ll take it step at a time.  First,
+we have the usual prologue:</p>
+
+<p><code>c
+char prologue [] = {
+  0x55, // push rbp
+  0x48, 0x89, 0xE5, // mov rsp, rbp
+</code></p>
+
+<p>Then we want to back up our callee saved registers that we&rsquo;ll be using.  Expect horrific and difficult to debug bugs if you forget to do this.</p>
+
+<p><code>c
+  0x41, 0x54, // pushq %r12
+  0x41, 0x55, // pushq %r13
+  0x41, 0x56, // pushq %r14
+</code></p>
+
+<p>At this point, %rdi will contain the address of memset, %rsi will contain the
+address of putchar, and %rdx will contain the address of getchar, see
+<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #2</a>.  We want to store these in callee saved registers before
+calling any of them, else they may clobber %rdi, %rsi, or %rdx since they&rsquo;re
+not &ldquo;callee saved,&rdquo; rather &ldquo;call clobbered.&rdquo;  See <a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #4</a>.</p>
+
+<p><img class="center" src="/images/prologue1.png"></p>
+
+<p><code>c
+  0x49, 0x89, 0xFC, // movq %rdi, %r12
+  0x49, 0x89, 0xF5, // movq %rsi, %r13
+  0x49, 0x89, 0xD6, // movq %rdx, %r14
+</code></p>
+
+<p>At this point, %r12 will contain the address of memset, %r13 will contain the
+address of putchar, and %r14 will contain the address of getchar.</p>
+
+<p><img class="center" src="/images/prologue2.png"></p>
+
+<p>Next up is allocating 30008 B on the stack:</p>
+
+<p><code>c
+  0x48, 0x81, 0xEC, 0x38, 0x75, 0x00, 0x00, // subq $30008, %rsp
+</code></p>
+
+<p>This is our first hint at how numbers, whose value is larger than the maximum
+representable value in a byte, are represented on x86-64.  Where in this
+instruction is the value 30008?  The answer is the 4 byte sequence
+<code>0x38, 0x75, 0x00, 0x00</code>.  The x86-64 architecture is &ldquo;Little Endian,&rdquo; which
+means that the least significant bit (LSB) is first and the most significant
+bit (MSB) is last.  When humans do math, they typically represent numbers the
+other way, or “Big Endian.”  Thus we write decimal ten as &ldquo;10&rdquo; and not &ldquo;01.&rdquo;
+So that means that <code>0x38, 0x75, 0x00, 0x00</code> in Little Endian is
+<code>0x00, 0x00, 0x75, 0x38</code> in Big Endian, which then is
+<code>7*16^3+5*16^2+3*16^1+8*16^0</code>
+which is <code>30008</code> in decimal, the amount of bytes we want to subtract from the
+stack. We&rsquo;re allocating an additional 8 B on the stack for alignment
+requirements, similar to the compiler.  By pushing even numbers of 64 b
+registers, we need to realign our stack pointer.</p>
+
+<p><img class="center" src="/images/prologue3.png"></p>
+
+<p>Next in the prologue, we set up and call memset:</p>
+
+<p><code>c
+  // address of beginning of tape
+  0x48, 0x8D, 0x3C, 0x24, // leaq (%rsp), %rdi
+  // fill with 0's
+  0xBE, 0x00, 0x00, 0x00, 0x00, // movl $0, %esi
+  // length 30,000 B
+  0x48, 0xC7, 0xC2, 0x30, 0x75, 0x00, 0x00, // movq $30000, %rdx
+  // memset
+  0x41, 0xFF, 0xD4, // callq *%r12
+</code></p>
+
+<p>After invoking memset, %rdi, %rsi, &amp; %rcx will contain garbage values since
+they are &ldquo;call clobbered&rdquo; registers.  At this point we no longer need memset,
+so we now use %r12 as our instruction pointer.  %rsp will point to the top
+(technically the bottom) of the stack, which is the beginning of our memset'ed
+tape.  That&rsquo;s the end of our prologue.</p>
+
+<p><code>c
+  0x49, 0x89, 0xE4 // movq %rsp, %r12
+};
+</code></p>
+
+<p><img class="center" src="/images/prologue4.png"></p>
+
+<p>We can then push our prologue into our dynamic array implementation:</p>
+
+<p><code>c
+vector_push(&amp;instruction_stream, prologue, sizeof(prologue))
+</code></p>
+
+<p>Now we iterate over our Brainfuck program and switch on the operations again.
+For pointer increment and decrement, we just nudge %r12.</p>
+
+<p>```c
+case &lsquo;>&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x49, 0xFF, 0xC4 // inc %r12
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+case &lsquo;&lt;&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x49, 0xFF, 0xCC // dec %r12
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>That extra fun block in the switch statement is because in C/C++, we <a href="http://stackoverflow.com/a/8550253/1027966">can&rsquo;t
+define variables in the branches of switch statements</a>.</p>
+
+<p>Pointer deref then increment/decrement are equally uninspiring:</p>
+
+<p>```c
+case &lsquo;+&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0xFE, 0x04, 0x24 // incb (%r12)
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+case &lsquo;&ndash;&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0xFE, 0x0C, 0x24 // decv (%r12)
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>I/O might be interesting, but in x86-64 we have an opcode for calling the
+function at the end of a pointer.  %r13 contains the address of putchar while
+%r14 contains the address of getchar.</p>
+
+<p>```c
+case &lsquo;.&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0x0F, 0xB6, 0x3C, 0x24, // movzbl (%r12), %edi
+  0x41, 0xFF, 0xD5 // callq *%r13
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+case &lsquo;,&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0xFF, 0xD6, // callq *%r14
+  0x41, 0x88, 0x04, 0x24 // movb %al, (%r12)
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>Now with our looping constructs, we get to the fun part.  With the compiler, we
+deferred the concept of &ldquo;relocation&rdquo; to the assembler.  We simply emitted
+labels, that the assembler turned into relative offsets (jumps by values
+relative to the last byte in the jump instruction).  We&rsquo;ve found ourselves in a
+Catch-22 though: how many bytes forward do we jump to the matching close
+bracket that we haven&rsquo;t seen yet?</p>
+
+<p>Normally, an assembler might have a data structure known as a
+&ldquo;relocation table.&rdquo;  It keeps track of the first byte after a label and jumps,
+rewriting jumps-to-labels (which aren&rsquo;t kept around in the resulting binary
+executable) to relative jumps.  Spidermonkey, Firefox&rsquo;s JavaScript Virtual
+Machine has two classes for this, <a href="http://mxr.mozilla.org/mozilla-central/source/js/src/jit/MacroAssembler.cpp">MacroAssembler</a> and <a href="http://mxr.mozilla.org/mozilla-central/source/js/src/jit/Label.h">Label</a>.  Spidermonkey
+embeds a linked list in the opcodes it generates for jumps with which it&rsquo;s yet
+to see a label for.  Once it finds the label, it walks the linked list (which
+itself is embedded in the emitted instruction stream) patching up these
+locations as it goes.</p>
+
+<p>For Brainfuck, we don&rsquo;t have to anything quite as fancy since each label only
+ends up having one jump site.  Instead, we can use a stack of integers that are
+offsets into our dynamic array, and do the relocation once we know where
+exactly we&rsquo;re jumping to.</p>
+
+<p>```c
+case &lsquo;[&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0x80, 0x3C, 0x24, 0x00, // cmpb $0, (%r12)
+  // Needs to be patched up
+  0x0F, 0x84, 0x00, 0x00, 0x00, 0x00 // je &lt;32b relative offset, 2's compliment, LE&gt;
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  stack_push(&amp;relocation_table, instruction_stream.size); // create a label after
+  break;
+```</p>
+
+<p>First we push the compare and jump opcodes, but for now we leave the relative
+offset blank (four zero bytes).  We will come back and patch it up later.
+Then, we push the current length of dynamic array, which just so happens to be
+the offset into the instruction stream of the next instruction.</p>
+
+<p>All of the relocation magic happens in the case for the closing bracket.</p>
+
+<p>```c
+case &lsquo;]&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x41, 0x80, 0x3C, 0x24, 0x00, // cmpb $0, (%r12)
+  // Needs to be patched up
+  0x0F, 0x85, 0x00, 0x00, 0x00, 0x00 // jne &lt;33b relative offset, 2's compliment, LE&gt;
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  // &hellip;
+```</p>
+
+<p>First, we push our comparison and jump instructions into the dynamic array.
+We should know the relative offset we need to jump back to at this point, and
+thus don&rsquo;t need to push four empty bytes, but it makes the following math a
+little simpler, as were not done yet with this case.</p>
+
+<p><code>c
+  // ...
+  stack_pop(&amp;relocation_table, &amp;relocation_site);
+  relative_offset = instruction_stream.size - relocation_site;
+  // ...
+</code></p>
+
+<p><img class="center" src="/images/relative_jump_unknown.png"></p>
+
+<p>We pop the matching offset into the dynamic array (from the matching open
+bracket), and calculate the difference from the current size of the instruction
+stream to the matching offset to get our relative offset.  What&rsquo;s interesting
+is that this offset is equal in magnitude for the forward and backwards jumps
+that we now need to patch up.  We simply go back in our instruction stream 4 B,
+and write that relative offset negated as a 32 b LE number (patching our
+backwards jump), then go back to the site of our forward jump minus 4 B and
+write that relative offset as a 32 b LE number (patching our forwards jump).</p>
+
+<p><code>c
+  // ...
+  vector_write32LE(&amp;instruction_stream, instruction_stream.size - 4, -relative_offset);
+  vector_write32LE(&amp;instruction_stream, relocation_site - 4, relative_offset);
+  break;
+</code></p>
+
+<p>Thus, when writing a JIT, one must worry about manual relocation.  From the
+<a href="http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.pdf">Intel 64 and IA-32 Architectures Software Developer’s Manual Volume 2 (2A, 2B &amp; 2C): Instruction Set Reference, A-Z</a> &ldquo;A relative offset
+(rel8, rel16, or rel32) is generally specified as a label in assembly code, but
+at the machine code level, it is encoded as a signed, 8-bit or 32-bit immediate
+value, which is added to the instruction pointer.&rdquo;</p>
+
+<p>The last thing we push onto our instruction stream is clean up code in the
+epilogue.</p>
+
+<p><code>c
+char epilogue [] = {
+  0x48, 0x81, 0xC4, 0x38, 0x75, 0x00, 0x00, // addq $30008, %rsp
+  // restore callee saved registers
+  0x41, 0x5E, // popq %r14
+  0x41, 0x5D, // popq %r13
+  0x41, 0x5C, // popq %r12
+  0x5d, // pop rbp
+  0xC3 // ret
+};
+vector_push(&amp;instruction_stream, epilogue, sizeof(epilogue));
+</code></p>
+
+<p>A dynamic array of bytes isn&rsquo;t really useful, so we need to create executable
+memory the size of the current instruction stream and copy all of the machine
+opcodes into it, cast it to a function pointer, call it, and finally clean up:</p>
+
+<p><code>c
+void* mem = mmap(NULL, instruction_stream.size, PROT_WRITE | PROT_EXEC,
+  MAP_ANON | MAP_PRIVATE, -1, 0);
+memcpy(mem, instruction_stream.data, instruction_stream.size);
+void (*jitted_func) (fn_memset, fn_putchar, fn_getchar) = mem;
+jitted_func(memcpy, putchar, getchar);
+munmap(mem, instruction_stream.size);
+vector_destroy(&amp;instruction_stream);
+</code></p>
+
+<p>Note: we could have used the instruction stream rewinding technique to move the address of memset, putchar, and getchar as 64 b immediate values into %r12-%r14, which would have <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/pull/6/files">simplified our JIT&rsquo;d function&rsquo;s type signature</a>.</p>
+
+<p>Compile that, and we now have <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/jit.c">a function that will JIT compile and execute Brainfuck in roughly 141 SLOC</a>.  And, we can make changes to our Brainfuck program and not have to recompile it like we did with the Brainfuck compiler.</p>
+
+<p>Hopefully it&rsquo;s becoming apparent how similar an interpreter, compiler, and JIT
+behave.  In the interpreter, we immediately execute some operation.  In the
+compiler, we emit the equivalent text based assembly instructions corresponding
+to what the higher level language might get translated to in the interpreter.
+In the JIT, we emit the binary opcodes into executable memory and manually
+perform relocation, where the binary opcodes are equivalent to the text based
+assembly we might emit in the compiler.  A production ready JIT would probably have macros for each operation in the JIT would perform, so the code would look more like the compiler rather than raw arrays of bytes (though the preprocessor would translate those macros into such).  The entire process is basically disassembling C code with <code>gobjdump -S -M suffix a.out</code>, and punching in hex like one would a Gameshark.</p>
+
+<p>Compare pointer incrementing from the three:</p>
+
+<p>Interpreter:
+<code>c
+case '&gt;': ++ptr; break;
+</code></p>
+
+<p>Compiler:
+<code>c
+case '&gt;':
+  puts("  inc %r12");
+  break;
+</code></p>
+
+<p>JIT:
+```c
+case &lsquo;>&rsquo;:
+  {</p>
+
+<pre><code>char opcodes [] = {
+  0x49, 0xFF, 0xC4 // inc %r12
+};
+vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
+</code></pre>
+
+<p>  }
+  break;
+```</p>
+
+<p>Or compare the full sources of the <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/interpreter.c">the interpreter</a>, <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/compiler.c">the compiler</a>, and <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/jit.c">the JIT</a>. Each at ~100 lines of code should be fairly easy to digest.</p>
+
+<p>Let&rsquo;s now examine the performance of these three.  One of the longer running
+Brainfuck programs I can find is <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/samples/mandelbrot.b">one that prints the Mandelbrot set as ASCII art to stdout</a>.</p>
+
+<p><video width='' height='' preload='none' controls poster=''><source src='/video/jit.mp4 ' ></video></p>
+
+<p>Running the UNIX command <code>time</code> on the interpreter, compiled
+result, and the JIT, we should expect numbers similar to:</p>
+
+<p>```
+$ time ./interpreter ../samples/mandelbrot.b
+43.54s user 0.03s system 99% cpu 43.581 total</p>
+
+<p>$ ./compiler ../samples/mandelbrot.b > temp.s; ../assemble.sh temp.s; time ./a.out
+3.24s user 0.01s system 99% cpu 3.254 total</p>
+
+<p>$ time ./jit ../samples/mandelbrot.b
+3.27s user 0.01s system 99% cpu 3.282 total
+```</p>
+
+<p>The interpreter is an order of magnitude slower than the compiled result or run
+of the JIT.  Then again, the interpreter isn&rsquo;t able to jump back and forth as
+efficiently as the compiler or JIT, since it scans back and forth for matching
+brackets O(N), while the other two can jump to where they need to go in a few instructions O(1).  A production interpreter would probably translate the higher level language to a byte code, and thus be able to calculate the offsets used for jumps directly, rather than scanning back and forth.</p>
+
+<p>The interpreter bounces back and forth between looking up an operation, then
+doing something based on the operation, then lookup, etc..  The compiler and JIT preform the translation first, then the execution, not interleaving the two.</p>
+
+<p>The compiled result is the fastest, as expected, since it doesn&rsquo;t have the
+overhead the JIT does of having to read the input file or build up the
+instructions to execute at runtime.  The compiler has read
+and translated the input file ahead of time.</p>
+
+<p>What if we take into account the
+time it takes to compile the source code, and run it?</p>
+
+<p><code>
+$ time (./compiler ../samples/mandelbrot.b &gt; temp.s; ../assemble.sh temp.s; ./a.out)
+3.27s user 0.08s system 99% cpu 3.353 total
+</code></p>
+
+<p>Including the time it takes to compile the code then run it, the compiled
+results are now slightly slower than the JIT (though I bet the multiple processes we start up are suspect), but with the JIT we pay the price
+to compile each and every time we run our code.  With the compiler, we pay that
+tax once.  When compilation time is cheap, as is the case with our Brainfuck
+compiler &amp; JIT, it makes sense to prefer the JIT; it allows us to quickly make
+changes to our code and re-run it.  When compilation is expensive, we might
+only want to pay the compilation tax once, especially if we plan on running the
+program repeatedly.</p>
+
+<p>JIT&rsquo;s are neat but compared to compilers can be more complex to
+implement.  They also repeatedly re-parse input files and re-build instruction
+streams at runtime. Where they can shine is bridging the gap for dynamically
+typed languages where the runtime itself is much more dynamic, and thus harder
+(if not, impossible) to optimize ahead of time.  Being able to jump into JIT&rsquo;d
+native code from an
+interpreter and back gives you the best of both (interpreted and compiled)
+worlds.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Designated initialization with compound literals in C]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/"/>
+    <updated>2013-07-25T16:48:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c</id>
+    <content type="html"><![CDATA[<p>Just a quick post on something I just discovered and found neat (I always find
+obscure C syntax interesting).  I was trying to figure out how to use a C
+designated initializer, where a member was a pointer to another designated
+initializer.  At this point, you need a compound literal.  Just a quick
+background on C initialization:</p>
+
+<p>```c
+// verbosely create an array with a known size
+int arr [3];
+arr[0] = 1;
+arr[1] = 2;
+arr[2] = 3;
+// => [1, 2, 3]</p>
+
+<p>// concisely create an array with a known size
+int arr [3] = { 1, 2, 3 }; // => [1, 2, 3]</p>
+
+<p>// creates an array with unspecified values initialized to 0
+int arr [4] = { 1, 2, 3 }; // => [1, 2, 3, 0]</p>
+
+<p>// truncates declaration
+int arr [1] = { 1, 2, 3 }; // => [1]</p>
+
+<p>// based on number of initializers
+int arr [] = { 1, 2, 3 }; // => [1, 2, 3]
+```</p>
+
+<p>Let&rsquo;s look at how we might have initialized a struct in C89.  In C89, you are
+required to declare local variables at the top of a block.  A previous
+initialization of a point struct might have looked like:</p>
+
+<p>```c
+struct point {
+  int x, y;
+};</p>
+
+<p>{
+  struct point a;
+  a.x = 2;
+  a.y = 3;
+}
+```</p>
+
+<p>Just as we can define array literals in C using the initializer list syntax, we
+can use the same concise syntax for initializing structs!</p>
+
+<p><code>c
+// point a is located at (2, 3)
+struct point a = { 2, 3 };
+</code></p>
+
+<p>Well, this can be bad.  Where would point a be located if say a fellow team
+mate came along and modified the definition of the point struct to:</p>
+
+<p><code>c
+struct point {
+  int y, x; // used to be `int x, y;`
+};
+</code></p>
+
+<p>Suddenly point a points to (3, 2), not (2, 3).  It&rsquo;s better if you use
+designated initializers to declare the values for members of your struct.  It&rsquo;s
+up to the compiler to decide on the order of initialization, but it wont mess
+up where the data is intended to go.</p>
+
+<p><code>c
+// point b is located at (2, 3)
+struct point b = { .y = 3, .x = 2 };
+</code></p>
+
+<p>So now we have designated initializers, cool.  What about if we want to use the
+same syntax to reassign point b?</p>
+
+<p><code>c
+b = { .x = 5, .y = 6 };
+//    ^
+// error: expected expression
+</code></p>
+
+<p>While you are being explicit about the shape of the struct that you are trying
+to assign to b, the compiler cannot figure out that you&rsquo;re trying to assign a
+point struct to another point struct.  A C cast would probably help here and
+that&rsquo;s what the concept of compound literals are.</p>
+
+<p><code>c
+b = (struct point) { .x = 5, .y = 6 }; // works!
+</code></p>
+
+<p>Notice: I just combined a compound literal with a designated initializer.  A
+compound literal on its own would look like:</p>
+
+<p><code>c
+b = (struct point) { 5, 6 }; // works!
+</code></p>
+
+<p>To recap we can define points like so:</p>
+
+<p><code>c
+struct point a;
+a.x = 1;
+a.y = 2; // C89 (too verbose)
+struct point b = { 3, 4 }; // initializer list (struct member order specific)
+struct point c = { .x = 5, .y = 6 }; // designated initializer (non struct member order specific)
+struct point d = (struct point) { .x = 7, .y = 8 }; // compound literal (cast + designated initialization)
+</code></p>
+
+<p>My favorite part of compound literals is that you can define values inline of
+an argument list.  Say you have a function prototype like:</p>
+
+<p>```c
+int distance (struct point, struct point);</p>
+
+<p>// instead of calling it like this
+// (creating temp objects just to pass in)
+struct point a = { .x = 1, .y = 2 };
+struct point b = { .x = 5, .y = 6 };
+distance(a, b);</p>
+
+<p>// we can use compound literals
+distance((struct point) { .x = 1, .y = 2 }, (struct point) { .x = 5, .y = 6 });
+```</p>
+
+<p>So compound literals help with reassignment of structs, and not storing
+temporary variables just to pass as function arguments.  What happens though
+when one of your members is a pointer?  C strings are easy because they already
+have a literal value:</p>
+
+<p>```c
+struct node {
+  char <em>value;
+  struct node </em>next;
+};</p>
+
+<p>// just using designated initialization
+struct node a = {
+  .value = “hello world”,
+  .next = NULL
+};
+```</p>
+
+<p>But what happens if we want to initialize node.next?  We could do:</p>
+
+<p><code>c
+struct node b = {
+  .value = “foo”,
+  .next = NULL
+};
+a.next = &amp;b;
+</code></p>
+
+<p>Again, we have to define b before assigning it to a.next.  That&rsquo;s worthwhile if
+you need to reference b later in that scope, but sometimes you don&rsquo;t (just like
+how compound literals can help with function arguments)!  But that&rsquo;s where I
+was stumped.  How do you nest designated initializers when the a member is a
+pointer to another designated initializer?  A first naïve attempt was:</p>
+
+<p>```c
+struct node c = {
+  .value = “bar”,
+  .next = {</p>
+
+<pre><code>.value = “baz”,
+</code></pre>
+
+<p>//  ^
+// error: designator in initializer for scalar type &lsquo;struct node *&rsquo;</p>
+
+<pre><code>.next = NULL
+</code></pre>
+
+<p>  }
+};
+```</p>
+
+<p>WTF?  Well, if you go back to the example with nodes a and b, we don&rsquo;t assign
+the value of b to a.next, we assign it a pointer to b.  So how can we use
+designated initializers to define, say, the first two nodes of a linked list?
+Compound literals.  Remember, a compound literal is essentially a designated
+initialization + cast.</p>
+
+<p>```c
+struct node d = {
+  .value = “qux”,
+  .next = &amp;((struct node) {</p>
+
+<pre><code>.value = “fred”,
+.next = NULL
+</code></pre>
+
+<p>  })
+};
+```</p>
+
+<p>And that works, but why?  d.next is assigned an address of a
+compound literal.  Granted, you probably don&rsquo;t want to be declaring your entire
+linked list like this, as nesting gets out of control fast.  I really like this
+style because it reminds me of JavaScript&rsquo;s syntax for declaring object
+literals.  It would look nicer if all of your nested structs were values and
+not references though; then you could just use designated initializers and
+wouldn&rsquo;t need compound literals or address of operators.</p>
+
+<p>What&rsquo;s your favorite or most interesting part of C syntax?</p>
+
+<p>Acknowledgements:</p>
+
+<ul>
+<li><a href="http://louisstowasser.com/">Louis Stowasser</a></li>
+<li><a href="http://fredericiana.com/">Frederic Wenzel</a></li>
+<li><a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Basic JIT]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/"/>
+    <updated>2013-04-03T00:05:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2013/04/03/basic-jit</id>
+    <content type="html"><![CDATA[<p>Ever since I learned about
+<a href="`http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
+from the various
+<a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations">Ruby VMs</a>
+and
+<a href="http://www.slideshare.net/newmovie/know-yourengines-velocity2011">JavaScript VMs</a>,
+I&rsquo;ve been inspired.  I could tell you all about how just in time (JIT)
+compilation worked, and how it could give your interpreted language a speed
+boost.  It was so cool.  Well, it still is!  There&rsquo;s a ton of research going on
+around JIT compilation.  But the problem for me is that I could never figure
+out, let alone guess, how it was being done.  How could you compile code at
+runtime, and then execute it?  I asked
+<a href="http://pybites.blogspot.com/">Benjamin Peterson</a>
+about how he had learned so much about JITs, and he referred me to
+<a href="http://pypy.org/">pypy</a> (a Python JIT)&rsquo;s source.  But digging through source
+was too much; I just wanted a simple example I could grok quickly.  So I&rsquo;ve
+always been left wondering.</p>
+
+<p>Luckily, I have an awesome job where I can meet face to face with the people
+who are doing the work on making awesome production JIT compilers.  I spent
+part of last week at <a href="http://www.gdconf.com/">GDC</a> demoing
+<a href="https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/">Unreal Engine 3</a>
+running in the browser.  The demo was actually the hard work of many, and I&rsquo;ll
+dive into it more in another post following up the events, but
+<a href="https://blog.mozilla.org/luke/">Luke Wagner</a>, a Mozillian working on the
+JavaScript engine, added OdinMonkey to SpiderMonkey to allow optimizations of
+<a href="https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/">asm.js</a>.</p>
+
+<p>Luke is super friendly, and just listening to him talk with Dave Herman and
+Alon Zakai is a treat.  I asked Luke the basics of JIT'ing at tonight&rsquo;s Mozilla
+Research Party and he explained clearly. <em>Compile a simple object file, use
+objdump to get the resulting platform specific assembly, use the mmap system
+call to allocate some memory that you can write to <strong>AND</strong> execute, copy the
+instructions into that buffer, typecast it to a function pointer and finally
+call that.</em></p>
+
+<p>So my goal was to at runtime, create a function that for simplicity&rsquo;s sake
+multiplied two integers.  The first thing I did was write up a simple .c file,
+then compile that to an object file with the -c flag.</p>
+
+<p><code>c
+// Compile me with: clang -c mul.c -o mul.o
+int mul (int a, int b) {
+  return a * b;
+}
+</code></p>
+
+<p>As a heads up, I&rsquo;m on 64bit OSX.  So the generated assembly may differ on your
+platform.  Obviously, the production JIT maintainers have abstracted away the
+platform dependency, taking into account what platform you&rsquo;re on.  My example
+doesn&rsquo;t, but that why I&rsquo;m walking you through the steps I took to find out the
+x86_64 instructions.  The next step is to grab binutils, which is not installed
+by default in OSX.  I used homebrew to install it: <code>brew install binutils</code>.
+Homebrew installs gobjdump but it works with the same flags.</p>
+
+<p>Once you have binutils and [g]objdump, the next step is to read out the machine
+code from your object file, which is represented in hexadecimal.  By running
+<code>gobjdump -j .text -d mul.o -M intel</code> you should get something similar
+(remember, architecture dependent).</p>
+
+<p>```
+$ gobjdump -j .text -d mul.o -M intel</p>
+
+<p>Disassembly of section .text:</p>
+
+<p>0000000000000000 &lt;_mul>:
+0: 55 push rbp
+1: 48 89 e5 mov rbp,rsp
+4: 89 7d fc mov DWORD PTR [rbp-0x4],edi
+7: 89 75 f8 mov DWORD PTR [rbp-0x8],esi
+a: 8b 75 fc mov esi,DWORD PTR [rbp-0x4]
+d: 0f af 75 f8 imul esi,DWORD PTR [rbp-0x8]
+11: 89 f0 mov eax,esi
+13: 5d pop rbp
+14: c3 ret
+```</p>
+
+<p>Ok, so those instructions vary in size.  I don&rsquo;t know any x86 so I can&rsquo;t
+comment too much on that particular
+<a href="http://en.wikipedia.org/wiki/Instruction_set">Instruction Set Architecture</a>
+but they&rsquo;re obviously in pairs of hexadecimal digits.  16<sup>2</sup> == 2<sup>8</sup> meaning that
+each pair of hex digits can be represented by a single byte (or char of memory).
+So these can all be thrown in an unsigned char [].  The man page for mmap explains
+all of the fun flags, but the important point is that this way of allocating
+memory makes it executable, so it can do bad things that memory allocated from
+malloc can&rsquo;t.  I&rsquo;m sure the JavaScript engine guys have fun with that.  Once
+memory is copied in, you can typecast the memory to a function pointer.
+Make sure to check out the syntax that reminds me of a function pointer in an
+argument list, but being used as an L-value.  Of course, you could just put the
+cast right in front of the memory before you use it, but I find this as neat,
+not so common C syntax.  I kind of
+<a href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/">have a thing</a>
+for stuff like that.  Then we can call it!  The resulting code looks like this.</p>
+
+<p>```c</p>
+
+<h1>include &lt;stdio.h> // printf</h1>
+
+<h1>include &lt;string.h> // memcpy</h1>
+
+<h1>include &lt;sys/mman.h> // mmap, munmap</h1>
+
+<p>int main () {
+// Hexadecimal x86_64 machine code for: int mul (int a, int b) { return a * b; }
+unsigned char code [] = {
+  0x55, // push rbp
+  0x48, 0x89, 0xe5, // mov rbp, rsp
+  0x89, 0x7d, 0xfc, // mov DWORD PTR [rbp-0x4],edi
+  0x89, 0x75, 0xf8, // mov DWORD PTR [rbp-0x8],esi
+  0x8b, 0x75, 0xfc, // mov esi,DWORD PTR [rbp-04x]
+  0x0f, 0xaf, 0x75, 0xf8, // imul esi,DWORD PTR [rbp-0x8]
+  0x89, 0xf0, // mov eax,esi
+  0x5d, // pop rbp
+  0xc3 // ret
+};</p>
+
+<p>  // allocate executable memory via sys call
+  void* mem = mmap(NULL, sizeof(code), PROT_WRITE | PROT_EXEC,</p>
+
+<pre><code>               MAP_ANON | MAP_PRIVATE, -1, 0);
+</code></pre>
+
+<p>  // copy runtime code into allocated memory
+  memcpy(mem, code, sizeof(code));</p>
+
+<p>  // typecast allocated memory to a function pointer
+  int (*func) () = mem;</p>
+
+<p>  // call function pointer
+  printf(&ldquo;%d * %d = %d\n&rdquo;, 5, 11, func(5, 11));</p>
+
+<p>  // Free up allocated memory
+  munmap(mem, sizeof(code));
+}
+```</p>
+
+<p>Voila!  How neat is that!  It works!  Luke&rsquo;s directions, an hour of working on
+this, and
+<a href="http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html">this article</a>
+in particular, and we have a simple JIT working. Again, this simple example is super
+non-portable and dealing with memory in this fashion is generally unsafe.  But
+now I know the basics of JIT'ing code, and now so do you!</p>
+
+<p>Thanks Luke!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[C Function Pointers Alternate Syntax]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/"/>
+    <updated>2013-01-26T17:49:00-08:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax</id>
+    <content type="html"><![CDATA[<p>On an interview with <a href="https://squareup.com/">Square</a>, I made the mistake
+of stating that one of the benefits of working with JavaScript over C is
+that functions are <a href="http://en.wikipedia.org/wiki/First-class_function">first class</a>
+in JavaScript, therefore they may be <a href="http://eloquentjavascript.net/chapter6.html">passed around</a>.  To which the
+interviewer replied, &ldquo;Well, C can do that, what about function pointers?&rdquo;  What? Luckily, I
+was able to get out of that jam by guessing that JavaScript had a nicer
+syntax.</p>
+
+<p>While I was taught some C in university, we had never gone over function
+pointers or more in depth topics such as <a href="http://en.wikipedia.org/wiki/Static_library">static</a>
+or <a href="http://en.wikipedia.org/wiki/Dynamic_library">dynamic</a> <a href="http://www.yolinux.com/TUTORIALS/LibraryArchives-StaticAndDynamic.html">linkage</a>.
+I was so embarrassed that my expensive (read <a href="http://online.wsj.com/article/SB10001424127887324442304578231922159602676.html?mod=WSJ_hps_LEFTTopStories">overpriced</a>)
+degree had not taught me more about
+the C programming language, especially from the Computer Engineering
+department that focuses on software <strong>AND</strong> hardware.  On my exit
+interview with the dean, I was very opinionated on the amount of C that
+was (or wasn&rsquo;t) taught at my university.  His argument was that there
+are only so much of so many languages you can cover in a university, which
+to some extent is valid.  My problem has been that I&rsquo;ve enjoyed learning
+many different programming languages, though I didn&rsquo;t really get it the
+first time around (with Java).  I think knowing many different languages
+and their respective paradigms makes you a better programmer in other
+languages, since you can bring a <a href="http://therubyway.org/">Ruby Way</a> to
+<a href="http://www.rust-lang.org/">Rust</a> or a <a href="http://www.ibm.com/developerworks/library/wa-javascript/index.html">JavaScript functional</a>
+<a href="http://interglacial.com/hoj/hoj.html">style</a> into C.</p>
+
+<p>I had read two books in the meantime that really flushed out more of the
+C language to me and I would definitely recommend them to those who want
+to learn more about the language. They are <a href="http://shop.oreilly.com/product/0636920015482.do">Head First C</a> by Dave and Dawn
+Griffiths and <a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a> by Ben Klemens.
+I&rsquo;m also aware that <a href="http://en.wikipedia.org/wiki/The_C_Programming_Language">The C Programming Language</a> by
+Brian Kernighan and Dennis Ritchie is also known as the canonical text.
+The book is often referred to as &lsquo;K&amp;R&rsquo; after the authors' initials, and Dennis
+Ritchie was the original creators of the C language and co-developer of
+Unix.  I&rsquo;d love to get a chance to read it someday.</p>
+
+<p><a href="http://blog.charlescary.com/?p=95">This article</a> appeared on
+<a href="http://news.ycombinator.com/">Hacker News</a> and really piqued my
+interest.  Defenitely a great read.  What really stuck out to me was one
+of the <a href="http://blog.charlescary.com/?p=95#comment-31">comments</a> though.
+The author of the comment mentioned a less ugly syntax for function
+pointers, with a <a href="http://pastebin.com/MsJLY22j">link to an example</a>.
+Now I&rsquo;m not sure what the commenter meant by &ldquo;these params decay
+naturally to function pointers&rdquo; but I was skeptical about this different
+syntax.  Event the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
+used the syntax that I was familiar with.  So I wrote up a quick example
+to try it:</p>
+
+<p>```c
+// compiled with:
+// clang -Wall -Wextra function_pointers.c -o function_pointers</p>
+
+<h1>include &ldquo;stdio.h&rdquo;</h1>
+
+<p>void usual_syntax (void (*fn) (int x)) {
+  puts(&ldquo;usual syntax start&rdquo;);
+  fn(1);
+  puts(&ldquo;usual syntax end&rdquo;);
+}</p>
+
+<p>void other_syntax (void fn (int x)) {
+  puts(&ldquo;other syntax start&rdquo;);
+  fn(2);
+  puts(&ldquo;other syntax end&rdquo;);
+}</p>
+
+<p>void hello (int x) {
+  printf(&ldquo;hello %d\n&rdquo;, x);
+}</p>
+
+<p>int main () {
+  puts(&ldquo;hello world&rdquo;);
+  usual_syntax(hello);
+  other_syntax(hello);
+}
+```</p>
+
+<p>Sure enough we get:</p>
+
+<p><code>
+hello world
+usual syntax start
+hello 1
+usual syntax end
+other syntax start
+hello 2
+other syntax end
+</code></p>
+
+<p>So the moral to the story I guess is that there&rsquo;s always more to your
+favorite language.  From using <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/variadic_macros.c">variadic macros</a>
+with <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/compound_literal.c">compound literals</a>
+to enable a more <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/foreach.c">functional style</a>
+in C to reflecting upon a function&rsquo;s <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/length">number of arguments</a>
+or <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/name">name</a>
+or <a href="http://taylodl.wordpress.com/2012/09/03/functional-javascript-memoization-part-ii/">adding attributes to a function</a>
+or the
+<a href="http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/">y-combinator</a>
+in JavaScript, I learn something new every day.  And I hope that you did
+too!  Thanks for reading!  If you have some other recommendations on
+good programming books, or design patterns, please leave a comment or
+write a reply blog post!</p>
+]]></content>
+  </entry>
+  
+</feed>
