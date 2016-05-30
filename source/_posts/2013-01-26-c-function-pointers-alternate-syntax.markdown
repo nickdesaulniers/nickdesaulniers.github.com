@@ -52,7 +52,7 @@ The author of the comment mentioned a less ugly syntax for function
 pointers, with a [link to an example](http://pastebin.com/MsJLY22j).
 Now I'm not sure what the commenter meant by "these params decay
 naturally to function pointers" but I was skeptical about this different
-syntax.  Event the [Wikipedia article](http://en.wikipedia.org/wiki/Function_pointer#Example_in_C)
+syntax.  Even the [Wikipedia article](http://en.wikipedia.org/wiki/Function_pointer#Example_in_C)
 used the syntax that I was familiar with.  So I wrote up a quick example
 to try it:
 
