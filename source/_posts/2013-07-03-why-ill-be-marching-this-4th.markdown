@@ -3,7 +3,7 @@ layout: post
 title: "Why I'll be Marching this 4th"
 date: 2013-07-03 22:27
 comments: true
-categories: NSA, PRISM, Restore the Fourth, Fourth Amendment, Restore the 4th, Privacy, Surveillance, Snowden, Protest, Rally
+categories: [NSA, PRISM, Restore the Fourth, Fourth Amendment, Restore the 4th, Privacy, Surveillance, Snowden, Protest, Rally]
 published: true
 ---
 {% blockquote %}

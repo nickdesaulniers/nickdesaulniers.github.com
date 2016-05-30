@@ -3,7 +3,7 @@ layout: post
 title: "Making great Node.js modules with CoffeeScript"
 date: 2013-08-28 10:51
 comments: true
-categories: nanomsg, node.js, javascript, coffeescript, module, directory, structure, martin, 250bpm
+categories: [nanomsg, node.js, javascript, coffeescript, module, directory, structure, martin, 250bpm]
 published: true
 ---
 [Node.js](http://nodejs.org/)

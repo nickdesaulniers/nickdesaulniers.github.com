@@ -3,7 +3,7 @@ layout: post
 title: "Function.prototype.bind Edge Cases"
 date: 2013-09-26 21:00
 comments: true
-categories: javascript, bind, function, prototype, this, context, Function.prototype.bind
+categories: [javascript, bind, function, prototype, this, context, Function.prototype.bind]
 published: true
 ---
 ECMAScript 5's

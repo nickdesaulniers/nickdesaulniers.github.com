@@ -3,7 +3,7 @@ layout: post
 title: "Let's Write Some x86-64"
 date: 2014-04-18 16:16
 comments: true
-categories: Assembly, asm, x86, x64, x86-64, Dan Gohman, hello world, assembler, linker, as, ld
+categories: [Assembly, asm, x86, x64, x86-64, Dan Gohman, hello world, assembler, linker, as, ld]
 published: true
 ---
 {% blockquote Hiro Protagonist and The Librarian, Snow Crash by Neal Stephenson %}
