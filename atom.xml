@@ -4,7 +4,7 @@
   <title><![CDATA[Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-05-15T19:45:06-07:00</updated>
+  <updated>2016-05-31T08:24:51-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -12,6 +12,247 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Data Models and Word Size]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/"/>
+    <updated>2016-05-30T12:54:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size</id>
+    <content type="html"><![CDATA[<p><em>This post is a follow up to
+<a href="http://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/">my previous blog post about word size</a>.</em></p>
+
+<p>Three C/C++ programmers walk into a bar.  One argues that sizeof(void*) is
+equivalent to sizeof(long), one argues that sizeof(void*) is equivalent to
+sizeof(int), and the third argues it’s sizeof(long long).  Simultaneously,
+they’re all right, but they’re also all wrong (and need a lesson about portable
+C code).  What the hell is going on?</p>
+
+<p>One of the first few programs a programmer might write after hello world is
+something like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(int): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(long): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span><span class="p">));</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(long long): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span> <span class="kt">long</span><span class="p">));</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(void*): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Note the use of the %zu format specifier, a C99 addition that isn’t portable to
+older compilers!  (This post is more about considerations when porting older
+code to newer machines, not about porting newer code to run on older machines.
+Not having a standards compliant C compiler makes writing more portable C code
+even trickier, and is a subject for another blog post).</em></p>
+
+<p>When I run that code on my x86-64 OSX machine, I get the following output:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sizeof<span class="o">(</span>int<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long<span class="o">)</span>: 8
+</span><span class='line'>sizeof<span class="o">(</span>long long<span class="o">)</span>: 8
+</span><span class='line'>sizeof<span class="o">(</span>void*<span class="o">)</span>: 8
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So it looks like I would be the first programmer in the story in the first
+paragraph, since on my machine, it looks like sizeof(long) == sizeof(void*).
+Also note how sizeof(long long) is equivalent as well.</p>
+
+<p>But what would happen if I compiled my code on a 32 bit machine?  Luckily, my
+processor has backwards compatibility with 32b binaries, so I can cross compile
+it locally and still run it. Ex:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>➜  clang sizeof.c -Wall -Wextra -Wpedantic
+</span><span class='line'>➜  file a.out
+</span><span class='line'>a.out: Mach-O 64-bit executable x86_64
+</span><span class='line'>➜  clang sizeof.c -Wall -Wextra -Wpedantic -m32
+</span><span class='line'>➜  file a.out
+</span><span class='line'>a.out: Mach-O executable i386
+</span><span class='line'>➜  ./a.out
+</span><span class='line'>sizeof<span class="o">(</span>int<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long long<span class="o">)</span>: 8
+</span><span class='line'>sizeof<span class="o">(</span>void*<span class="o">)</span>: 4
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Huh, suddenly sizeof(void*) == sizeof(int) == sizeof(long)!  This seems
+to be the case of the second programmer from the story.</p>
+
+<p>Both programmer 1 and programmer 2 might agree that the size of a pointer is
+equivalent to their machine’s respective
+<a href="http://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/">word size</a>,
+but that too would be an incorrect assumption for portable C/C++ code!</p>
+
+<p>Programmer 3 goes through the hellscape that is installing a working compiler
+for Windows and building a 64b command line application (to be fair, installing
+command line tools for OSX is worse; installing a compiler for most OS’ leaves
+much to be desired).  When they run that program, they see:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sizeof<span class="o">(</span>int<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long long<span class="o">)</span>: 8
+</span><span class='line'>sizeof<span class="o">(</span>void*<span class="o">)</span>: 8
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is yet a third case (the third programmer from the story).  In this case,
+only sizeof(long long) is equivalent to sizeof(void*).</p>
+
+<h3>Data Models</h3>
+
+<p>What these programmers are seeing is known as data models.  Programmer 1 one on
+a 64b x86-64 OSX machine had an LP64 data model where longs (L), (larger long
+longs,) and pointers (P) are 64b, but ints were 32b.  Programmer 2 on a 32b x86
+OSX machine had an ILP32 data model where ints (I), longs (L), and pointers (P)
+were 32b, but long longs were 64b.  Programmer 3 on a 64b x86-64 Windows
+machine had a LLP64 data model, where only long longs (LL) and pointers (P)
+were 64b, ints and longs being 32b.</p>
+
+<table>
+<thead>
+<tr>
+<th><strong>Data model</strong> </th>
+<th> <strong>sizeof(int)</strong> </th>
+<th> <strong>sizeof(long)</strong> </th>
+<th> <strong>sizeof(long long)</strong> </th>
+<th> <strong>sizeof(void*)</strong> </th>
+<th> <strong>example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ILP32 </td>
+<td> 32b </td>
+<td> 32b </td>
+<td> 64b </td>
+<td> 32b </td>
+<td> Win32, i386 OSX &amp; Linux</td>
+</tr>
+<tr>
+<td>LP64 </td>
+<td> 32b </td>
+<td> 64b </td>
+<td> 64b </td>
+<td> 64b </td>
+<td> x86-64 OSX &amp; Linux</td>
+</tr>
+<tr>
+<td>LLP64 </td>
+<td> 32b </td>
+<td> 32b </td>
+<td> 64b </td>
+<td> 64b </td>
+<td> Win64</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>There are older data models such as LP32 (Windows 3.1, Macintosh, where ints
+are 16b), and more exotic ones like ILP64, and SILP64.  Knowing the data model
+thus is important for portable C/C++ code.</p>
+
+<h3>Historical Perspective</h3>
+
+<p>Running out of address space is and will continue to be tradition in computing.
+Applications become bigger as computer power and memory gets cheaper.
+Companies want to sell chips that have larger word sizes to address more
+memory, but early adopters don’t want to buy a computer where there favorite
+application hasn’t been compiled and thus doesn’t exist on yet.  <strong>Someone from
+the back shouts <em>virtual machines</em> then ducks as a chair is thrown.</strong></p>
+
+<p><a href="http://www.unix.org/version2/whatsnew/lp64_wp.html">This document</a>
+highlights some reasons why LP64 is preferred to ILP64: ILP64
+made portable C code that only needed 32b of precision harder to maintain (on
+ILP64 an int was 64b, but a short was 16b!).  It mentions how for data
+structures that did not contain pointers, their size would be the same on LLP64
+as ILP32, which is the direction Microsoft went.  LLP64 was essentially the
+ILP32 model with 64b pointers.</p>
+
+<p><em>Linux also supports an ABI called
+<a href="https://en.wikipedia.org/wiki/X32_ABI">x32</a>
+which can use x86-64 ISA improvements but uses 32b pointers to reduce the size
+of data structures that would otherwise have 64b pointers.</em></p>
+
+<p>For a great historical perspective on the evolution of word size and data
+models, as well as the &ldquo;toil and trouble&rdquo; caused,
+<a href="https://queue.acm.org/detail.cfm?id=1165766">this paper</a>
+was an excellent reference.  It describes Microsoft finally abandoning support
+for 16b data models in Windows XP 64.  It mentions that the industry was pretty
+split between LP64, LLP64, and ILP64 as porting code from the good old days of
+ILP32 would break in different ways.  That the use of long was more prevalent
+in Windows applications vs the use of int in unix applications.  It also makes
+the key point that a lot of programmers from the ILP32 era made assumptions
+that sizeof(int) == sizeof(long) == sizeof(void*) which would not hold true
+for the LP64/LLP64 era.</p>
+
+<p>One important point the paper makes makes that’s easily missed is that typedef
+wasn’t added to C until 1977 when hardware manufactures still couldn’t agree on
+how many bits were in a char (CHAR_BITS) and some machines were using 24b
+addressing schemes.  stdint.h and inttypes.h did not exist yet.</p>
+
+<p><a href="http://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/">This article</a>
+talks about two main categories of effects of switching from ILP32 to LP64 and
+has excellent examples of problematic code.  That section near the end is worth
+the read alone and makes excellent points to look for during code review.</p>
+
+<h3>Conclusion</h3>
+
+<p>Word size or ISA doesn’t tell you anything about sizeof(int), sizeof(long), or
+sizeof(long long).  We also saw that one machine can support multiple different
+data models (when I compiled and ran the same code with the -m32 flag).</p>
+
+<p>The C standard tells you minimum guaranteed sizes for these types, but the data
+model (part of the ABI, external to but abiding by the C standard) is what
+tells you about the specifics sizes of standard integers and pointers.</p>
+
+<h3>Further Reading</h3>
+
+<ul>
+<li><a href="http://www.unix.org/version2/whatsnew/lp64_wp.html">64-Bit Programming Models: Why LP64?</a></li>
+<li><a href="https://queue.acm.org/detail.cfm?id=1165766">The Long Road to 64 Bits</a></li>
+<li><a href="http://www.unix.org/whitepapers/64bit.html">The UNIX System &mdash; 64bit and Data Size Neutrality</a></li>
+<li><a href="https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models">64-bit data models</a></li>
+<li><a href="https://docs.oracle.com/cd/E19620-01/805-3024/lp64-1/index.html">C Language Data Type Models: LP64 and ILP32</a></li>
+<li><a href="https://blogs.oracle.com/nike/entry/ilp64_lp64_llp64">ILP64, LP64, LLP64</a></li>
+<li><a href="https://en.wikipedia.org/wiki/X32_ABI">x32 ABI</a></li>
+<li><a href="http://stackoverflow.com/a/9162072">difference between stdint.h and inttypes.h</a></li>
+<li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384083%28v=vs.85%29.aspx">Abstract Data Models</a></li>
+<li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384264%28v=vs.85%29.aspx">The New Data Types</a></li>
+<li><a href="http://stackoverflow.com/a/13413892">Is there any reason not to use fixed width integer types (e.g. uint8_t)?</a></li>
+<li><a href="https://blogs.msdn.microsoft.com/oldnewthing/20050131-00/?p=36563/">Why did the Win64 team choose the LLP64 model?</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[What's in a Word?]]></title>
@@ -6428,7 +6669,7 @@ The author of the comment mentioned a less ugly syntax for function
 pointers, with a <a href="http://pastebin.com/MsJLY22j">link to an example</a>.
 Now I&rsquo;m not sure what the commenter meant by &ldquo;these params decay
 naturally to function pointers&rdquo; but I was skeptical about this different
-syntax.  Event the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
+syntax.  Even the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
 used the syntax that I was familiar with.  So I wrote up a quick example
 to try it:</p>
 
@@ -6517,178 +6758,6 @@ in JavaScript, I learn something new every day.  And I hope that you did
 too!  Thanks for reading!  If you have some other recommendations on
 good programming books, or design patterns, please leave a comment or
 write a reply blog post!</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[[Internet] Freedom is Not Free]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2013/01/19/internet-freedom-is-not-free/"/>
-    <updated>2013-01-19T20:12:00-08:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2013/01/19/internet-freedom-is-not-free</id>
-    <content type="html"><![CDATA[<p>Last week, the Internet community
-<a href="http://tech.mit.edu/V132/N61/swartz.html">lost</a> a member in the on going war
-against the copyright industry.  While I&rsquo;ve never met the deceased, or
-even heard of the deceased before his suicide, I&rsquo;m horrified.  I&rsquo;m
-horrified that the government we are asked to put so much faith in,
-would give someone, not that different from myself, such a <a href="http://www.techdirt.com/articles/20120917/17393320412/us-government-ups-felony-count-jstoraaron-swartz-case-four-to-thirteen.shtml">ridiculous sentence</a>.
-That I could be thrown away, locked away from the things that
-I love for 35 years, for freeing information that
-<a href="http://arstechnica.com/tech-policy/2013/01/aaron-swartz-memorial-jstor-liberator-sets-public-domain-academic-articles-free/">should</a>
-have been free, and was later
-<a href="http://www.3news.co.nz/Reddit-co-founder-dies-weeks-before-trial/tabid/412/articleID/282905/Default.aspx">made</a> free.</p>
-
-<p>That my government would strike such fear into someone&rsquo;s life that they
-would prefer death by their own hands to punishment.  Why do we put up
-with this?</p>
-
-<p>The Internet, and the technology sector evolves so quickly.  It&rsquo;s
-amazing that the law the deceased was being prosecuted under, pertaining
-to computers, is from
-<a href="http://en.wikipedia.org/wiki/Computer_Fraud_and_Abuse_Act">1986</a>.  Can
-you even remember what computers were like in 1986?  I didn&rsquo;t even
-exist!  My first family computer ran Windows 95.  I can only imagine how
-archaic laws would be that were based on such rapidly evolving tech.</p>
-
-<p>The limiting of information is problematic to me.  How do the people of
-China, Iran, and others feel about their government?  I assume they are
-aware that the government is limiting their body of knowledge.  Even the
-US television news agencies can&rsquo;t get the story straight.  It
-reminds me of George Orwell&rsquo;s <em>1984</em>, where the language is limited to
-curtail expression.  If the free world uses the Internet as <a href="http://en.wikipedia.org/wiki/Transactive_memory">Transactive Memory</a>, does the
-oppressed world know what they&rsquo;re missing?  Can you know what you&rsquo;re
-missing, before you&rsquo;ve lost it?</p>
-
-<p>The media and copyright lobby disgust me.  I&rsquo;m disgusted that <a href="http://www.mpaa.org/about/ceo">my former state senator</a>
-is now the Chairman and
-CEO of the MPAA.  Remember learning in high school civics the term
-<a href="http://en.wikipedia.org/wiki/Revolving_door_%28politics%29">&ldquo;Revolving Door&rdquo;</a>? Case
-in point.</p>
-
-<p>America was constitutionalized as a republic, but through
-amendment has <a href="http://en.wikipedia.org/wiki/Democratic_republic">evolved</a>
-into a democratic republic.  The idea of a republic was important to an
-<a href="http://seattletimes.com/html/nationworld/2003332210_tuesday31.html">agrarian society</a>,
-and we still feel the effects every first Tuesday in
-November; the least convenient day of the week.  Voting for someone
-just to represent you was convenient when your form of long-range
-communication was a man on a pony.  With the rise of the Internet, and
-representatives who work for their lobbies and not the people,
-why do we still elect officials?  Why are we a republic?  Why not just a
-democracy?  Allow voters to authenticate and cast their vote online.
-Everyone.  No computer or internet?  I&rsquo;m sure your local library offers
-both free for public use.  &ldquo;But people don&rsquo;t always know what&rsquo;s right.&rdquo;
-Sure, I think some people aren&rsquo;t too bright.  But then I see the
-deadlock in congress, fiscal cliff after fiscal cliff, and I can&rsquo;t help
-but think we could do better if we just fired all of these assholes.</p>
-
-<p>Why can&rsquo;t the difference in viewpoints be celebrated?  A good leader
-recognizes both sides of the coin.  I love having a diverse team of
-people with varying backgrounds, because they come up with solutions I
-never could have.  And if you want to beat your enemy, you have to know
-your enemy.  That means empathizing, understanding where they come from.</p>
-
-<blockquote><p>If you give orders and explain nothing, you might get obedience, but<br/>you&#8217;ll get no creativity. If you tell them your purpose, then when your<br/>original plan is shown to be faulty, they&#8217;ll find another way to achieve<br/>your goal. Explaining to your men doesn&#8217;t weaken their respect for you,<br/>it proves your respect for them.</p><footer><strong>Han Tzu</strong> <cite>Shadow of the Giant Pg. 303 by Orson Scott Card</cite></footer></blockquote>
-
-
-<p>I don&rsquo;t hate anyone for what they believe, nor do I
-try to persuade them otherwise.  I just feel like the technologically
-minded are under represented in Washington.  I wish we had a
-technological party.  We need a
-party that strives to protect the internet, the ideals behind
-the freedom and preservation of information, the technical investment in
-sovereign energy and our failing infrastructure, and internet access
-speeds that are unrivaled in the world, not stagnated by corporations
-who are relatively regional monopolies.  One where social
-issues are open to debate, but also where protecting our greatest asset and
-achievement is top priority.  One where the media industry is invited to
-the table, unlike the back door <a href="http://en.wikipedia.org/wiki/Stop_Online_Piracy_Act">policies</a>
-they would try to slip in under our noses.  My dad advocated a turn the
-other cheek policy.  That&rsquo;s called acting like an adult.</p>
-
-<p>My belief of good vs. evil is that there is no good or evil, but that people
-are inherently selfish.  They
-do things that are perceived by others as evil.  But they don&rsquo;t do
-things because those actions are evil, they do them because they gain
-some form of personal utility from the action; they perceive the action
-as good.  And it is good&hellip;to them.  It&rsquo;s easy to be evil.  It&rsquo;s the easy
-way out.  It&rsquo;s harder to think about other people.  It&rsquo;s tougher to do
-the right thing.  Being good is so recognizably hard; it&rsquo;s impressive.</p>
-
-<p>The president of MIT, L. Rafael Reif, had this to say regarding the
-deceased: <a href="http://touch.latimes.com/#section/-1/article/p2p-74009443/">&ldquo;It pains me to think that MIT played any role in a series of events that have ended in tragedy&hellip;&rdquo;</a>
-Fuck you. Maybe if MIT&rsquo;s bottom line wasn&rsquo;t their acceptance rate, they
-might be able to look out for more than just their own.</p>
-
-<blockquote><p>All that is necessary for the triumph of evil is that good men do<br/>nothing.</p><footer><strong>Edmund Burke</strong> <cite>Thoughts on the Cause of Present Discontents</cite></footer></blockquote>
-
-
-<p>Suicide is never the answer.  No matter how shitty your current
-situation is, no matter if things will never go back to the way they
-were, you will always be able to change your situation.  Maybe not
-immediately, but that&rsquo;s what goals are for.  Anyone who ever committed
-suicide to prove a point could have done more for their cause dedicating
-the rest of their life to it.  If you&rsquo;re feeling depressed, talk to
-someone.  It will make you feel so much better to talk to someone about
-what&rsquo;s upsetting you.  As much as people like to shit on the Catholic
-Church, I feel like the Catholic practice of penance (confession),
-provides a cathartic placebo effect.  If you are depressed or hurting, and
-you need someone to talk to, even a complete stranger, feel free to
-contact me.  I will always provide an ear and a shoulder.</p>
-
-<blockquote><p>It seems strange that my life should end in such a terrible place, but<br/>for three years I had roses and apologized to no one. I shall die here.<br/>Every inch of me shall perish. Every inch, but one. An inch. It is small<br/>and it is fragile and it is the only thing in the world worth having. We<br/>must never lose it or give it away. We must NEVER let them take it from<br/>us. I hope that whoever you are, you escape this place. I hope that the<br/>world turns, and that things get better. But what I hope most of all is<br/>that you understand what I mean when I tell you that, even though I do<br/>not know you, and even though I may never meet you, laugh with you, cry<br/>with you, or kiss you, I love you. With all my heart, I love you.</p><footer><strong>Valerie</strong> <cite>V for Vendetta</cite></footer></blockquote>
-
-
-<p>The next time the media industry tries to limit what you have access to
-on the Internet, make a big ruckus.  Inform everyone you know about the
-facts.  Pushing for an increase in media piracy activities is not the
-right answer.  Instead we should push to boycott working for
-organizations like the RIAA and MPAA and their ilk.  Think about how
-much better off we would be in the United States if teachers were paid
-like rock stars and rock stars were paid like teachers?  Instead, everyone
-in the media industry needs a fat paycheck.  Celebrity is the case in
-point of the blind leading the blind.  Did you know that EMI
-<a href="https://mashable.com/2013/01/18/i-have-a-dream-internet-freedom/">owns</a>
-the copyright to the footage of Martin Luther King&rsquo;s &ldquo;I have a
-dream&rdquo; speech?  If you can find it, I bet it wont be up long.  Frankly,
-I&rsquo;m surprised EMI doesn&rsquo;t also own the Declaration of Independence and
-Constitution, charging admission.</p>
-
-<p>Revolutions are a continuation of the battle between sword and shield.
-Something new is created and shows potential, then doubters pop up
-seeking to curtail that which upsets their competitive edge.  In the
-case of information, many make money and become powerful off
-limiting the access to knowledge.  I think all knowledge that is
-beneficial to mankind should be open, and that the Internet is the ultimate
-utility for the sharing of our collective knowledge.  Where do you draw
-the line, you might ask?  I think the knowledge required to make atomic
-weapons and 3D-print receivers is decidedly unbefitting of society,
-for instance.
-And in the end, you can&rsquo;t take any of the knowledge you protect with
-you.  If everyone shared what they knew, then you&rsquo;d have a more
-improved life, since then the right people would be
-in the know to advance our being.  Technology would advance even faster
-than it does currently if we weren&rsquo;t limited to
-<a href="http://www.techradar.com/us/news/computing-components/processors/why-intels-new-cpus-disappoint-1077260">tick-tock</a> product
-cycles and business secrets.</p>
-
-<p>So what does a rant about government, antiquated laws, corrupt
-representatives, celebrating diversity, hypothetical political parties,
-inaction, and established industries have to do with anything?
-They&rsquo;re all anchored to a suicide.  They&rsquo;re all that&rsquo;s been running
-through my mind lately.  What I see in the deceased, I see in myself.
-Standing amongst my peers, celebrating <a href="http://www.internetfreedomday.net/">Internet Freedom Day</a>
-, listening to <a href="https://www.eff.org/about/staff/peter-eckersley">Peter Eckersley</a> of the
-<a href="https://www.eff.org/">EFF</a> talk, I realized <a href="http://www.youtube.com/watch?v=Vo0D6bzxLLw">&lsquo;The power is
-yours!&rsquo;</a>.
-So now I add my voice to the or so 20 Internet activists that will continue to
-spring up as one falls.</p>
-
-<p>What will you do to shape the world you live in?  What are you going to do to
-fix it?  If you don&rsquo;t, I will.  Because if you want something done
-right, you have to do it yourself.</p>
-
-<blockquote><p>It has to start somewhere It has to start sometime<br/>What better place than here, what better time than now?</p><footer><strong>Rage Against the Machine</strong> <cite>Guerrilla Radio</cite></footer></blockquote>
-
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Functor | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/functor/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-05-15T19:45:06-07:00</updated>
+  <updated>2016-05-31T08:24:51-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -62,7 +62,7 @@ The author of the comment mentioned a less ugly syntax for function
 pointers, with a <a href="http://pastebin.com/MsJLY22j">link to an example</a>.
 Now I&rsquo;m not sure what the commenter meant by &ldquo;these params decay
 naturally to function pointers&rdquo; but I was skeptical about this different
-syntax.  Event the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
+syntax.  Even the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
 used the syntax that I was familiar with.  So I wrote up a quick example
 to try it:</p>
 

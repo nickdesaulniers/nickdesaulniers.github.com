@@ -12,7 +12,7 @@
         <loc>
             http://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/
         </loc>
-        <lastmod>2016-05-15T19:36:34-07:00</lastmod>
+        <lastmod>2016-05-30T13:55:56-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/2013/02/28/commandments-of-a-mobile-web/</loc>
@@ -38,7 +38,7 @@
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/2013/07/03/why-ill-be-marching-this-4th/</loc>
-        <lastmod>2016-05-15T19:36:34-07:00</lastmod>
+        <lastmod>2016-05-30T13:58:35-07:00</lastmod>
     </url>
     <url>
         <loc>
@@ -50,13 +50,13 @@
         <loc>
             http://nickdesaulniers.github.io/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript/
         </loc>
-        <lastmod>2016-05-15T19:36:34-07:00</lastmod>
+        <lastmod>2016-05-30T13:59:03-07:00</lastmod>
     </url>
     <url>
         <loc>
             http://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/
         </loc>
-        <lastmod>2016-05-15T19:36:34-07:00</lastmod>
+        <lastmod>2016-05-30T13:59:22-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/</loc>
@@ -64,11 +64,11 @@
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/</loc>
-        <lastmod>2016-05-15T19:36:34-07:00</lastmod>
+        <lastmod>2016-05-30T13:59:56-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/</loc>
-        <lastmod>2016-05-15T19:36:34-07:00</lastmod>
+        <lastmod>2016-05-30T14:00:31-07:00</lastmod>
     </url>
     <url>
         <loc>
@@ -101,16 +101,20 @@
         <lastmod>2016-05-15T19:44:19-07:00</lastmod>
     </url>
     <url>
+        <loc>http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/</loc>
+        <lastmod>2016-05-30T13:53:29-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://nickdesaulniers.github.io/about/</loc>
         <lastmod>2016-05-15T19:36:34-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/archives/</loc>
-        <lastmod>2016-05-15T19:44:19-07:00</lastmod>
+        <lastmod>2016-05-30T14:00:31-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/</loc>
-        <lastmod>2016-05-15T19:44:19-07:00</lastmod>
+        <lastmod>2016-05-30T14:00:31-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/publications/</loc>

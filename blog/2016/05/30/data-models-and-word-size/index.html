@@ -1,0 +1,529 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Data Models and Word Size - Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="This post is a follow up to
+my previous blog post about word size. Three C/C++ programmers walk into a bar. One argues that sizeof(void*) is &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemy's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/about">About</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/">Blog</a></li>
+  <li><a href="/publications">Publications</a></li>
+  <li><a href="/talks">Talks</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Data Models and Word Size</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-05-30T12:54:00-07:00" pubdate data-updated="true">May 30<span>th</span>, 2016</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><em>This post is a follow up to
+<a href="/blog/2016/05/15/whats-in-a-word/">my previous blog post about word size</a>.</em></p>
+
+<p>Three C/C++ programmers walk into a bar.  One argues that sizeof(void*) is
+equivalent to sizeof(long), one argues that sizeof(void*) is equivalent to
+sizeof(int), and the third argues it’s sizeof(long long).  Simultaneously,
+they’re all right, but they’re also all wrong (and need a lesson about portable
+C code).  What the hell is going on?</p>
+
+<p>One of the first few programs a programmer might write after hello world is
+something like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(int): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(long): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span><span class="p">));</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(long long): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span> <span class="kt">long</span><span class="p">));</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(void*): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Note the use of the %zu format specifier, a C99 addition that isn’t portable to
+older compilers!  (This post is more about considerations when porting older
+code to newer machines, not about porting newer code to run on older machines.
+Not having a standards compliant C compiler makes writing more portable C code
+even trickier, and is a subject for another blog post).</em></p>
+
+<p>When I run that code on my x86-64 OSX machine, I get the following output:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sizeof<span class="o">(</span>int<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long<span class="o">)</span>: 8
+</span><span class='line'>sizeof<span class="o">(</span>long long<span class="o">)</span>: 8
+</span><span class='line'>sizeof<span class="o">(</span>void*<span class="o">)</span>: 8
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So it looks like I would be the first programmer in the story in the first
+paragraph, since on my machine, it looks like sizeof(long) == sizeof(void*).
+Also note how sizeof(long long) is equivalent as well.</p>
+
+<p>But what would happen if I compiled my code on a 32 bit machine?  Luckily, my
+processor has backwards compatibility with 32b binaries, so I can cross compile
+it locally and still run it. Ex:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>➜  clang sizeof.c -Wall -Wextra -Wpedantic
+</span><span class='line'>➜  file a.out
+</span><span class='line'>a.out: Mach-O 64-bit executable x86_64
+</span><span class='line'>➜  clang sizeof.c -Wall -Wextra -Wpedantic -m32
+</span><span class='line'>➜  file a.out
+</span><span class='line'>a.out: Mach-O executable i386
+</span><span class='line'>➜  ./a.out
+</span><span class='line'>sizeof<span class="o">(</span>int<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long long<span class="o">)</span>: 8
+</span><span class='line'>sizeof<span class="o">(</span>void*<span class="o">)</span>: 4
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Huh, suddenly sizeof(void*) == sizeof(int) == sizeof(long)!  This seems
+to be the case of the second programmer from the story.</p>
+
+<p>Both programmer 1 and programmer 2 might agree that the size of a pointer is
+equivalent to their machine’s respective
+<a href="/blog/2016/05/15/whats-in-a-word/">word size</a>,
+but that too would be an incorrect assumption for portable C/C++ code!</p>
+
+<p>Programmer 3 goes through the hellscape that is installing a working compiler
+for Windows and building a 64b command line application (to be fair, installing
+command line tools for OSX is worse; installing a compiler for most OS’ leaves
+much to be desired).  When they run that program, they see:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>sizeof<span class="o">(</span>int<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long<span class="o">)</span>: 4
+</span><span class='line'>sizeof<span class="o">(</span>long long<span class="o">)</span>: 8
+</span><span class='line'>sizeof<span class="o">(</span>void*<span class="o">)</span>: 8
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is yet a third case (the third programmer from the story).  In this case,
+only sizeof(long long) is equivalent to sizeof(void*).</p>
+
+<h3>Data Models</h3>
+
+<p>What these programmers are seeing is known as data models.  Programmer 1 one on
+a 64b x86-64 OSX machine had an LP64 data model where longs (L), (larger long
+longs,) and pointers (P) are 64b, but ints were 32b.  Programmer 2 on a 32b x86
+OSX machine had an ILP32 data model where ints (I), longs (L), and pointers (P)
+were 32b, but long longs were 64b.  Programmer 3 on a 64b x86-64 Windows
+machine had a LLP64 data model, where only long longs (LL) and pointers (P)
+were 64b, ints and longs being 32b.</p>
+
+<table>
+<thead>
+<tr>
+<th><strong>Data model</strong> </th>
+<th> <strong>sizeof(int)</strong> </th>
+<th> <strong>sizeof(long)</strong> </th>
+<th> <strong>sizeof(long long)</strong> </th>
+<th> <strong>sizeof(void*)</strong> </th>
+<th> <strong>example</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ILP32 </td>
+<td> 32b </td>
+<td> 32b </td>
+<td> 64b </td>
+<td> 32b </td>
+<td> Win32, i386 OSX &amp; Linux</td>
+</tr>
+<tr>
+<td>LP64 </td>
+<td> 32b </td>
+<td> 64b </td>
+<td> 64b </td>
+<td> 64b </td>
+<td> x86-64 OSX &amp; Linux</td>
+</tr>
+<tr>
+<td>LLP64 </td>
+<td> 32b </td>
+<td> 32b </td>
+<td> 64b </td>
+<td> 64b </td>
+<td> Win64</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>There are older data models such as LP32 (Windows 3.1, Macintosh, where ints
+are 16b), and more exotic ones like ILP64, and SILP64.  Knowing the data model
+thus is important for portable C/C++ code.</p>
+
+<h3>Historical Perspective</h3>
+
+<p>Running out of address space is and will continue to be tradition in computing.
+Applications become bigger as computer power and memory gets cheaper.
+Companies want to sell chips that have larger word sizes to address more
+memory, but early adopters don’t want to buy a computer where there favorite
+application hasn’t been compiled and thus doesn’t exist on yet.  <strong>Someone from
+the back shouts <em>virtual machines</em> then ducks as a chair is thrown.</strong></p>
+
+<p><a href="http://www.unix.org/version2/whatsnew/lp64_wp.html">This document</a>
+highlights some reasons why LP64 is preferred to ILP64: ILP64
+made portable C code that only needed 32b of precision harder to maintain (on
+ILP64 an int was 64b, but a short was 16b!).  It mentions how for data
+structures that did not contain pointers, their size would be the same on LLP64
+as ILP32, which is the direction Microsoft went.  LLP64 was essentially the
+ILP32 model with 64b pointers.</p>
+
+<p><em>Linux also supports an ABI called
+<a href="https://en.wikipedia.org/wiki/X32_ABI">x32</a>
+which can use x86-64 ISA improvements but uses 32b pointers to reduce the size
+of data structures that would otherwise have 64b pointers.</em></p>
+
+<p>For a great historical perspective on the evolution of word size and data
+models, as well as the &ldquo;toil and trouble&rdquo; caused,
+<a href="https://queue.acm.org/detail.cfm?id=1165766">this paper</a>
+was an excellent reference.  It describes Microsoft finally abandoning support
+for 16b data models in Windows XP 64.  It mentions that the industry was pretty
+split between LP64, LLP64, and ILP64 as porting code from the good old days of
+ILP32 would break in different ways.  That the use of long was more prevalent
+in Windows applications vs the use of int in unix applications.  It also makes
+the key point that a lot of programmers from the ILP32 era made assumptions
+that sizeof(int) == sizeof(long) == sizeof(void*) which would not hold true
+for the LP64/LLP64 era.</p>
+
+<p>One important point the paper makes makes that’s easily missed is that typedef
+wasn’t added to C until 1977 when hardware manufactures still couldn’t agree on
+how many bits were in a char (CHAR_BITS) and some machines were using 24b
+addressing schemes.  stdint.h and inttypes.h did not exist yet.</p>
+
+<p><a href="/blog/2016/05/15/whats-in-a-word/">This article</a>
+talks about two main categories of effects of switching from ILP32 to LP64 and
+has excellent examples of problematic code.  That section near the end is worth
+the read alone and makes excellent points to look for during code review.</p>
+
+<h3>Conclusion</h3>
+
+<p>Word size or ISA doesn’t tell you anything about sizeof(int), sizeof(long), or
+sizeof(long long).  We also saw that one machine can support multiple different
+data models (when I compiled and ran the same code with the -m32 flag).</p>
+
+<p>The C standard tells you minimum guaranteed sizes for these types, but the data
+model (part of the ABI, external to but abiding by the C standard) is what
+tells you about the specifics sizes of standard integers and pointers.</p>
+
+<h3>Further Reading</h3>
+
+<ul>
+<li><a href="http://www.unix.org/version2/whatsnew/lp64_wp.html">64-Bit Programming Models: Why LP64?</a></li>
+<li><a href="https://queue.acm.org/detail.cfm?id=1165766">The Long Road to 64 Bits</a></li>
+<li><a href="http://www.unix.org/whitepapers/64bit.html">The UNIX System &mdash; 64bit and Data Size Neutrality</a></li>
+<li><a href="https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models">64-bit data models</a></li>
+<li><a href="https://docs.oracle.com/cd/E19620-01/805-3024/lp64-1/index.html">C Language Data Type Models: LP64 and ILP32</a></li>
+<li><a href="https://blogs.oracle.com/nike/entry/ilp64_lp64_llp64">ILP64, LP64, LLP64</a></li>
+<li><a href="https://en.wikipedia.org/wiki/X32_ABI">x32 ABI</a></li>
+<li><a href="http://stackoverflow.com/a/9162072">difference between stdint.h and inttypes.h</a></li>
+<li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384083%28v=vs.85%29.aspx">Abstract Data Models</a></li>
+<li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384264%28v=vs.85%29.aspx">The New Data Types</a></li>
+<li><a href="http://stackoverflow.com/a/13413892">Is there any reason not to use fixed width integer types (e.g. uint8_t)?</a></li>
+<li><a href="https://blogs.msdn.microsoft.com/oldnewthing/20050131-00/?p=36563/">Why did the Win64 team choose the LLP64 model?</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-05-30T12:54:00-07:00" pubdate data-updated="true">May 30<span>th</span>, 2016</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/c/'>C</a>, <a class='category' href='/blog/categories/data/'>Data</a>, <a class='category' href='/blog/categories/ilp32/'>ILP32</a>, <a class='category' href='/blog/categories/isa/'>ISA</a>, <a class='category' href='/blog/categories/int/'>Int</a>, <a class='category' href='/blog/categories/llp64/'>LLP64</a>, <a class='category' href='/blog/categories/lp64/'>LP64</a>, <a class='category' href='/blog/categories/long/'>Long</a>, <a class='category' href='/blog/categories/model/'>Model</a>, <a class='category' href='/blog/categories/pointer/'>Pointer</a>, <a class='category' href='/blog/categories/size/'>Size</a>, <a class='category' href='/blog/categories/width/'>Width</a>, <a class='category' href='/blog/categories/word/'>Word</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/" data-via="LostOracle" data-counturl="http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/05/15/whats-in-a-word/" title="Previous Post: What's in a Word?">&laquo; What's in a Word?</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/05/30/data-models-and-word-size/">Data Models and Word Size</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/15/whats-in-a-word/">What's in a Word?</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/">Intro to Debugging X86-64 Assembly</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/08/14/my-siggraph-2015-experience/">My SIGGRAPH 2015 Experience</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/">Additional C/C++ Tooling</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/';
+        var disqus_url = 'http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
