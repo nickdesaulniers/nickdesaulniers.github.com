@@ -6,10 +6,11 @@ comments: true
 categories: mutt gmail ubuntu
 ---
 
-I was looking to set up the mutt email client on my Ubuntu box to go through my
-gmail account.  Since it took me a couple of hours to figure out, and I’ll
-probably forget by the time I need to know again, I figure I’d post my steps
-here.
+I was looking to set up the
+[mutt](http://www.mutt.org/)
+email client on my Ubuntu box to go through my gmail account.  Since it took me
+a couple of hours to figure out, and I’ll probably forget by the time I need to
+know again, I figure I’d post my steps here.
 
 I’m on Ubuntu 16.04 LTS (`lsb_release -a`)
 
