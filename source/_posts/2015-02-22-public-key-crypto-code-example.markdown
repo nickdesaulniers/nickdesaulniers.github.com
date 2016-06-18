@@ -200,23 +200,23 @@ capture from Wireshark of me navigating to https://google.com. First we have a
 TLSv1.2 Client Hello to start the handshake.  Here we can see a list of the
 cypher suites.
 
-{% img /images/tls_1_client_hello.png %}
+{% img center /images/tls_1_client_hello.png %}
 
 Next is the response from the server, a TLSv1.2 Server Hello.  Here you can see
 the server has picked a cypher to use.
 
-{% img /images/tls_2_server_hello.png %}
+{% img center /images/tls_2_server_hello.png %}
 
 The server then sends its certificate, which contains a copy of its public key.
 
-{% img /images/tls_3_server_cert.png %}
+{% img center /images/tls_3_server_cert.png %}
 
 Now that we've agreed on a cypher suite, the client now sends its public key.
 The server sets up a session, that way it may abbreviate the handshake in the
 future. Finally, the client may now start making requests to the server with
 encrypted application data.
 
-{% img /images/tls_4_key_exchange.png %}
+{% img center /images/tls_4_key_exchange.png %}
 
 For more information on TLS handshakes, you should read
 [Ilya Grigorik's](https://www.igvita.com/)
