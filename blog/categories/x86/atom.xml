@@ -4,7 +4,7 @@
   <title><![CDATA[Category: x86 | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/x86/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-05-31T08:24:51-07:00</updated>
+  <updated>2016-06-18T16:55:11-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -785,7 +785,7 @@ bottom plate if you can imagine, in this case.  The stack grows towards the
 heap, and it is possible for them to collide if you don&rsquo;t ask the OS to expand
 your data segment (sbrk).</p>
 
-<p><img src="/images/stack.png"> <a href="http://mcfunley.com/the-debugger-extension-part-6-scanning-threads">credit</a></p>
+<p><img class="center" src="/images/stack.png"> <a href="http://mcfunley.com/the-debugger-extension-part-6-scanning-threads">credit</a></p>
 
 <p>Let&rsquo;s say we want to call something like memset, which from <code>man memset</code> we can
 see takes an address, a value to fill, and a number of bytes to fill.  The

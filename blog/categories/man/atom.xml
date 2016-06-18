@@ -4,7 +4,7 @@
   <title><![CDATA[Category: man | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/man/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-05-31T08:24:51-07:00</updated>
+  <updated>2016-06-18T16:55:11-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -213,23 +213,23 @@ capture from Wireshark of me navigating to <a href="https://google.com.">https:/
 TLSv1.2 Client Hello to start the handshake.  Here we can see a list of the
 cypher suites.</p>
 
-<p><img src="/images/tls_1_client_hello.png"></p>
+<p><img class="center" src="/images/tls_1_client_hello.png"></p>
 
 <p>Next is the response from the server, a TLSv1.2 Server Hello.  Here you can see
 the server has picked a cypher to use.</p>
 
-<p><img src="/images/tls_2_server_hello.png"></p>
+<p><img class="center" src="/images/tls_2_server_hello.png"></p>
 
 <p>The server then sends its certificate, which contains a copy of its public key.</p>
 
-<p><img src="/images/tls_3_server_cert.png"></p>
+<p><img class="center" src="/images/tls_3_server_cert.png"></p>
 
 <p>Now that we&rsquo;ve agreed on a cypher suite, the client now sends its public key.
 The server sets up a session, that way it may abbreviate the handshake in the
 future. Finally, the client may now start making requests to the server with
 encrypted application data.</p>
 
-<p><img src="/images/tls_4_key_exchange.png"></p>
+<p><img class="center" src="/images/tls_4_key_exchange.png"></p>
 
 <p>For more information on TLS handshakes, you should read
 <a href="https://www.igvita.com/">Ilya Grigorik&rsquo;s</a>

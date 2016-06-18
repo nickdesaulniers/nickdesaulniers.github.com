@@ -60,11 +60,11 @@
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/</loc>
-        <lastmod>2016-05-15T19:36:34-07:00</lastmod>
+        <lastmod>2016-06-18T16:45:47-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/</loc>
-        <lastmod>2016-05-30T13:59:56-07:00</lastmod>
+        <lastmod>2016-06-18T16:46:43-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/</loc>
@@ -74,7 +74,7 @@
         <loc>
             http://nickdesaulniers.github.io/blog/2015/02/22/public-key-crypto-code-example/
         </loc>
-        <lastmod>2016-05-15T19:36:34-07:00</lastmod>
+        <lastmod>2016-06-18T16:46:22-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/</loc>
@@ -105,16 +105,20 @@
         <lastmod>2016-05-30T13:53:29-07:00</lastmod>
     </url>
     <url>
+        <loc>http://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/</loc>
+        <lastmod>2016-06-18T16:43:56-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://nickdesaulniers.github.io/about/</loc>
         <lastmod>2016-05-15T19:36:34-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/archives/</loc>
-        <lastmod>2016-05-30T14:00:31-07:00</lastmod>
+        <lastmod>2016-06-18T16:46:43-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/</loc>
-        <lastmod>2016-05-30T14:00:31-07:00</lastmod>
+        <lastmod>2016-06-18T16:46:43-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/publications/</loc>

@@ -345,23 +345,23 @@ capture from Wireshark of me navigating to <a href="https://google.com.">https:/
 TLSv1.2 Client Hello to start the handshake.  Here we can see a list of the
 cypher suites.</p>
 
-<p><img src="/images/tls_1_client_hello.png"></p>
+<p><img class="center" src="/images/tls_1_client_hello.png"></p>
 
 <p>Next is the response from the server, a TLSv1.2 Server Hello.  Here you can see
 the server has picked a cypher to use.</p>
 
-<p><img src="/images/tls_2_server_hello.png"></p>
+<p><img class="center" src="/images/tls_2_server_hello.png"></p>
 
 <p>The server then sends its certificate, which contains a copy of its public key.</p>
 
-<p><img src="/images/tls_3_server_cert.png"></p>
+<p><img class="center" src="/images/tls_3_server_cert.png"></p>
 
 <p>Now that we&rsquo;ve agreed on a cypher suite, the client now sends its public key.
 The server sets up a session, that way it may abbreviate the handshake in the
 future. Finally, the client may now start making requests to the server with
 encrypted application data.</p>
 
-<p><img src="/images/tls_4_key_exchange.png"></p>
+<p><img class="center" src="/images/tls_4_key_exchange.png"></p>
 
 <p>For more information on TLS handshakes, you should read
 <a href="https://www.igvita.com/">Ilya Grigorik&rsquo;s</a>
@@ -482,6 +482,10 @@ thoughts in the comments below.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/06/18/mutt-gmail-ubuntu/">Setting Up Mutt With Gmail on Ubuntu</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/05/30/data-models-and-word-size/">Data Models and Word Size</a>
       </li>
     
@@ -495,10 +499,6 @@ thoughts in the comments below.</p>
     
       <li class="post">
         <a href="/blog/2015/08/14/my-siggraph-2015-experience/">My SIGGRAPH 2015 Experience</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/">Additional C/C++ Tooling</a>
       </li>
     
   </ul>
