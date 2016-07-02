@@ -4,7 +4,7 @@
   <title><![CDATA[Category: C++ | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/c-plus-plus/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-07-01T23:24:17-07:00</updated>
+  <updated>2016-07-02T10:46:05-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -70,8 +70,9 @@ first 64b ARM ISA).</p>
 </code></p>
 
 <p>This will create a nice standalone bundle in <code>~/arm</code>.  It will contain our
-cross compiler, linker, headers, libs, and sysroot (crt.o and friends).  Most
-Android devices are ARMv7-A, so you’d use <code>--arch arm</code>.  See the other
+cross compiler, linker, headers, libs, and
+<a href="https://twitter.com/LostOracle/status/749297676223598592">sysroot (crt.o and friends)</a>.
+Most Android devices are ARMv7-A, so you’d use <code>--arch arm</code>.  See the other
 supported architectures for cross compiling under
 <a href="https://developer.android.com/ndk/guides/standalone_toolchain.html#itc">table 4</a>.</p>
 
