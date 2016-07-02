@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "Compiling C/C++ Command Line Utilities on Android with Standalone Tools"
+title: "Cross Compiling C/C++ for Android"
 date: 2016-07-01 22:42
 comments: true
-categories: Android NDK C C++ ARM ARMv8 ARMv8-A AArch64 Compile Standalone CLI Command Line Toolchain Nexus
+categories: Android NDK C C++ ARM ARMv8 ARMv8-A AArch64 Compile Standalone CLI Command Line Toolchain Nexus Cross
 ---
 Let’s say you want to build a hello world command line application in C or C++
 and run it on your Android phone.  How would you go about it?  It’s not super
