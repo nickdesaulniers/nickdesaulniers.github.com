@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Android | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/android/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2016-07-01T23:11:26-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Compiling C/C++ Command Line Utilities on Android with Standalone Tools]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2016/07/01/android-cli/"/>
+    <updated>2016-07-01T22:42:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2016/07/01/android-cli</id>
+    <content type="html"><![CDATA[<p>Let’s say you want to build a hello world command line application in C or C++
+and run it on your Android phone.  How would you go about it?  It’s not super
+practical; apps visible and distributable to end users must use the framework
+(AFAIK), but for folks looking to get into developing on ARM it’s they likely
+have an ARM device in their pocket.</p>
+
+<p>This post is for folks who typically invoke their compiler from the command
+line, either explicitly, from build scripts, or other forms of automation.</p>
+
+<p>At
+<a href="https://twitter.com/LostOracle/status/697859368226697218">work</a>,
+when working on Android, we typically checkout the entire Android source code
+(<a href="https://twitter.com/LostOracle/status/702569487531249664">which is huge</a>),
+use <code>lunch</code> to configure a ton of environmental variables, then use Makefiles
+with lots of includes and special vars.  We don’t want to spend the time and
+disk space checking out the Android source code just to have a working cross
+compiler.  Luckily, the Android tools team has an excellent utility to grab a
+prebuilt cross compiler.</p>
+
+<p>This assumes you’re building from a Linux host.  Android is a distribution of
+Linux, which is much easier to target from a Linux host.  At home, I’ll usually
+develop on my OSX machine, ssh’d into my headless Linux box. (iTerm2 and tmux
+both have exclusive features, but I currently prefer iTerm2.)</p>
+
+<p>The first thing we want to do is fetch the
+<a href="https://developer.android.com/ndk/downloads/index.html">Android NDK</a>.
+Not the SDK, the NDK.</p>
+
+<p><code>sh
+➜  ~ curl -O \
+  http://dl.google.com/android/repository/android-ndk-r12b-linux-x86_64.zip
+➜  ~ unzip android-ndk-r12b-linux-x86_64.zip
+</code></p>
+
+<p>It would be helpful to install adb and fastboot, too.  This might be different
+for your distro’s package manager.  Better yet may be to just build from
+source.</p>
+
+<p><code>sh
+➜  ~ sudo apt-get install android-tools-adb android-tools-fastboot
+</code></p>
+
+<p>Now for you Android device that you want to target, you’ll want to know the
+ISA.  Let’s say I want to target my Nexus 6P, which has an ARMv8-A ISA (the
+first 64b ARM ISA).</p>
+
+<p><code>sh
+➜  ~ ./android-ndk-r12b/build/tools/make_standalone_toolchain.py --arch arm64 \
+  --install-dir ~/arm
+</code></p>
+
+<p>This will create a nice standalone bundle in <code>~/arm</code>.  It will contain our
+cross compiler, linker, headers, libs, and sysroot (crt.o and friends).  Most
+Android devices are ARMv7-A, so you’d use <code>--arch arm</code>.  See the other
+supported architectures for cross compiling under
+<a href="https://developer.android.com/ndk/guides/standalone_toolchain.html#itc">table 4</a>.</p>
+
+<p>You might also want to change your install-dir and possible add it to your
+<code>$PATH</code>, or set <code>$CC</code> and <code>$CXX</code>.</p>
+
+<p>Now we can compile <code>hello_world.c</code>.</p>
+
+<p>```sh
+➜  ~ cat hello_world.c</p>
+
+<h1>include &lt;stdio.h></h1>
+
+<p>int main () {
+  puts(&ldquo;hello world&rdquo;);
+}</p>
+
+<p>➜  ~ ~/arm/bin/clang -pie hello_world.c
+➜  ~ file a.out
+a.out: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically
+linked, interpreter /system/bin/linker64,
+BuildID[sha1]=ecc46648cf2c873253b3b522c0d14b91cf17c70f, not stripped
+```</p>
+
+<p><a href="http://stackoverflow.com/a/30547603">Since Android Lollipop</a>,
+Android has required that executables be linked as
+position independent (<code>-pie</code>) to help provide
+<a href="https://en.wikipedia.org/wiki/Address_space_layout_randomization#Android">ASLR</a>.</p>
+
+<p><code>&lt;install-dir&gt;/bin/</code> also has shell scripts with more full featured names like
+<code>aarch64-linux-android-clang</code> if you prefer to have clearer named executables
+in your $PATH.</p>
+
+<p>Connect your phone, enable remote debugging, and accept the prompt for remote
+debugging.</p>
+
+<p><code>sh
+➜  ~ adb push a.out /data/local/tmp/.
+➜  ~ adb shell "./data/local/tmp/a.out"
+hello world
+</code></p>
+
+<p>We’ll use this toolchain in a follow post to start writing some ARMv8-A
+assembly.  Stay tuned.</p>
+]]></content>
+  </entry>
+  
+</feed>

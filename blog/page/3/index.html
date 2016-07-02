@@ -9,9 +9,9 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="On an interview with Square, I made the mistake
-of stating that one of the benefits of working with JavaScript over C is
-that functions are first &hellip;">
+  <meta name="description" content="Over the past few years, there&rsquo;s been certain
+paradigm shifts
+in web development. When you think of milestones that really changed how &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -82,6 +82,344 @@ that functions are first &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/02/28/commandments-of-a-mobile-web/">Commandments of a Mobile Web</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-28T22:43:00-08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/02/28/commandments-of-a-mobile-web/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Over the past few years, there&rsquo;s been certain
+<a href="http://en.wikipedia.org/wiki/Paradigm_shift">paradigm shifts</a>
+in web development. When you think of milestones that really changed how
+development on the web was done, the two biggest were
+<a href="https://www.ibm.com/developerworks/mydeveloperworks/blogs/BobZurek/entry/the_ajax_paradigm_shift?lang=en">Ajax</a>
+and <a href="http://www.html5rocks.com/en/why">HTML5</a>.  Development was identifiably
+different before and after such technological advancements.  There were
+<a href="http://java.sys-con.com/node/315210">some</a> who initially
+<a href="http://blog.tobie.me/post/31366970040/when-im-introspective-about-the-last-few-years-i">doubted</a>
+the technologies, but I&rsquo;m sure such doubters eventually
+<a href="http://www.sencha.com/blog/the-making-of-fastbook-an-html5-love-story/">saw the light</a>.
+After spending time working on applications for Mozilla&rsquo;s upcoming mobile
+operating system, Firefox OS, and talking with my fellow employees, I feel that
+the mobile web is another one of those shifts in how we
+approach web development that looking back will be an identifiable point in
+time where we can say that we did things differently before and after.
+So in that sense, I want to share some of the insights I&rsquo;ve found to
+help other developers wrap their heads around how developing for the mobile web
+isn&rsquo;t their traditional cup of tea.</p>
+
+<h1>Internet connectivity is not guaranteed</h1>
+
+<p>This is a fundamental divorce from the World Wide Web and the Internet. I feel
+that a lot of people having trouble differentiating the Web from the Internet;
+where you&rsquo;ve had one, you&rsquo;ve always had the other. Don&rsquo;t
+assume your application will always have a valid connection.  When a user
+is on a wifi connection, or hardwired, it&rsquo;s so obvious that if they&rsquo;re on your
+website, then they must be connected to the Internet.  Right?  But what happens
+now when one of your users loads up your site or app on a mobile device, then enters
+a tunnel?  What does it do when offline?  Does it work?  Maybe it
+doesn&rsquo;t make sense if you&rsquo;re offering a service that requires data from the
+back end, but does that mean that the front end should totally look like crap
+or break when the back end can&rsquo;t be reached?  Do your Ajax requests have error
+callbacks?  Do you try and reconnect your WebSocket connections after they&rsquo;ve
+failed?  Do you cache previous requests or use one of the many forms of offline
+storage to show something to the user?  Developing on the loopback is literally
+the best case for connectivity, but it gives the developer a false sense of
+how latency and connectivity issues affect their application.  It&rsquo;s literally
+shocking the first time you encounter your site/application offline if you
+didn&rsquo;t think about the user experience up front.</p>
+
+<h1>Bandwidth is not free</h1>
+
+<p>The advent of broadband made it acceptable for sites to utilize massive amounts
+of assets.  Seeing sites that load up so much stuff makes my heart sink when
+I wonder about viewing such a site on my mobile device.  I only pay for so much
+mobile data per month, then I&rsquo;m billed ridiculous amounts as a
+<a href="http://forums.att.com/t5/Data-Messaging-Features-Internet/What-does-quot-Data-MB-Overage-quot-mean/td-p/2872883">&ldquo;Data Overage&rdquo;</a>.
+Users in other countries frequently have a more pay as you go style plan, so
+they&rsquo;re being billed for each bit across the wire.  In countries without the
+infrastructure necessary to get broadband Internet to every household, mobile
+is more prolific in getting users connected.</p>
+
+<p>Things like minification and gzip certainly help, but deferred loading of
+assets until they&rsquo;re necessary is frequently overlooked.
+Massive libraries are nice for devs, but may end up giving mobile users more
+problems than they are worth. There exist more advanced techniques such as
+<a href="http://buildnewgames.com/optimizing-websockets-bandwidth/">WebSocket compression</a>.</p>
+
+<p>How much does your site <a href="http://www.sitepoint.com/minimizing-page-weight-matters/">weigh</a>?</p>
+
+<h1>An expensive website does not make an awesome app</h1>
+
+<blockquote><p>Why doesn&#8217;t my million dollar website make a kick ass web app?</p></blockquote>
+
+
+<p>This point is brought to you by <a href="http://www.mattbasta.com/">Matt Basta</a>.  The
+point is that there is something fundamentally different between a web &ldquo;site&rdquo;
+and a web &ldquo;app&rdquo;.  In a web site the usual flow involves loading up a page
+and maybe navigating between pages.  An app more often than not will be a
+single page that loads data asynchronously and dynamically modifies the content
+displayed to the user.  Some web sites make great use of things like Ajax, and
+are great example of single page sites.  But not all are.  Some still haven&rsquo;t
+come around to loading all data asynchronously on request.  And it&rsquo;s not that
+they necessarily even have to, they can be a website and never have to be
+anything more.  But you&rsquo;ll find that some sites make better apps than others.</p>
+
+<h2>No chrome</h2>
+
+<p>Not the browser made by Google, Google Chrome; the actual
+<a href="https://developer.mozilla.org/en-US/docs/Chrome">controls</a> on the top
+of your browser such as the back and reload buttons, and the url bar.  This
+point comes from <a href="https://github.com/cvan">Chris Van Wiemeersch</a>.  One of
+the things you&rsquo;ll find when evaluating whether a site makes a good app is
+whether it relies on chrome to navigate.  If it does, then it&rsquo;s not really
+going to cut it as an app.  If you&rsquo;re going to make a single page app, try
+making it fullscreen in your browser and try navigating around. Are you
+hindered without the chrome?  One thing I
+found recently was an error condition where I notified the user that they had
+to be online to check for an update.  But when I was developing, I would just
+refresh the page to clear the error message and try again.  On a device, as an
+app, where there was no chrome, this meant closing and restarting the app.
+That sucked, so I made it so the user could click/touch, after figuring out
+their connectivity issues, to retry the fetch.  Even better may have
+been to listen for online events!</p>
+
+<h2>Traditional forms of input are not fun</h2>
+
+<p>Here&rsquo;s some tips from <a href="http://potch.me/">Matthew &ldquo;Potch&rdquo; Claypotch</a>.</p>
+
+<h3>Fingers aren&rsquo;t as precise as cursors</h3>
+
+<p>Having tiny click
+targets is really frustrating.  How many times have you clicked the wrong
+thing on a mobile device?  Tiny buttons are not the easiest thing for users
+to specify, especially when groups of them are clustered nearby.  Custom
+buttons enabled by <a href="http://www.cssbuttongenerator.com/">a little CSS</a> can go a
+long way.</p>
+
+<h3>Typing on little keyboards in tedious</h3>
+
+<p>This is an effect of tiny buttons, but requiring the user to type in large
+strings gets annoying fast.  Sometimes this can&rsquo;t be avoided, but it should be
+when it can.  Just as typing in a long, complex url to a mobile browser is
+not enjoyable, neither is doing so in an app.</p>
+
+<h1>Detect features not browser engine (User agent sniffing is a sin)</h1>
+
+<p>Print <a href="http://diveintohtml5.com/everything.html">this</a> and staple it to your
+wall above your workspace.  This should be
+<a href="http://www.nczonline.net/blog/2009/12/29/feature-detection-is-not-browser-detection/">old</a>
+<a href="http://msdn.microsoft.com/en-us/magazine/hh475813.aspx">news</a> at this point.</p>
+
+<h2>Vendor prefixes are meant for browser vendors to test, not production code</h2>
+
+<p>I place a majority of the blame for this on vendors; prefixes should never see
+the light of day in release builds.  It&rsquo;s ridiculous to have to write four
+copies of the same rule, when you&rsquo;re trying to express one thing.  I should
+rewrite this sentence four different ways to prove a point.  -o-Do you understand
+what I&rsquo;m getting at?  -ms-It&rsquo;s almost like rambling. -moz-Repetitive department
+of repetition. -webkit-This is ridiculous.</p>
+
+<p>But developers need to recognize the habit as an addiction, and not feed it.
+If you have, I forgive you.  Now stop doing it.</p>
+
+<p>These two particular articles are just so good, it wouldn&rsquo;t do them justice to
+try and summarize them.  Please go read them, I&rsquo;ll wait.
+<a href="http://hsivonen.iki.fi/vendor-prefixes/">this</a>
+and
+<a href="http://www.quirksmode.org/blog/archives/2010/03/css_vendor_pref.html">this</a></p>
+
+<h2>Developing towards WebKit and not HTML5 is a sin</h2>
+
+<p>I understand that Google Chrome is your favorite browser, and I am so happy for
+you; but it is not mine.  I&rsquo;ll be the first to admit that Google
+caught all of the other browser vendors with their pants down, but when I see
+pages that look flawless in Chrome and
+not so hot in others, it reminds me of days when sites only worked in IE6.
+Surely you remember <em>those</em> days.  I hate when content publishers try and
+dictate which browser I should use to view their content.  I understand WebKit
+based browsers dominant in mobile, but so did IE6 in desktop share at one point.
+It&rsquo;s not unreasonable to expect users to use the most updated version of their
+browser, but empower your users to choose their browser.  Don&rsquo;t take that
+choice away from them.</p>
+
+<p>A neat <a href="http://robertnyman.com/2013/02/14/webkit-an-objective-view/">point</a> by
+<a href="http://robertnyman.com/">Robert Nyman</a> is that WebKit itself already has forks.
+Can you imagine if there were eventually vendor prefixes for forks of WebKit?
+Continuing with vendor prefixes means that we&rsquo;ll now have seven vendor prefixes:
+unprefixed, -moz-, -o-, -ms-, -webkit-o-, -webkit-chrome-, -webkit-safari-.
+Awesome!  Maybe I should rewrite this sentence seven different ways to make a
+point!</p>
+
+<p>I&rsquo;m also curious if Google, Apple, and the WebKit maintainers are turning a
+blind eye to this, or what their opinions are? Being a vendor and wanting an
+open web are almost conflicts of interest; you want your browser to &ldquo;win&rdquo; or
+dominate in marketshare, but at the same time you don&rsquo;t want any one browser
+having too much marketshare.</p>
+
+<h1>Design Responsively</h1>
+
+<p>What is
+<a href="http://mashable.com/2012/12/11/responsive-web-design/">responsive design</a>?
+<a href="http://www.smashingmagazine.com/responsive-web-design-guidelines-tutorials/">Responsive design</a>
+is making a site look great on
+any size screen, without duplicating assets or sniffing a user agent string.
+Firefox has a neat web dev tool called
+<a href="https://developer.mozilla.org/en-US/docs/Tools/Responsive_Design_View">&ldquo;Responsive Design View&rdquo;</a>.
+It&rsquo;s great for testing out your site on various screen sizes.
+<a href="http://twitter.github.com/bootstrap/index.html">Twitter Bootstrap</a> is an
+excellent example of a framework for developing a single app that looks great
+on any screen size.  Even if you don&rsquo;t want to use a whole big framework,
+simple things like using CSS rules in terms of percentages instead of hard
+coded pixels can go a long way.</p>
+
+<p>Sites that are trying to become more app like have trouble with conforming to
+responsive design.  Instead of starting with a site and trying to figure out
+how to hide
+or not display information as the screen gets smaller, you&rsquo;ll find it much
+<a href="http://johnpolacek.github.com/scrolldeck.js/decks/responsive/">easier</a> to
+start small, and dynamically add content as the screen gets bigger.</p>
+
+<h1>High performance code respects battery life</h1>
+
+<p>In the end of the day, all of the code you write that runs in the browser is
+a set of instructions the processor can decode, not necessarily the high level
+JavaScript you wrote.  While it&rsquo;s important to avoid premature optimizations,
+having a few
+<a href="http://christianheilmann.com/2013/01/25/five-things-you-can-do-to-make-html5-perform-better/">rules of thumb</a>
+up front will help you write better, faster code.
+If the same overall action can be expressed in one instruction or one hundred,
+which do you think will use
+<a href="http://coding.smashingmagazine.com/2012/11/05/writing-fast-memory-efficient-javascript/">less power</a>?
+Keep in mind that transistors leak current while switching.</p>
+
+<h2>Native methods over library methods, CSS over JS</h2>
+
+<p>What do I mean by &ldquo;native methods?&rdquo; Like C++?  Well, yes.  You see under the
+hood the DOM bindings that you&rsquo;re calling are probably written in C++.  Call
+<code>toSource()</code> on <code>document.getElementById()</code>.  The <code>[native code]</code> statement
+in the returned string refers to the implementation.  While type specialized
+code emitted by the JIT can match or even beat native code, you can only count
+on that for hot loops.  In the same vein, library code is going to be
+<a href="http://jsperf.com/getelementbyid-vs-jquery-id/25">slower</a> than any code
+written natively.  I&rsquo;m not saying that you shouldn&rsquo;t use libraries, just know
+that the use of libraries can incur some overhead.  Things like animations will
+also be faster
+when handled by natively implemented CSS over JS.  You can use JS to
+dynamically add classes to elements to get finer resolution over events, but
+then get the performance of CSS.</p>
+
+<h2>Avoid JIT bailout</h2>
+
+<p>The Just In Time (JIT) interpreter is a
+<a href="http://www.slideshare.net/amdgigabyte/know-your-javascript-engine">new breed</a>
+of VM that most browser
+vendors are now using.  The JIT can
+<a href="http://s3.mrale.ph/nodecamp.eu/#1">analyze</a> running code, and
+<a href="http://en.wikipedia.org/wiki/Code_generation_%28compiler%29#Runtime_code_generation">emit</a>
+native code
+that is faster than reinterpreting code again, and even higher-optimized code
+for type stable JavaScript, as long as certain &ldquo;guard&rdquo; conditions are met.
+When a guard fails, the JIT has to
+<a href="http://mxr.mozilla.org/mozilla-central/source/js/src/ion/Bailouts.h#19">bailout</a>
+the emitted native code and start reinterpreting code again.</p>
+
+<h2>Keep up to date on new APIs</h2>
+
+<p>HTML5 is a big
+<a href="http://www.w3.org/html/wg/drafts/html/master/single-page.html">spec</a>, and is
+getting bigger.  So big that some recommendations are
+being <a href="http://www.websocket.org/aboutwebsocket.html">spun off</a> from the
+original HTML5 spec.  As an engineer, I&rsquo;m painfully aware that you need to
+<a href="http://bonsaiden.github.com/JavaScript-Garden/">keep up</a>
+in whatever industry you work in in order to stay relevant.
+The complacent are the most vulnerable.  There&rsquo;s
+<a href="http://caniuse.com/">a lot to keep track of</a> with
+HTML5 and CSS3, but many new features offer higher performance methods of
+skinning the cat.</p>
+
+<h3>requestAnimationFrame</h3>
+
+<p>window.requestAnimation frame is a godsend for animation.  Not too long ago, I
+wrote up a quick
+<a href="https://github.com/nickdesaulniers/canvas2dcontext/blob/master/examples/sprite.html#L6">example</a>
+of various ways of implementing animation loops and their issues; you should
+check it out.</p>
+
+<h3>indexedDB over localstorage</h3>
+
+<p>The indexedDB api might not be as simple as localstorage&rsquo;s is, but localstorage
+is synchronous and is noticeably slow on mobile.  If you can bite the bullet
+and use indexedDB, you&rsquo;ll find you&rsquo;re JS isn&rsquo;t blocking on
+serializing/deserializing objects for storage.
+<a href="https://twitter.com/fabricedesre">Fabrice Desré</a> shared this with me.</p>
+
+<h3>WebWorkers</h3>
+
+<p>Webworkers can&rsquo;t modify the DOM, but they can do heavy lifting without blocking
+the main thread.</p>
+
+<h3>CSS translate over absolute top and left rules</h3>
+
+<p><a href="http://digitarald.de/">Harald Kirschner</a> recommends CSS translates over top
+and left rules for absolutely positioning some elements.</p>
+
+<h3>Gradients are expensive</h3>
+
+<p><a href="http://www.backalleycoder.com/">Dan Buchner</a> notes that without beefy graphics
+processing units of their desktop counterparts to enable hardware acceleration,
+things like gradients will give you noticeable performance hits.</p>
+
+<h3>createDocumentFragment</h3>
+
+<p>Dan also suggests queuing up DOM changes.
+Whenever you manipulate items in the DOM, you&rsquo;re going to trigger a reflow,
+which may consist of an update to the layout and/or a repaint.  Minimizing these
+makes for a faster update to the DOM.  For example, it can be faster to use
+document.createDocumentFragment and append child nodes to it, and then append
+that to the DOM, instead of appending lots of child nodes in between timer calls.
+Surprise, this isn&rsquo;t actually a
+<a href="http://ejohn.org/blog/dom-documentfragments/">new</a> DOM binding from HTML5.</p>
+
+<h1>Conclusion</h1>
+
+<p>These are just some tips I have for application developers.  I am by no means
+an expert; I&rsquo;m sure if you dig deep enough, you can find plenty of examples of
+my past work that contradicts some of my recommendations from this article.  But
+I&rsquo;m a little smarter today than I was yesterday, and now so are you!  What are some
+tips that you have to share that you&rsquo;ve found helpful developing for the
+mobile web?</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -674,6 +1012,10 @@ me of Ruby&rsquo;s block lambda syntax, I&rsquo;ll take it!</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/07/01/android-cli/">Compiling C/C++ Command Line Utilities on Android With Standalone Tools</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/06/18/mutt-gmail-ubuntu/">Setting Up Mutt With Gmail on Ubuntu</a>
       </li>
     
@@ -687,10 +1029,6 @@ me of Ruby&rsquo;s block lambda syntax, I&rsquo;ll take it!</p>
     
       <li class="post">
         <a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/">Intro to Debugging X86-64 Assembly</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2015/08/14/my-siggraph-2015-experience/">My SIGGRAPH 2015 Experience</a>
       </li>
     
   </ul>
