@@ -10,7 +10,7 @@ footer: true
 ### WebVR, WebAssembly, Debugging Memory Leaks in Node.js Native Addons
 [CampJS](http://vi.campjs.com/) - Springbrook, Australia - November 20-23
 
-[slides](http://nickdesaulniers.github.io/campjs-vi/slides/#/) - [thread](https://github.com/MayhemYDG/iltorb/issues/3)
+[slides](http://nickdesaulniers.github.io/campjs-vi/slides/#/) - [thread](https://github.com/MayhemYDG/iltorb/issues/3) - [WASM video](https://vimeo.com/155071771) - [WebVR video](https://vimeo.com/171333275)
 
 ###WebAssembly
 [Future of Web Apps](https://futureofwebapps.com/london-2015/) - London, England - October 6 & 7
