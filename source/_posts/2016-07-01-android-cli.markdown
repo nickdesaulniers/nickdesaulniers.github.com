@@ -57,8 +57,9 @@ first 64b ARM ISA).
 ```
 
 This will create a nice standalone bundle in `~/arm`.  It will contain our
-cross compiler, linker, headers, libs, and sysroot (crt.o and friends).  Most
-Android devices are ARMv7-A, so you’d use `--arch arm`.  See the other
+cross compiler, linker, headers, libs, and
+[sysroot (crt.o and friends)](https://twitter.com/LostOracle/status/749297676223598592).
+Most Android devices are ARMv7-A, so you’d use `--arch arm`.  See the other
 supported architectures for cross compiling under
 [table 4](https://developer.android.com/ndk/guides/standalone_toolchain.html#itc).
 
