@@ -302,7 +302,7 @@ this file.  Debug symbols will retain source information such as filename and
 line number for all symbols.
 
 This post should have been a simple refresher of some of the basics of working
-with C code code. Finding symbols to be placed into a final executable and
+with C code. Finding symbols to be placed into a final executable and
 relocating addresses are the main job of the linker, and will be the main theme
 of the posts in this series. Keep your eyes out for more in this series on
 memory segmentation.
