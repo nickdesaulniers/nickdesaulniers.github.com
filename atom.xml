@@ -4,7 +4,7 @@
   <title><![CDATA[Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-07-02T11:38:08-07:00</updated>
+  <updated>2016-08-13T21:32:04-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -12,6 +12,452 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Object Files and Symbols]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/"/>
+    <updated>2016-08-13T20:46:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols</id>
+    <content type="html"><![CDATA[<p>What was supposed to be one blog post about memory segmentation turned into
+what will be a series of posts.  As the first in the series, we cover the
+extreme basics of object files and symbols.  In follow up posts, I
+plan to talk about static libraries, dynamic libraries, dynamic linkage, memory
+segments, and finally memory usage accounting.  I also cover command line tools
+for working with these notions, both in Linux and OSX.</p>
+
+<p>A quick review of the compilation+execution pipeline (for terminology):</p>
+
+<ol>
+<li>Lexing produces tokens</li>
+<li>Parsing produces and abstract syntax tree</li>
+<li>Analysis produces a code flow graph</li>
+<li>Optimization produces a reduced code flow graph</li>
+<li>Code gen produces object code</li>
+<li>Linkage produces a complete executable</li>
+<li>Loader instructs the OS how to start running the executable</li>
+</ol>
+
+
+<p>This series will focus on part #6.</p>
+
+<p>Let&rsquo;s say you have some amazing C/C++ code,  but for separations of concerns,
+you want to start moving it out into separate source files.  Whereas previously
+in one file you had:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// main.c</span>
+</span><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">helper</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;helper&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">helper</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You now have two source files and maybe a header:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// main.c</span>
+</span><span class='line'><span class="cp">#include &quot;helper.h&quot;</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">helper</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// helper.h</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">helper</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//helper.c</span>
+</span><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="cp">#include &quot;helper.h&quot;</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">helper</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;helper&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the single source version, we would have compiled and linked that with
+<code>clang main.c</code> and had an executable file.  In the multiple source version, we
+first compile our source files to object files, then link them altogether.
+That can be done separately:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang -c helper.c     <span class="c"># produces helper.o</span>
+</span><span class='line'><span class="nv">$ </span>clang -c main.o       <span class="c"># produces main.o</span>
+</span><span class='line'><span class="nv">$ </span>clang main.o helper.o <span class="c"># produces a.out</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can also do the compilation and linkage in one step:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang helper.c main.c <span class="c"># produces a.out</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Nothing special thus far; C/C++ 101.  In the first case of separate compilation
+and linkage steps, we were left with intermediate object files (.o).  What
+exactly are these?</p>
+
+<p><a href="https://en.wikipedia.org/wiki/Object_file">Object files</a>
+are almost full executables.  They contain machine code, but that code still
+requires a relocation step.  It also contains metadata about the addresses of
+its variables and functions (called symbols) in an associative data structure
+called a
+<a href="https://en.wikipedia.org/wiki/Symbol_table">symbol table</a>.
+The addresses may not be the final address of the symbol in the final
+executable. They also contain some information for the loader and probably some
+other stuff.</p>
+
+<p>Remember that if we fail to specify the helper object file, we&rsquo;ll get an
+undefined symbol error.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang main.c
+</span><span class='line'>Undefined symbols <span class="k">for </span>architecture x86_64:
+</span><span class='line'>  <span class="s2">&quot;_helper&quot;</span>, referenced from:
+</span><span class='line'>      _main in main-459dde.o
+</span><span class='line'>ld: symbol<span class="o">(</span>s<span class="o">)</span> not found <span class="k">for </span>architecture x86_64
+</span><span class='line'>clang: error: linker <span class="nb">command </span>failed with <span class="nb">exit </span>code 1 <span class="o">(</span>use -v to see invocation<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The problem is main.o refers to some symbol called <code>helper</code>, but on it&rsquo;s own
+doesn&rsquo;t contain any more information about it.  Let&rsquo;s say we want to know what
+symbols an object file contains, or expects to find elsewhere.  Let&rsquo;s introduce
+our first tool, <code>nm</code>.  <code>nm</code> will print the name list or symbol table for a
+given object or executable file.  On OSX, these are prefixed with an
+underscore.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>nm helper.o
+</span><span class='line'>0000000000000000 T _helper
+</span><span class='line'>                 U _puts
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>nm main.o
+</span><span class='line'>                 U _helper
+</span><span class='line'>0000000000000000 T _main
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>nm a.out
+</span><span class='line'>...
+</span><span class='line'>0000000100000f50 T _helper
+</span><span class='line'>0000000100000f70 T _main
+</span><span class='line'>                 U _puts
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s dissect what&rsquo;s going on here.  The output (as understood by <code>man 1 nm</code>)
+is a space separated list of address, type, and symbol name.  We can see that
+the addresses are placeholders in object files, and final in executables.  The
+name should make sense; it&rsquo;s the name of the function or variable.  While I&rsquo;d
+love to get in depth on the various symbol types and talk about sections, I
+don&rsquo;t think I could do as great a job as Peter Van Der Linden in his book
+&ldquo;Expert C Programming: Deep C Secrets.&rdquo;</p>
+
+<p>For our case, we just care about whether the symbol in a given object file is
+defined or not.  The type U (undefined) means that this symbol is referenced or
+used in in this object code/executable, but it&rsquo;s value wasn&rsquo;t defined here.
+When we compiled main.c alone and got the undefined symbol error, it should now
+make sense why we got the undefined symbol error for helper.  main.o contains
+a symbol for main, and references helper.  helper.o contains a symbol for
+helper, and references to puts.  The final executable contains symbols for main
+and helper and references to puts.</p>
+
+<p>You might be wondering where puts comes from then, and why didn&rsquo;t we get an
+undefined symbol error for puts like we did earlier for helper.  The answer is
+the C runtime.  libc is implicitly dynamically linked to all executables
+created by the C compiler.  We&rsquo;ll cover dynamic linkage in a later post in
+this series.</p>
+
+<p>When the linker performs relocation on the object files, combining them into a
+final executable, it goes though placeholders of addresses and fills them in.
+We did this manually in our post on
+<a href="http://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/">JIT compilers</a>.</p>
+
+<p>While <code>nm</code> gave us a look into our symbol table, two other tools I use
+frequently are <code>objdump</code> on Linux and <code>otool</code> on OSX.  Both of these provide
+disassembled assembly instructions and their addresses.  Note how the symbols
+for functions get translated into labels of the disassembled functions, and
+that their address points to the first instruction in that label.  Since I&rsquo;ve
+shown <code>objdump</code>
+<a href="http://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/">numerous times</a>
+in
+<a href="http://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/">previous posts</a>,
+here&rsquo;s <code>otool</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>otool -tV helper.o
+</span><span class='line'>helper.o:
+</span><span class='line'><span class="o">(</span>__TEXT,__text<span class="o">)</span> section
+</span><span class='line'>_helper:
+</span><span class='line'>0000000000000000    pushq    %rbp
+</span><span class='line'>0000000000000001    movq    %rsp, %rbp
+</span><span class='line'>0000000000000004    subq    <span class="nv">$0x10</span>, %rsp
+</span><span class='line'>0000000000000008    leaq    0xe<span class="o">(</span>%rip<span class="o">)</span>, %rdi         <span class="c">## literal pool for: &quot;helper&quot;</span>
+</span><span class='line'>000000000000000f    callq    _puts
+</span><span class='line'>0000000000000014    movl    %eax, -0x4<span class="o">(</span>%rbp<span class="o">)</span>
+</span><span class='line'>0000000000000017    addq    <span class="nv">$0x10</span>, %rsp
+</span><span class='line'>000000000000001b    popq    %rbp
+</span><span class='line'>000000000000001c    retq
+</span><span class='line'><span class="nv">$ </span>otool -tV main.o
+</span><span class='line'>main.o:
+</span><span class='line'><span class="o">(</span>__TEXT,__text<span class="o">)</span> section
+</span><span class='line'>_main:
+</span><span class='line'>0000000000000000    pushq    %rbp
+</span><span class='line'>0000000000000001    movq    %rsp, %rbp
+</span><span class='line'>0000000000000004    movb    <span class="nv">$0x0</span>, %al
+</span><span class='line'>0000000000000006    callq    _helper
+</span><span class='line'>000000000000000b    xorl    %eax, %eax
+</span><span class='line'>000000000000000d    popq    %rbp
+</span><span class='line'>000000000000000e    retq
+</span><span class='line'><span class="nv">$ </span>otool -tV a.out
+</span><span class='line'>a.out:
+</span><span class='line'><span class="o">(</span>__TEXT,__text<span class="o">)</span> section
+</span><span class='line'>_helper:
+</span><span class='line'>0000000100000f50    pushq    %rbp
+</span><span class='line'>0000000100000f51    movq    %rsp, %rbp
+</span><span class='line'>0000000100000f54    subq    <span class="nv">$0x10</span>, %rsp
+</span><span class='line'>0000000100000f58    leaq    0x43<span class="o">(</span>%rip<span class="o">)</span>, %rdi        <span class="c">## literal pool for: &quot;helper&quot;</span>
+</span><span class='line'>0000000100000f5f    callq    0x100000f80             <span class="c">## symbol stub for: _puts</span>
+</span><span class='line'>0000000100000f64    movl    %eax, -0x4<span class="o">(</span>%rbp<span class="o">)</span>
+</span><span class='line'>0000000100000f67    addq    <span class="nv">$0x10</span>, %rsp
+</span><span class='line'>0000000100000f6b    popq    %rbp
+</span><span class='line'>0000000100000f6c    retq
+</span><span class='line'>0000000100000f6d    nop
+</span><span class='line'>0000000100000f6e    nop
+</span><span class='line'>0000000100000f6f    nop
+</span><span class='line'>_main:
+</span><span class='line'>0000000100000f70    pushq    %rbp
+</span><span class='line'>0000000100000f71    movq    %rsp, %rbp
+</span><span class='line'>0000000100000f74    movb    <span class="nv">$0x0</span>, %al
+</span><span class='line'>0000000100000f76    callq    _helper
+</span><span class='line'>0000000100000f7b    xorl    %eax, %eax
+</span><span class='line'>0000000100000f7d    popq    %rbp
+</span><span class='line'>0000000100000f7e    retq
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Also note that for static linkage, symbols need to be unique*, as they refer to
+memory locations to either read/write to in the case of variables or locations
+to jump to in the case of functions.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat double_define.c
+</span><span class='line'>void a <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'>void a <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'>int main <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'><span class="nv">$ </span>clang double_define.c
+</span><span class='line'>double_define.c:2:6: error: redefinition of <span class="s1">&#39;a&#39;</span>
+</span><span class='line'>void a <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'>     ^
+</span><span class='line'>double_define.c:1:6: note: previous definition is here
+</span><span class='line'>void a <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'>     ^
+</span><span class='line'>1 error generated.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>*: there&rsquo;s a notion of weak symbols, and some special things for dynamic
+libraries we&rsquo;ll see in a follow up post.</p>
+
+<p>Languages like C++ that support function overloading (functions with the same
+name but different arguments, return types, namespaces, or class) must mangle
+their function names to make them unique.</p>
+
+<p>Code like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">namespace</span> <span class="n">util</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Widget</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span><span class="o">:</span>
+</span><span class='line'>      <span class="kt">void</span> <span class="n">doSomething</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Will produce symbols like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang class.cpp -std<span class="o">=</span>c++11
+</span><span class='line'><span class="nv">$ </span>nm a.out
+</span><span class='line'>0000000100000f70 T __ZN4util6Widget11doSomethingEb
+</span><span class='line'>0000000100000f60 T __ZN4util6Widget11doSomethingEi
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note: GNU <code>nm</code> on Linux distros will have a <code>--demangle</code> option:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>nm --demangle a.out
+</span><span class='line'>...
+</span><span class='line'>00000000004006d0 T util::Widget::doSomething<span class="o">(</span>bool<span class="o">)</span>
+</span><span class='line'>00000000004006a0 T util::Widget::doSomething<span class="o">(</span>int<span class="o">)</span>
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>On OSX, we can pipe <code>nm</code> into <code>c++filt</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>nm a.out | c++filt
+</span><span class='line'>0000000100000f70 T util::Widget::doSomething<span class="o">(</span>bool<span class="o">)</span>
+</span><span class='line'>0000000100000f60 T util::Widget::doSomething<span class="o">(</span>int<span class="o">)</span>
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, if you don&rsquo;t have an object file, but instead a backtrace that needs
+demangling, you can either invoke <code>c++filt</code> manually or use
+<a href="http://demangler.com/">demangler.com</a>.</p>
+
+<p>Rust also mangles its function names.  For FFI or interface with C functions,
+other languages usually have to look for or expose symbols in a manner suited
+to C, the lowest common denominator.
+<a href="http://en.cppreference.com/w/cpp/language/language_linkage">C++</a>
+has <code>extern "C"</code> blocks and
+<a href="https://doc.rust-lang.org/book/ffi.html">Rust</a>
+has <code>extern</code> blocks.</p>
+
+<p>We can use <code>strip</code> to remove symbols from a binary.  This can slim down a
+binary at the cost of making stack traces unreadable.  If you&rsquo;re following
+along at home, try comparing the output from your disassembler and <code>nm</code> before
+and after running <code>strip</code> on the executable.  Luckily, you can&rsquo;t strip the
+symbols out of object files, otherwise they&rsquo;d be useless as you&rsquo;d no longer be
+able to link them.</p>
+
+<p>If we compile with the <code>-g</code> flag, we can create a different kind of symbol;
+<a href="https://en.wikipedia.org/wiki/Debug_symbol">debug symbols</a>.
+Depending on your compiler+host OS, you&rsquo;ll get another file you can run though
+<code>nm</code> to see an entry per symbol.  You&rsquo;ll get more info by using <code>dwarfdump</code> on
+this file.  Debug symbols will retain source information such as filename and
+line number for all symbols.</p>
+
+<p>This post should have been a simple refresher of some of the basics of working
+with C code code. Finding symbols to be placed into a final executable and
+relocating addresses are the main job of the linker, and will be the main theme
+of the posts in this series. Keep your eyes out for more in this series on
+memory segmentation.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Cross Compiling C/C++ for Android]]></title>
@@ -6332,205 +6778,6 @@ being.  It&rsquo;s important therefor, to treasure your body while it lasts.</p>
 
 <blockquote><p>There will allways be hope, wherever you are, until you yourself abondon it.</p><footer><strong>Old Revolutionary</strong> <cite>Lost Odyssey</cite></footer></blockquote>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Basic JIT]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/"/>
-    <updated>2013-04-03T00:05:00-07:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2013/04/03/basic-jit</id>
-    <content type="html"><![CDATA[<p>Ever since I learned about
-<a href="`http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
-from the various
-<a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations">Ruby VMs</a>
-and
-<a href="http://www.slideshare.net/newmovie/know-yourengines-velocity2011">JavaScript VMs</a>,
-I&rsquo;ve been inspired.  I could tell you all about how just in time (JIT)
-compilation worked, and how it could give your interpreted language a speed
-boost.  It was so cool.  Well, it still is!  There&rsquo;s a ton of research going on
-around JIT compilation.  But the problem for me is that I could never figure
-out, let alone guess, how it was being done.  How could you compile code at
-runtime, and then execute it?  I asked
-<a href="http://pybites.blogspot.com/">Benjamin Peterson</a>
-about how he had learned so much about JITs, and he referred me to
-<a href="http://pypy.org/">pypy</a> (a Python JIT)&rsquo;s source.  But digging through source
-was too much; I just wanted a simple example I could grok quickly.  So I&rsquo;ve
-always been left wondering.</p>
-
-<p>Luckily, I have an awesome job where I can meet face to face with the people
-who are doing the work on making awesome production JIT compilers.  I spent
-part of last week at <a href="http://www.gdconf.com/">GDC</a> demoing
-<a href="https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/">Unreal Engine 3</a>
-running in the browser.  The demo was actually the hard work of many, and I&rsquo;ll
-dive into it more in another post following up the events, but
-<a href="https://blog.mozilla.org/luke/">Luke Wagner</a>, a Mozillian working on the
-JavaScript engine, added OdinMonkey to SpiderMonkey to allow optimizations of
-<a href="https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/">asm.js</a>.</p>
-
-<p>Luke is super friendly, and just listening to him talk with Dave Herman and
-Alon Zakai is a treat.  I asked Luke the basics of JIT&#8217;ing at tonight&rsquo;s Mozilla
-Research Party and he explained clearly. <em>Compile a simple object file, use
-objdump to get the resulting platform specific assembly, use the mmap system
-call to allocate some memory that you can write to <strong>AND</strong> execute, copy the
-instructions into that buffer, typecast it to a function pointer and finally
-call that.</em></p>
-
-<p>So my goal was to at runtime, create a function that for simplicity&rsquo;s sake
-multiplied two integers.  The first thing I did was write up a simple .c file,
-then compile that to an object file with the -c flag.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// Compile me with: clang -c mul.c -o mul.o</span>
-</span><span class='line'><span class="kt">int</span> <span class="nf">mul</span> <span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As a heads up, I&rsquo;m on 64bit OSX.  So the generated assembly may differ on your
-platform.  Obviously, the production JIT maintainers have abstracted away the
-platform dependency, taking into account what platform you&rsquo;re on.  My example
-doesn&rsquo;t, but that why I&rsquo;m walking you through the steps I took to find out the
-x86_64 instructions.  The next step is to grab binutils, which is not installed
-by default in OSX.  I used homebrew to install it: <code>brew install binutils</code>.
-Homebrew installs gobjdump but it works with the same flags.</p>
-
-<p>Once you have binutils and [g]objdump, the next step is to read out the machine
-code from your object file, which is represented in hexadecimal.  By running
-<code>gobjdump -j .text -d mul.o -M intel</code> you should get something similar
-(remember, architecture dependent).</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="err">$</span> <span class="n">gobjdump</span> <span class="o">-</span><span class="n">j</span> <span class="p">.</span><span class="n">text</span> <span class="o">-</span><span class="n">d</span> <span class="n">mul</span><span class="p">.</span><span class="n">o</span> <span class="o">-</span><span class="n">M</span> <span class="n">intel</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">Disassembly</span> <span class="n">of</span> <span class="n">section</span> <span class="p">.</span><span class="n">text</span><span class="o">:</span>
-</span><span class='line'>
-</span><span class='line'><span class="mo">0000000000000000</span> <span class="o">&lt;</span><span class="n">_mul</span><span class="o">&gt;:</span>
-</span><span class='line'><span class="mi">0</span><span class="o">:</span> <span class="mi">55</span> <span class="n">push</span> <span class="n">rbp</span>
-</span><span class='line'><span class="mi">1</span><span class="o">:</span> <span class="mi">48</span> <span class="mi">89</span> <span class="n">e5</span> <span class="n">mov</span> <span class="n">rbp</span><span class="p">,</span><span class="n">rsp</span>
-</span><span class='line'><span class="mi">4</span><span class="o">:</span> <span class="mi">89</span> <span class="mi">7</span><span class="n">d</span> <span class="n">fc</span> <span class="n">mov</span> <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x4</span><span class="p">],</span><span class="n">edi</span>
-</span><span class='line'><span class="mi">7</span><span class="o">:</span> <span class="mi">89</span> <span class="mi">75</span> <span class="n">f8</span> <span class="n">mov</span> <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x8</span><span class="p">],</span><span class="n">esi</span>
-</span><span class='line'><span class="nl">a:</span> <span class="mi">8</span><span class="n">b</span> <span class="mi">75</span> <span class="n">fc</span> <span class="n">mov</span> <span class="n">esi</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x4</span><span class="p">]</span>
-</span><span class='line'><span class="nl">d:</span> <span class="mf">0f</span> <span class="n">af</span> <span class="mi">75</span> <span class="n">f8</span> <span class="n">imul</span> <span class="n">esi</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x8</span><span class="p">]</span>
-</span><span class='line'><span class="mi">11</span><span class="o">:</span> <span class="mi">89</span> <span class="n">f0</span> <span class="n">mov</span> <span class="n">eax</span><span class="p">,</span><span class="n">esi</span>
-</span><span class='line'><span class="mi">13</span><span class="o">:</span> <span class="mi">5</span><span class="n">d</span> <span class="n">pop</span> <span class="n">rbp</span>
-</span><span class='line'><span class="mi">14</span><span class="o">:</span> <span class="n">c3</span> <span class="n">ret</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Ok, so those instructions vary in size.  I don&rsquo;t know any x86 so I can&rsquo;t
-comment too much on that particular
-<a href="http://en.wikipedia.org/wiki/Instruction_set">Instruction Set Architecture</a>
-but they&rsquo;re obviously in pairs of hexadecimal digits.  16<sup>2</sup> == 2<sup>8</sup> meaning that
-each pair of hex digits can be represented by a single byte (or char of memory).
-So these can all be thrown in an unsigned char [].  The man page for mmap explains
-all of the fun flags, but the important point is that this way of allocating
-memory makes it executable, so it can do bad things that memory allocated from
-malloc can&rsquo;t.  I&rsquo;m sure the JavaScript engine guys have fun with that.  Once
-memory is copied in, you can typecast the memory to a function pointer.
-Make sure to check out the syntax that reminds me of a function pointer in an
-argument list, but being used as an L-value.  Of course, you could just put the
-cast right in front of the memory before you use it, but I find this as neat,
-not so common C syntax.  I kind of
-<a href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/">have a thing</a>
-for stuff like that.  Then we can call it!  The resulting code looks like this.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt; </span><span class="c1">// printf</span>
-</span><span class='line'><span class="cp">#include &lt;string.h&gt; </span><span class="c1">// memcpy</span>
-</span><span class='line'><span class="cp">#include &lt;sys/mman.h&gt; </span><span class="c1">// mmap, munmap</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'><span class="c1">// Hexadecimal x86_64 machine code for: int mul (int a, int b) { return a * b; }</span>
-</span><span class='line'><span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">code</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="mh">0x55</span><span class="p">,</span> <span class="c1">// push rbp</span>
-</span><span class='line'>  <span class="mh">0x48</span><span class="p">,</span> <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xe5</span><span class="p">,</span> <span class="c1">// mov rbp, rsp</span>
-</span><span class='line'>  <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0x7d</span><span class="p">,</span> <span class="mh">0xfc</span><span class="p">,</span> <span class="c1">// mov DWORD PTR [rbp-0x4],edi</span>
-</span><span class='line'>  <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0xf8</span><span class="p">,</span> <span class="c1">// mov DWORD PTR [rbp-0x8],esi</span>
-</span><span class='line'>  <span class="mh">0x8b</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0xfc</span><span class="p">,</span> <span class="c1">// mov esi,DWORD PTR [rbp-04x]</span>
-</span><span class='line'>  <span class="mh">0x0f</span><span class="p">,</span> <span class="mh">0xaf</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0xf8</span><span class="p">,</span> <span class="c1">// imul esi,DWORD PTR [rbp-0x8]</span>
-</span><span class='line'>  <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xf0</span><span class="p">,</span> <span class="c1">// mov eax,esi</span>
-</span><span class='line'>  <span class="mh">0x5d</span><span class="p">,</span> <span class="c1">// pop rbp</span>
-</span><span class='line'>  <span class="mh">0xc3</span> <span class="c1">// ret</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// allocate executable memory via sys call</span>
-</span><span class='line'>  <span class="kt">void</span><span class="o">*</span> <span class="n">mem</span> <span class="o">=</span> <span class="n">mmap</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">code</span><span class="p">),</span> <span class="n">PROT_WRITE</span> <span class="o">|</span> <span class="n">PROT_EXEC</span><span class="p">,</span>
-</span><span class='line'>                   <span class="n">MAP_ANON</span> <span class="o">|</span> <span class="n">MAP_PRIVATE</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// copy runtime code into allocated memory</span>
-</span><span class='line'>  <span class="n">memcpy</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">code</span><span class="p">));</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// typecast allocated memory to a function pointer</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">func</span><span class="p">)</span> <span class="p">()</span> <span class="o">=</span> <span class="n">mem</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// call function pointer</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d * %d = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">func</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">11</span><span class="p">));</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// Free up allocated memory</span>
-</span><span class='line'>  <span class="n">munmap</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">code</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Voila!  How neat is that!  It works!  Luke&rsquo;s directions, an hour of working on
-this, and
-<a href="http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html">this article</a>
-in particular, and we have a simple JIT working. Again, this simple example is super
-non-portable and dealing with memory in this fashion is generally unsafe.  But
-now I know the basics of JIT&#8217;ing code, and now so do you!</p>
-
-<p>Thanks Luke!</p>
 ]]></content>
   </entry>
   

@@ -1,0 +1,734 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Object Files and Symbols - Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="What was supposed to be one blog post about memory segmentation turned into
+what will be a series of posts. As the first in the series, we cover the &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemy's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/about">About</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/">Blog</a></li>
+  <li><a href="/publications">Publications</a></li>
+  <li><a href="/talks">Talks</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Object Files and Symbols</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-08-13T20:46:00-07:00" pubdate data-updated="true">Aug 13<span>th</span>, 2016</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>What was supposed to be one blog post about memory segmentation turned into
+what will be a series of posts.  As the first in the series, we cover the
+extreme basics of object files and symbols.  In follow up posts, I
+plan to talk about static libraries, dynamic libraries, dynamic linkage, memory
+segments, and finally memory usage accounting.  I also cover command line tools
+for working with these notions, both in Linux and OSX.</p>
+
+<p>A quick review of the compilation+execution pipeline (for terminology):</p>
+
+<ol>
+<li>Lexing produces tokens</li>
+<li>Parsing produces and abstract syntax tree</li>
+<li>Analysis produces a code flow graph</li>
+<li>Optimization produces a reduced code flow graph</li>
+<li>Code gen produces object code</li>
+<li>Linkage produces a complete executable</li>
+<li>Loader instructs the OS how to start running the executable</li>
+</ol>
+
+
+<p>This series will focus on part #6.</p>
+
+<p>Let&rsquo;s say you have some amazing C/C++ code,  but for separations of concerns,
+you want to start moving it out into separate source files.  Whereas previously
+in one file you had:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// main.c</span>
+</span><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">helper</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;helper&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">helper</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You now have two source files and maybe a header:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// main.c</span>
+</span><span class='line'><span class="cp">#include &quot;helper.h&quot;</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">helper</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// helper.h</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">helper</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">//helper.c</span>
+</span><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="cp">#include &quot;helper.h&quot;</span>
+</span><span class='line'><span class="kt">void</span> <span class="nf">helper</span> <span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;helper&quot;</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In the single source version, we would have compiled and linked that with
+<code>clang main.c</code> and had an executable file.  In the multiple source version, we
+first compile our source files to object files, then link them altogether.
+That can be done separately:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang -c helper.c     <span class="c"># produces helper.o</span>
+</span><span class='line'><span class="nv">$ </span>clang -c main.o       <span class="c"># produces main.o</span>
+</span><span class='line'><span class="nv">$ </span>clang main.o helper.o <span class="c"># produces a.out</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can also do the compilation and linkage in one step:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang helper.c main.c <span class="c"># produces a.out</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Nothing special thus far; C/C++ 101.  In the first case of separate compilation
+and linkage steps, we were left with intermediate object files (.o).  What
+exactly are these?</p>
+
+<p><a href="https://en.wikipedia.org/wiki/Object_file">Object files</a>
+are almost full executables.  They contain machine code, but that code still
+requires a relocation step.  It also contains metadata about the addresses of
+its variables and functions (called symbols) in an associative data structure
+called a
+<a href="https://en.wikipedia.org/wiki/Symbol_table">symbol table</a>.
+The addresses may not be the final address of the symbol in the final
+executable. They also contain some information for the loader and probably some
+other stuff.</p>
+
+<p>Remember that if we fail to specify the helper object file, we&rsquo;ll get an
+undefined symbol error.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang main.c
+</span><span class='line'>Undefined symbols <span class="k">for </span>architecture x86_64:
+</span><span class='line'>  <span class="s2">&quot;_helper&quot;</span>, referenced from:
+</span><span class='line'>      _main in main-459dde.o
+</span><span class='line'>ld: symbol<span class="o">(</span>s<span class="o">)</span> not found <span class="k">for </span>architecture x86_64
+</span><span class='line'>clang: error: linker <span class="nb">command </span>failed with <span class="nb">exit </span>code 1 <span class="o">(</span>use -v to see invocation<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The problem is main.o refers to some symbol called <code>helper</code>, but on it&rsquo;s own
+doesn&rsquo;t contain any more information about it.  Let&rsquo;s say we want to know what
+symbols an object file contains, or expects to find elsewhere.  Let&rsquo;s introduce
+our first tool, <code>nm</code>.  <code>nm</code> will print the name list or symbol table for a
+given object or executable file.  On OSX, these are prefixed with an
+underscore.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>nm helper.o
+</span><span class='line'>0000000000000000 T _helper
+</span><span class='line'>                 U _puts
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>nm main.o
+</span><span class='line'>                 U _helper
+</span><span class='line'>0000000000000000 T _main
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>nm a.out
+</span><span class='line'>...
+</span><span class='line'>0000000100000f50 T _helper
+</span><span class='line'>0000000100000f70 T _main
+</span><span class='line'>                 U _puts
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s dissect what&rsquo;s going on here.  The output (as understood by <code>man 1 nm</code>)
+is a space separated list of address, type, and symbol name.  We can see that
+the addresses are placeholders in object files, and final in executables.  The
+name should make sense; it&rsquo;s the name of the function or variable.  While I&rsquo;d
+love to get in depth on the various symbol types and talk about sections, I
+don&rsquo;t think I could do as great a job as Peter Van Der Linden in his book
+&ldquo;Expert C Programming: Deep C Secrets.&rdquo;</p>
+
+<p>For our case, we just care about whether the symbol in a given object file is
+defined or not.  The type U (undefined) means that this symbol is referenced or
+used in in this object code/executable, but it&rsquo;s value wasn&rsquo;t defined here.
+When we compiled main.c alone and got the undefined symbol error, it should now
+make sense why we got the undefined symbol error for helper.  main.o contains
+a symbol for main, and references helper.  helper.o contains a symbol for
+helper, and references to puts.  The final executable contains symbols for main
+and helper and references to puts.</p>
+
+<p>You might be wondering where puts comes from then, and why didn&rsquo;t we get an
+undefined symbol error for puts like we did earlier for helper.  The answer is
+the C runtime.  libc is implicitly dynamically linked to all executables
+created by the C compiler.  We&rsquo;ll cover dynamic linkage in a later post in
+this series.</p>
+
+<p>When the linker performs relocation on the object files, combining them into a
+final executable, it goes though placeholders of addresses and fills them in.
+We did this manually in our post on
+<a href="/blog/2015/05/25/interpreter-compiler-jit/">JIT compilers</a>.</p>
+
+<p>While <code>nm</code> gave us a look into our symbol table, two other tools I use
+frequently are <code>objdump</code> on Linux and <code>otool</code> on OSX.  Both of these provide
+disassembled assembly instructions and their addresses.  Note how the symbols
+for functions get translated into labels of the disassembled functions, and
+that their address points to the first instruction in that label.  Since I&rsquo;ve
+shown <code>objdump</code>
+<a href="/blog/2013/04/03/basic-jit/">numerous times</a>
+in
+<a href="/blog/2014/04/18/lets-write-some-x86-64/">previous posts</a>,
+here&rsquo;s <code>otool</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>otool -tV helper.o
+</span><span class='line'>helper.o:
+</span><span class='line'><span class="o">(</span>__TEXT,__text<span class="o">)</span> section
+</span><span class='line'>_helper:
+</span><span class='line'>0000000000000000    pushq    %rbp
+</span><span class='line'>0000000000000001    movq    %rsp, %rbp
+</span><span class='line'>0000000000000004    subq    <span class="nv">$0x10</span>, %rsp
+</span><span class='line'>0000000000000008    leaq    0xe<span class="o">(</span>%rip<span class="o">)</span>, %rdi         <span class="c">## literal pool for: &quot;helper&quot;</span>
+</span><span class='line'>000000000000000f    callq    _puts
+</span><span class='line'>0000000000000014    movl    %eax, -0x4<span class="o">(</span>%rbp<span class="o">)</span>
+</span><span class='line'>0000000000000017    addq    <span class="nv">$0x10</span>, %rsp
+</span><span class='line'>000000000000001b    popq    %rbp
+</span><span class='line'>000000000000001c    retq
+</span><span class='line'><span class="nv">$ </span>otool -tV main.o
+</span><span class='line'>main.o:
+</span><span class='line'><span class="o">(</span>__TEXT,__text<span class="o">)</span> section
+</span><span class='line'>_main:
+</span><span class='line'>0000000000000000    pushq    %rbp
+</span><span class='line'>0000000000000001    movq    %rsp, %rbp
+</span><span class='line'>0000000000000004    movb    <span class="nv">$0x0</span>, %al
+</span><span class='line'>0000000000000006    callq    _helper
+</span><span class='line'>000000000000000b    xorl    %eax, %eax
+</span><span class='line'>000000000000000d    popq    %rbp
+</span><span class='line'>000000000000000e    retq
+</span><span class='line'><span class="nv">$ </span>otool -tV a.out
+</span><span class='line'>a.out:
+</span><span class='line'><span class="o">(</span>__TEXT,__text<span class="o">)</span> section
+</span><span class='line'>_helper:
+</span><span class='line'>0000000100000f50    pushq    %rbp
+</span><span class='line'>0000000100000f51    movq    %rsp, %rbp
+</span><span class='line'>0000000100000f54    subq    <span class="nv">$0x10</span>, %rsp
+</span><span class='line'>0000000100000f58    leaq    0x43<span class="o">(</span>%rip<span class="o">)</span>, %rdi        <span class="c">## literal pool for: &quot;helper&quot;</span>
+</span><span class='line'>0000000100000f5f    callq    0x100000f80             <span class="c">## symbol stub for: _puts</span>
+</span><span class='line'>0000000100000f64    movl    %eax, -0x4<span class="o">(</span>%rbp<span class="o">)</span>
+</span><span class='line'>0000000100000f67    addq    <span class="nv">$0x10</span>, %rsp
+</span><span class='line'>0000000100000f6b    popq    %rbp
+</span><span class='line'>0000000100000f6c    retq
+</span><span class='line'>0000000100000f6d    nop
+</span><span class='line'>0000000100000f6e    nop
+</span><span class='line'>0000000100000f6f    nop
+</span><span class='line'>_main:
+</span><span class='line'>0000000100000f70    pushq    %rbp
+</span><span class='line'>0000000100000f71    movq    %rsp, %rbp
+</span><span class='line'>0000000100000f74    movb    <span class="nv">$0x0</span>, %al
+</span><span class='line'>0000000100000f76    callq    _helper
+</span><span class='line'>0000000100000f7b    xorl    %eax, %eax
+</span><span class='line'>0000000100000f7d    popq    %rbp
+</span><span class='line'>0000000100000f7e    retq
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Also note that for static linkage, symbols need to be unique*, as they refer to
+memory locations to either read/write to in the case of variables or locations
+to jump to in the case of functions.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat double_define.c
+</span><span class='line'>void a <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'>void a <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'>int main <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'><span class="nv">$ </span>clang double_define.c
+</span><span class='line'>double_define.c:2:6: error: redefinition of <span class="s1">&#39;a&#39;</span>
+</span><span class='line'>void a <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'>     ^
+</span><span class='line'>double_define.c:1:6: note: previous definition is here
+</span><span class='line'>void a <span class="o">()</span> <span class="o">{}</span>
+</span><span class='line'>     ^
+</span><span class='line'>1 error generated.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>*: there&rsquo;s a notion of weak symbols, and some special things for dynamic
+libraries we&rsquo;ll see in a follow up post.</p>
+
+<p>Languages like C++ that support function overloading (functions with the same
+name but different arguments, return types, namespaces, or class) must mangle
+their function names to make them unique.</p>
+
+<p>Code like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">namespace</span> <span class="n">util</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">Widget</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">public</span><span class="o">:</span>
+</span><span class='line'>      <span class="kt">void</span> <span class="n">doSomething</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Will produce symbols like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang class.cpp -std<span class="o">=</span>c++11
+</span><span class='line'><span class="nv">$ </span>nm a.out
+</span><span class='line'>0000000100000f70 T __ZN4util6Widget11doSomethingEb
+</span><span class='line'>0000000100000f60 T __ZN4util6Widget11doSomethingEi
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note: GNU <code>nm</code> on Linux distros will have a <code>--demangle</code> option:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>nm --demangle a.out
+</span><span class='line'>...
+</span><span class='line'>00000000004006d0 T util::Widget::doSomething<span class="o">(</span>bool<span class="o">)</span>
+</span><span class='line'>00000000004006a0 T util::Widget::doSomething<span class="o">(</span>int<span class="o">)</span>
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>On OSX, we can pipe <code>nm</code> into <code>c++filt</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>nm a.out | c++filt
+</span><span class='line'>0000000100000f70 T util::Widget::doSomething<span class="o">(</span>bool<span class="o">)</span>
+</span><span class='line'>0000000100000f60 T util::Widget::doSomething<span class="o">(</span>int<span class="o">)</span>
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, if you don&rsquo;t have an object file, but instead a backtrace that needs
+demangling, you can either invoke <code>c++filt</code> manually or use
+<a href="http://demangler.com/">demangler.com</a>.</p>
+
+<p>Rust also mangles its function names.  For FFI or interface with C functions,
+other languages usually have to look for or expose symbols in a manner suited
+to C, the lowest common denominator.
+<a href="http://en.cppreference.com/w/cpp/language/language_linkage">C++</a>
+has <code>extern "C"</code> blocks and
+<a href="https://doc.rust-lang.org/book/ffi.html">Rust</a>
+has <code>extern</code> blocks.</p>
+
+<p>We can use <code>strip</code> to remove symbols from a binary.  This can slim down a
+binary at the cost of making stack traces unreadable.  If you&rsquo;re following
+along at home, try comparing the output from your disassembler and <code>nm</code> before
+and after running <code>strip</code> on the executable.  Luckily, you can&rsquo;t strip the
+symbols out of object files, otherwise they&rsquo;d be useless as you&rsquo;d no longer be
+able to link them.</p>
+
+<p>If we compile with the <code>-g</code> flag, we can create a different kind of symbol;
+<a href="https://en.wikipedia.org/wiki/Debug_symbol">debug symbols</a>.
+Depending on your compiler+host OS, you&rsquo;ll get another file you can run though
+<code>nm</code> to see an entry per symbol.  You&rsquo;ll get more info by using <code>dwarfdump</code> on
+this file.  Debug symbols will retain source information such as filename and
+line number for all symbols.</p>
+
+<p>This post should have been a simple refresher of some of the basics of working
+with C code code. Finding symbols to be placed into a final executable and
+relocating addresses are the main job of the linker, and will be the main theme
+of the posts in this series. Keep your eyes out for more in this series on
+memory segmentation.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-08-13T20:46:00-07:00" pubdate data-updated="true">Aug 13<span>th</span>, 2016</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/c/'>C</a>, <a class='category' href='/blog/categories/c-plus-plus/'>C++</a>, <a class='category' href='/blog/categories/demangle/'>Demangle</a>, <a class='category' href='/blog/categories/object/'>Object</a>, <a class='category' href='/blog/categories/symbol/'>Symbol</a>, <a class='category' href='/blog/categories/file/'>file</a>, <a class='category' href='/blog/categories/nm/'>nm</a>, <a class='category' href='/blog/categories/objdump/'>objdump</a>, <a class='category' href='/blog/categories/otool/'>otool</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/" data-via="LostOracle" data-counturl="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/07/01/android-cli/" title="Previous Post: Cross Compiling C/C++ for Android">&laquo; Cross Compiling C/C++ for Android</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/01/android-cli/">Cross Compiling C/C++ for Android</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/06/18/mutt-gmail-ubuntu/">Setting Up Mutt With Gmail on Ubuntu</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/30/data-models-and-word-size/">Data Models and Word Size</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/15/whats-in-a-word/">What's in a Word?</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/';
+        var disqus_url = 'http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -9,7 +9,8 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="&#8230;&#8220;&#8216;Our speech interposes itself between apprehension and truth like a dusty pane or warped mirror. The tongue of Eden was like a &hellip;">
+  <meta name="description" content="It&rsquo;s a feeling of immense satisfaction when we complete a major achievement.
+Being able to say &ldquo;it&rsquo;s done&rdquo; is such a great &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +81,189 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/01/25/writing-my-first-book-chapter/">Writing My First Technical Book Chapter</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-01-25T20:50:00-08:00" pubdate data-updated="true">Jan 25<span>th</span>, 2015</time>
+        
+         | <a href="/blog/2015/01/25/writing-my-first-book-chapter/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It&rsquo;s a feeling of immense satisfaction when we complete a major achievement.
+Being able to say &ldquo;it&rsquo;s done&rdquo; is such a great stress relief.  Recently, I
+completed work on my first publication, a chapter about Emscripten for the
+upcoming book
+<a href="http://www.crcpress.com/product/isbn/9781498716079">WebGL Insights</a>
+to be published by CRC Press in time for
+<a href="http://s2015.siggraph.org/">SIGGRAPH 2015</a>.</p>
+
+<p>One of the life goals I&rsquo;ve had for a while is writing a book.  A romantic idea
+it seems to have your ideas transcribed to a medium that will outlast your
+bones.  It&rsquo;s enamoring to hold books from long dead authors, and see that their
+ideas are still valid and powerful.  Being able to write a book, in my eyes,
+provides some form of life after death.  Though, one could imagine ancestors
+reading blog posts from long dead relatives via utilities like the
+<a href="https://web.archive.org/web/20141218200253/http://nickdesaulniers.github.io/">Internet Archive&rsquo;s WayBack Machine</a>.</p>
+
+<p>Writing about highly technical content places an upper limit on the usefulness
+of the content, and shows as &ldquo;dated&rdquo; quickly.  A book I recently ordered was
+<a href="http://shop.oreilly.com/product/0636920033707.do">Scott Meyers&#8217; Effective Modern C++</a>.
+This title strikes me, because what
+exactly do we consider <em>modern</em> or <em>contemporary</em>?  Those adjectives only make
+sense in a time limited context.  When C++ undergoes another revolution,
+Scott&rsquo;s book may become irrelevant, at which point the adjective <em>modern</em>
+becomes incorrect.  Not that I think Scott&rsquo;s book or my own is time-limited in
+usefulness; more that technical books&#8217; duration of usefulness is significantly
+less than philosophical works like <em>1984</em> or <em>Brave New World</em>.  Almost like having
+a record in a sport is a feather in one&rsquo;s cap, until the next best thing comes
+along and you&rsquo;re forgotten to time.</p>
+
+<p>Somewhat short of my goal of writing an entire book, I only wrote a single
+chapter for a book.  It&rsquo;s interesting to see that a lot of graphics programming
+books seem to follow the format of one author per chapter or at least multiple
+authors.  Such book series as <em>GPU Gems</em>, <em>Shader X</em>, and <em>GPU Pro</em> follow this
+pattern, which is interesting.  After seeing how much work goes into one
+chapter, I think I&rsquo;m content with not writing an entire book, though I may
+revisit that decision later in life.</p>
+
+<p>How did this all get started?  I had followed Graham Sellers on Twitter and saw
+<a href="http://octopress.org/2015/01/15/octopress-3.0-is-coming/">a tweet from him</a>
+about a call to authors for WebGL Insights.  Explicitly in the linked to page
+under the call for authors was interest in proposals about Emscripten and
+asm.js.</p>
+
+<div class='embed twitter'><blockquote class="twitter-tweet"><p lang="en" dir="ltr">Want to contribute to a book? <a href="https://twitter.com/pjcozzi">@pjcozzi</a> is calling for authors for the new <a href="https://twitter.com/hashtag/WebGL?src=hash">#WebGL</a> Insights. Go here: <a href="http://t.co/n7wrXVb4Vl">http://t.co/n7wrXVb4Vl</a>.</p>&mdash; Graham Sellers (@grahamsellers) <a href="https://twitter.com/grahamsellers/status/504974663848456193">August 28, 2014</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script></div>
+
+
+<p>At the time, I was headlong into a project helping Disney port Where&rsquo;s My Water
+from C++ to JavaScript using Emscripten.  I was intimately familiar with
+Emscripten, having been trained by one of its most prolific contributors,
+<a href="http://clb.demon.fi/">Jukka Jylänki</a>.
+Also, Emscripten&rsquo;s creator,
+<a href="http://mozakai.blogspot.com/">Alon Zakai</a>, sat on the other side
+of the office from me, so I was constantly pestering him about how to do
+different things with Emscripten.  The #emscripten irc channel on
+irc.mozilla.org is very active, but there&rsquo;s no substitute for being able to
+have a second pair of eyes look over your shoulder when something is going
+wrong.</p>
+
+<p>Knowing Emscripten&rsquo;s strengths and limitations, seeing interest in the subject
+I knew a bit about (but wouldn&rsquo;t consider myself an expert in), and having the
+goal of writing something to be published in book form, this was my opportunity
+to seize.</p>
+
+<p>I wrote up a quick proposal with a few figures about why Emscripten was
+important and how it worked, and sent it off with fingers crossed.  Initially,
+I was overjoyed to learn when my proposal was accepted, but then there was a
+slow realization that I had a lot of work to do.  The editor,
+<a href="http://www.seas.upenn.edu/~pcozzi/">Patrick Cozzi</a>, set up
+<a href="https://github.com/WebGLInsights/WebGLInsights-1">a GitHub repo</a>
+for our additional code and figures, a mailing
+list, and sent us a chapter template document detailing the process.  We had 6
+weeks to write the rough draft, then 6 weeks to work with reviewers to get the
+chapter done.  The chapter was written as a Google Doc, so that we could have
+explicit control over who we shared the document with, and what kinds of
+editing power they had over the document.  I think this approach worked well.</p>
+
+<p>I had most of the content written by week 2.  This was surprising to me,
+because I&rsquo;m a heavy procrastinator.  The only issue was that the number of
+pages I wrote was double the allowed amount; way over page count.  I was
+worried about the amount of content, but told myself to try not to be attached
+to the content, just as you shouldn&rsquo;t stay attached with your code.</p>
+
+<p>I took the additional 4 weeks I had left to finish the rough draft to invite
+some of my friends and coworkers to provide feedback.  It&rsquo;s useful to have a
+short list of people who have ever offered to help in this regard or owe you
+one.  You&rsquo;ll also want a diverse team of reviewers that are either close to the
+subject matter, or approaching it as new information.  This allows you to stay
+technically correct, while not presuming your readers know everything that you
+do.</p>
+
+<p>The strategy worked out well; some of the content I had initially written about
+how JavaScript VMs and JITs speculate types was straight up wrong.  While it
+played nicely into the narrative I was weaving, someone more well versed in
+JavaScript virtual machines would be able to call BS on my work.  The reviewers
+who weren&rsquo;t as close to subject matter were able to point out when logical
+progressions did not follow.</p>
+
+<p>Fear of being publicly corrected prevents a lot of people from blogging or
+contributing to open source.  It&rsquo;s important to not stay attached to your work,
+especially when you need to make cuts.  When push came to shove, I did have
+difficulty removing sections.</p>
+
+<p>Lets say you have three sequential sections: A, B, &amp; C.  If section A and
+section B both set up section C, and someone tells you section B has to go, it
+can be difficult to cut section B because as the author you may think it&rsquo;s
+really important to include B for the lead into C.  My recommendation is sum up
+the most important idea from section B and add it to the end of section A.</p>
+
+<p>For the last six weeks, the editor, some invited third parties, and other
+authors reviewed my chapter.  It was great that others even followed along and
+pointed out when I was making assumptions based on specific compiler or
+browser.
+<a href="http://erich.realtimerendering.com/">Eric Haines</a> even reviewed my chapter!
+That was definitely a highlight for me.</p>
+
+<p>We used a Google Sheet to keep track of the state of reviews.  Reviewers were
+able to comment on sections of the chapter.  What was nice was that you were
+able to keep using the comment as a thread, responding directly to a
+criticism.  What didn&rsquo;t work so well was then once you edited that line, the
+comment and thus the thread was lost.</p>
+
+<p>Once everything was done, we zipped up the assets to be used as figures,
+submitted bios, and wrote a tips and tricks section.  Now, it&rsquo;s just a long
+waiting game until the book is published.</p>
+
+<p>As far as dealing with the publisher, I didn&rsquo;t have much interaction.  Since
+the book was assembled by a dedicated editor, Patrick did most of the leg work.
+I only asked that what royalties I would receive be donated to Mozilla, which
+the publisher said would be too small (est $250) to be worth the paperwork.  It
+would be against my advice if you were thinking of writing a technical book for
+the sole reason of monetary benefit.  I&rsquo;m excited to be receiving a hard cover
+copy of the book when it&rsquo;s published.  I&rsquo;ll also have to see if I can find my
+way to SIGGRAPH this year; I&rsquo;d love to meet my fellow authors in person and
+potential readers.  Just seeing the list of authors was really a who&rsquo;s-who of
+folks doing cool WebGL stuff.</p>
+
+<p>If you&rsquo;re interested in learning more about working with Emscripten, asm.js,
+and WebGL, I sugguest you pick up a copy of WebGL Insights in August when it&rsquo;s
+published.  A big thank you to my reviewers: Eric Haines, Havi Hoffman,
+Jukka Jylänki, Chris Mills, Traian Stanev, Luke Wagner, and Alon Zakai.</p>
+
+<p>So that was a little bit about my first experience with authorship.  I&rsquo;d be
+happy to follow up with any further questions you might have for me.  Let me
+know in the comments below, on Twitter, HN, or wherever and I&rsquo;ll probably find
+it!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -3914,234 +4098,6 @@ being.  It&rsquo;s important therefor, to treasure your body while it lasts.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/04/03/basic-jit/">Basic JIT</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-04-03T00:05:00-07:00" pubdate data-updated="true">Apr 3<span>rd</span>, 2013</time>
-        
-         | <a href="/blog/2013/04/03/basic-jit/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Ever since I learned about
-<a href="`http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
-from the various
-<a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations">Ruby VMs</a>
-and
-<a href="http://www.slideshare.net/newmovie/know-yourengines-velocity2011">JavaScript VMs</a>,
-I&rsquo;ve been inspired.  I could tell you all about how just in time (JIT)
-compilation worked, and how it could give your interpreted language a speed
-boost.  It was so cool.  Well, it still is!  There&rsquo;s a ton of research going on
-around JIT compilation.  But the problem for me is that I could never figure
-out, let alone guess, how it was being done.  How could you compile code at
-runtime, and then execute it?  I asked
-<a href="http://pybites.blogspot.com/">Benjamin Peterson</a>
-about how he had learned so much about JITs, and he referred me to
-<a href="http://pypy.org/">pypy</a> (a Python JIT)&rsquo;s source.  But digging through source
-was too much; I just wanted a simple example I could grok quickly.  So I&rsquo;ve
-always been left wondering.</p>
-
-<p>Luckily, I have an awesome job where I can meet face to face with the people
-who are doing the work on making awesome production JIT compilers.  I spent
-part of last week at <a href="http://www.gdconf.com/">GDC</a> demoing
-<a href="https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/">Unreal Engine 3</a>
-running in the browser.  The demo was actually the hard work of many, and I&rsquo;ll
-dive into it more in another post following up the events, but
-<a href="https://blog.mozilla.org/luke/">Luke Wagner</a>, a Mozillian working on the
-JavaScript engine, added OdinMonkey to SpiderMonkey to allow optimizations of
-<a href="https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/">asm.js</a>.</p>
-
-<p>Luke is super friendly, and just listening to him talk with Dave Herman and
-Alon Zakai is a treat.  I asked Luke the basics of JIT&#8217;ing at tonight&rsquo;s Mozilla
-Research Party and he explained clearly. <em>Compile a simple object file, use
-objdump to get the resulting platform specific assembly, use the mmap system
-call to allocate some memory that you can write to <strong>AND</strong> execute, copy the
-instructions into that buffer, typecast it to a function pointer and finally
-call that.</em></p>
-
-<p>So my goal was to at runtime, create a function that for simplicity&rsquo;s sake
-multiplied two integers.  The first thing I did was write up a simple .c file,
-then compile that to an object file with the -c flag.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// Compile me with: clang -c mul.c -o mul.o</span>
-</span><span class='line'><span class="kt">int</span> <span class="nf">mul</span> <span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>As a heads up, I&rsquo;m on 64bit OSX.  So the generated assembly may differ on your
-platform.  Obviously, the production JIT maintainers have abstracted away the
-platform dependency, taking into account what platform you&rsquo;re on.  My example
-doesn&rsquo;t, but that why I&rsquo;m walking you through the steps I took to find out the
-x86_64 instructions.  The next step is to grab binutils, which is not installed
-by default in OSX.  I used homebrew to install it: <code>brew install binutils</code>.
-Homebrew installs gobjdump but it works with the same flags.</p>
-
-<p>Once you have binutils and [g]objdump, the next step is to read out the machine
-code from your object file, which is represented in hexadecimal.  By running
-<code>gobjdump -j .text -d mul.o -M intel</code> you should get something similar
-(remember, architecture dependent).</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="err">$</span> <span class="n">gobjdump</span> <span class="o">-</span><span class="n">j</span> <span class="p">.</span><span class="n">text</span> <span class="o">-</span><span class="n">d</span> <span class="n">mul</span><span class="p">.</span><span class="n">o</span> <span class="o">-</span><span class="n">M</span> <span class="n">intel</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">Disassembly</span> <span class="n">of</span> <span class="n">section</span> <span class="p">.</span><span class="n">text</span><span class="o">:</span>
-</span><span class='line'>
-</span><span class='line'><span class="mo">0000000000000000</span> <span class="o">&lt;</span><span class="n">_mul</span><span class="o">&gt;:</span>
-</span><span class='line'><span class="mi">0</span><span class="o">:</span> <span class="mi">55</span> <span class="n">push</span> <span class="n">rbp</span>
-</span><span class='line'><span class="mi">1</span><span class="o">:</span> <span class="mi">48</span> <span class="mi">89</span> <span class="n">e5</span> <span class="n">mov</span> <span class="n">rbp</span><span class="p">,</span><span class="n">rsp</span>
-</span><span class='line'><span class="mi">4</span><span class="o">:</span> <span class="mi">89</span> <span class="mi">7</span><span class="n">d</span> <span class="n">fc</span> <span class="n">mov</span> <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x4</span><span class="p">],</span><span class="n">edi</span>
-</span><span class='line'><span class="mi">7</span><span class="o">:</span> <span class="mi">89</span> <span class="mi">75</span> <span class="n">f8</span> <span class="n">mov</span> <span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x8</span><span class="p">],</span><span class="n">esi</span>
-</span><span class='line'><span class="nl">a:</span> <span class="mi">8</span><span class="n">b</span> <span class="mi">75</span> <span class="n">fc</span> <span class="n">mov</span> <span class="n">esi</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x4</span><span class="p">]</span>
-</span><span class='line'><span class="nl">d:</span> <span class="mf">0f</span> <span class="n">af</span> <span class="mi">75</span> <span class="n">f8</span> <span class="n">imul</span> <span class="n">esi</span><span class="p">,</span><span class="n">DWORD</span> <span class="n">PTR</span> <span class="p">[</span><span class="n">rbp</span><span class="o">-</span><span class="mh">0x8</span><span class="p">]</span>
-</span><span class='line'><span class="mi">11</span><span class="o">:</span> <span class="mi">89</span> <span class="n">f0</span> <span class="n">mov</span> <span class="n">eax</span><span class="p">,</span><span class="n">esi</span>
-</span><span class='line'><span class="mi">13</span><span class="o">:</span> <span class="mi">5</span><span class="n">d</span> <span class="n">pop</span> <span class="n">rbp</span>
-</span><span class='line'><span class="mi">14</span><span class="o">:</span> <span class="n">c3</span> <span class="n">ret</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Ok, so those instructions vary in size.  I don&rsquo;t know any x86 so I can&rsquo;t
-comment too much on that particular
-<a href="http://en.wikipedia.org/wiki/Instruction_set">Instruction Set Architecture</a>
-but they&rsquo;re obviously in pairs of hexadecimal digits.  16<sup>2</sup> == 2<sup>8</sup> meaning that
-each pair of hex digits can be represented by a single byte (or char of memory).
-So these can all be thrown in an unsigned char [].  The man page for mmap explains
-all of the fun flags, but the important point is that this way of allocating
-memory makes it executable, so it can do bad things that memory allocated from
-malloc can&rsquo;t.  I&rsquo;m sure the JavaScript engine guys have fun with that.  Once
-memory is copied in, you can typecast the memory to a function pointer.
-Make sure to check out the syntax that reminds me of a function pointer in an
-argument list, but being used as an L-value.  Of course, you could just put the
-cast right in front of the memory before you use it, but I find this as neat,
-not so common C syntax.  I kind of
-<a href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/">have a thing</a>
-for stuff like that.  Then we can call it!  The resulting code looks like this.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt; </span><span class="c1">// printf</span>
-</span><span class='line'><span class="cp">#include &lt;string.h&gt; </span><span class="c1">// memcpy</span>
-</span><span class='line'><span class="cp">#include &lt;sys/mman.h&gt; </span><span class="c1">// mmap, munmap</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'><span class="c1">// Hexadecimal x86_64 machine code for: int mul (int a, int b) { return a * b; }</span>
-</span><span class='line'><span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">code</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="mh">0x55</span><span class="p">,</span> <span class="c1">// push rbp</span>
-</span><span class='line'>  <span class="mh">0x48</span><span class="p">,</span> <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xe5</span><span class="p">,</span> <span class="c1">// mov rbp, rsp</span>
-</span><span class='line'>  <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0x7d</span><span class="p">,</span> <span class="mh">0xfc</span><span class="p">,</span> <span class="c1">// mov DWORD PTR [rbp-0x4],edi</span>
-</span><span class='line'>  <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0xf8</span><span class="p">,</span> <span class="c1">// mov DWORD PTR [rbp-0x8],esi</span>
-</span><span class='line'>  <span class="mh">0x8b</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0xfc</span><span class="p">,</span> <span class="c1">// mov esi,DWORD PTR [rbp-04x]</span>
-</span><span class='line'>  <span class="mh">0x0f</span><span class="p">,</span> <span class="mh">0xaf</span><span class="p">,</span> <span class="mh">0x75</span><span class="p">,</span> <span class="mh">0xf8</span><span class="p">,</span> <span class="c1">// imul esi,DWORD PTR [rbp-0x8]</span>
-</span><span class='line'>  <span class="mh">0x89</span><span class="p">,</span> <span class="mh">0xf0</span><span class="p">,</span> <span class="c1">// mov eax,esi</span>
-</span><span class='line'>  <span class="mh">0x5d</span><span class="p">,</span> <span class="c1">// pop rbp</span>
-</span><span class='line'>  <span class="mh">0xc3</span> <span class="c1">// ret</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// allocate executable memory via sys call</span>
-</span><span class='line'>  <span class="kt">void</span><span class="o">*</span> <span class="n">mem</span> <span class="o">=</span> <span class="n">mmap</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">code</span><span class="p">),</span> <span class="n">PROT_WRITE</span> <span class="o">|</span> <span class="n">PROT_EXEC</span><span class="p">,</span>
-</span><span class='line'>                   <span class="n">MAP_ANON</span> <span class="o">|</span> <span class="n">MAP_PRIVATE</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// copy runtime code into allocated memory</span>
-</span><span class='line'>  <span class="n">memcpy</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">code</span><span class="p">));</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// typecast allocated memory to a function pointer</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">func</span><span class="p">)</span> <span class="p">()</span> <span class="o">=</span> <span class="n">mem</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// call function pointer</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d * %d = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">func</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">11</span><span class="p">));</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="c1">// Free up allocated memory</span>
-</span><span class='line'>  <span class="n">munmap</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">code</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Voila!  How neat is that!  It works!  Luke&rsquo;s directions, an hour of working on
-this, and
-<a href="http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html">this article</a>
-in particular, and we have a simple JIT working. Again, this simple example is super
-non-portable and dealing with memory in this fashion is generally unsafe.  But
-now I know the basics of JIT&#8217;ing code, and now so do you!</p>
-
-<p>Thanks Luke!</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -4159,6 +4115,10 @@ now I know the basics of JIT&#8217;ing code, and now so do you!</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/07/01/android-cli/">Cross Compiling C/C++ for Android</a>
       </li>
     
@@ -4172,10 +4132,6 @@ now I know the basics of JIT&#8217;ing code, and now so do you!</p>
     
       <li class="post">
         <a href="/blog/2016/05/15/whats-in-a-word/">What&#8217;s in a Word?</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/">Intro to Debugging X86-64 Assembly</a>
       </li>
     
   </ul>
