@@ -4,7 +4,7 @@
   <title><![CDATA[Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-08-13T21:49:47-07:00</updated>
+  <updated>2016-08-14T16:36:14-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -373,9 +373,11 @@ their function names to make them unique.</p>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
+<span class='line-number'>7</span>
 </pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="k">namespace</span> <span class="n">util</span> <span class="p">{</span>
 </span><span class='line'>  <span class="k">class</span> <span class="nc">Widget</span> <span class="p">{</span>
 </span><span class='line'>    <span class="k">public</span><span class="o">:</span>
+</span><span class='line'>      <span class="kt">void</span> <span class="n">doSomething</span> <span class="p">(</span><span class="kt">bool</span> <span class="n">save</span><span class="p">);</span>
 </span><span class='line'>      <span class="kt">void</span> <span class="n">doSomething</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">);</span>
 </span><span class='line'>  <span class="p">};</span>
 </span><span class='line'><span class="p">}</span>
