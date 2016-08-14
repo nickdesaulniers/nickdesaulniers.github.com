@@ -247,6 +247,7 @@ Code like:
 namespace util {
   class Widget {
     public:
+      void doSomething (bool save);
       void doSomething (int n);
   };
 }
