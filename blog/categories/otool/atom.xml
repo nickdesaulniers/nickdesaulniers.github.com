@@ -4,7 +4,7 @@
   <title><![CDATA[Category: otool | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/otool/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-08-14T16:36:14-07:00</updated>
+  <updated>2016-08-14T16:40:53-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -345,7 +345,7 @@ this file.  Debug symbols will retain source information such as filename and
 line number for all symbols.</p>
 
 <p>This post should have been a simple refresher of some of the basics of working
-with C code code. Finding symbols to be placed into a final executable and
+with C code. Finding symbols to be placed into a final executable and
 relocating addresses are the main job of the linker, and will be the main theme
 of the posts in this series. Keep your eyes out for more in this series on
 memory segmentation.</p>
