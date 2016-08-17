@@ -15,7 +15,7 @@ for working with these notions, both in Linux and OSX.
 A quick review of the compilation+execution pipeline (for terminology):
 
 1. Lexing produces tokens
-2. Parsing produces and abstract syntax tree
+2. Parsing produces an abstract syntax tree
 3. Analysis produces a code flow graph
 4. Optimization produces a reduced code flow graph
 5. Code gen produces object code
@@ -136,7 +136,7 @@ don't think I could do as great a job as Peter Van Der Linden in his book
 
 For our case, we just care about whether the symbol in a given object file is
 defined or not.  The type U (undefined) means that this symbol is referenced or
-used in in this object code/executable, but it's value wasn't defined here.
+used in this object code/executable, but it's value wasn't defined here.
 When we compiled main.c alone and got the undefined symbol error, it should now
 make sense why we got the undefined symbol error for helper.  main.o contains
 a symbol for main, and references helper.  helper.o contains a symbol for
@@ -150,7 +150,7 @@ created by the C compiler.  We'll cover dynamic linkage in a later post in
 this series.
 
 When the linker performs relocation on the object files, combining them into a
-final executable, it goes though placeholders of addresses and fills them in.
+final executable, it goes through placeholders of addresses and fills them in.
 We did this manually in our post on
 [JIT compilers](/blog/2015/05/25/interpreter-compiler-jit/).
 
@@ -296,7 +296,7 @@ able to link them.
 
 If we compile with the `-g` flag, we can create a different kind of symbol;
 [debug symbols](https://en.wikipedia.org/wiki/Debug_symbol).
-Depending on your compiler+host OS, you'll get another file you can run though
+Depending on your compiler+host OS, you'll get another file you can run through
 `nm` to see an entry per symbol.  You'll get more info by using `dwarfdump` on
 this file.  Debug symbols will retain source information such as filename and
 line number for all symbols.
