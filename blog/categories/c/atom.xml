@@ -4,7 +4,7 @@
   <title><![CDATA[Category: C | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/c/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-08-14T16:40:53-07:00</updated>
+  <updated>2016-08-16T23:49:51-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -29,7 +29,7 @@ for working with these notions, both in Linux and OSX.</p>
 
 <ol>
 <li>Lexing produces tokens</li>
-<li>Parsing produces and abstract syntax tree</li>
+<li>Parsing produces an abstract syntax tree</li>
 <li>Analysis produces a code flow graph</li>
 <li>Optimization produces a reduced code flow graph</li>
 <li>Code gen produces object code</li>
@@ -170,7 +170,7 @@ don&rsquo;t think I could do as great a job as Peter Van Der Linden in his book
 
 <p>For our case, we just care about whether the symbol in a given object file is
 defined or not.  The type U (undefined) means that this symbol is referenced or
-used in in this object code/executable, but it&rsquo;s value wasn&rsquo;t defined here.
+used in this object code/executable, but it&rsquo;s value wasn&rsquo;t defined here.
 When we compiled main.c alone and got the undefined symbol error, it should now
 make sense why we got the undefined symbol error for helper.  main.o contains
 a symbol for main, and references helper.  helper.o contains a symbol for
@@ -184,7 +184,7 @@ created by the C compiler.  We&rsquo;ll cover dynamic linkage in a later post in
 this series.</p>
 
 <p>When the linker performs relocation on the object files, combining them into a
-final executable, it goes though placeholders of addresses and fills them in.
+final executable, it goes through placeholders of addresses and fills them in.
 We did this manually in our post on
 <a href="/blog/2015/05/25/interpreter-compiler-jit/">JIT compilers</a>.</p>
 
@@ -339,7 +339,7 @@ able to link them.</p>
 
 <p>If we compile with the <code>-g</code> flag, we can create a different kind of symbol;
 <a href="https://en.wikipedia.org/wiki/Debug_symbol">debug symbols</a>.
-Depending on your compiler+host OS, you&rsquo;ll get another file you can run though
+Depending on your compiler+host OS, you&rsquo;ll get another file you can run through
 <code>nm</code> to see an entry per symbol.  You&rsquo;ll get more info by using <code>dwarfdump</code> on
 this file.  Debug symbols will retain source information such as filename and
 line number for all symbols.</p>
