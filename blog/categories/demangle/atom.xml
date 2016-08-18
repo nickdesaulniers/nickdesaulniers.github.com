@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Demangle | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/demangle/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-08-16T23:49:51-07:00</updated>
+  <updated>2016-08-17T18:59:09-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -249,6 +249,12 @@ _main:
 0000000100000f7d    popq    %rbp
 0000000100000f7e    retq
 </code></p>
+
+<p><code>readelf -s &lt;object file&gt;</code> will give us a list of symbols on Linux.
+<a href="https://en.wikipedia.org/wiki/Executable_and_Linkable_Format">ELF</a>
+is the file format used by the loader on Linux, while OSX uses
+<a href="https://en.wikipedia.org/wiki/Mach-O">Mach-O</a>.
+Thus <code>readelf</code> and <code>otool</code>, respectively.</p>
 
 <p>Also note that for static linkage, symbols need to be unique*, as they refer to
 memory locations to either read/write to in the case of variables or locations
