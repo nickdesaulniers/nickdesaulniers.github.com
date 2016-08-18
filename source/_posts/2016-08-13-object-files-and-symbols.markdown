@@ -216,6 +216,12 @@ _main:
 0000000100000f7e    retq
 ```
 
+`readelf -s <object file>` will give us a list of symbols on Linux.
+[ELF](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
+is the file format used by the loader on Linux, while OSX uses
+[Mach-O](https://en.wikipedia.org/wiki/Mach-O).
+Thus `readelf` and `otool`, respectively.
+
 Also note that for static linkage, symbols need to be unique*, as they refer to
 memory locations to either read/write to in the case of variables or locations
 to jump to in the case of functions.
