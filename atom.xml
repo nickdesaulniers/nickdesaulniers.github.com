@@ -4,7 +4,7 @@
   <title><![CDATA[Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-08-17T18:59:09-07:00</updated>
+  <updated>2016-09-15T20:52:10-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -107,7 +107,7 @@ That can be done separately:</p>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang -c helper.c     <span class="c"># produces helper.o</span>
-</span><span class='line'><span class="nv">$ </span>clang -c main.o       <span class="c"># produces main.o</span>
+</span><span class='line'><span class="nv">$ </span>clang -c main.c       <span class="c"># produces main.o</span>
 </span><span class='line'><span class="nv">$ </span>clang main.o helper.o <span class="c"># produces a.out</span>
 </span></code></pre></td></tr></table></div></figure>
 
