@@ -66,7 +66,7 @@ That can be done separately:
 
 ```sh
 $ clang -c helper.c     # produces helper.o
-$ clang -c main.o       # produces main.o
+$ clang -c main.c       # produces main.o
 $ clang main.o helper.o # produces a.out
 ```
 
