@@ -49,7 +49,7 @@ about a call to authors for WebGL Insights.  Explicitly in the linked to page
 under the call for authors was interest in proposals about Emscripten and
 asm.js.
 
-{% twitter oembed https://twitter.com/grahamsellers/status/504974663848456193 %}
+[Tweet](https://twitter.com/grahamsellers/status/504974663848456193)
 
 At the time, I was headlong into a project helping Disney port Where's My Water
 from C++ to JavaScript using Emscripten.  I was intimately familiar with
