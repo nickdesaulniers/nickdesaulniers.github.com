@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Web | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/web/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-09-15T20:52:10-07:00</updated>
+  <updated>2016-10-19T20:45:41-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -61,7 +61,7 @@ about a call to authors for WebGL Insights.  Explicitly in the linked to page
 under the call for authors was interest in proposals about Emscripten and
 asm.js.</p>
 
-<p><div class='embed twitter'>Tweet could not be processed</div></p>
+<p><a href="https://twitter.com/grahamsellers/status/504974663848456193">Tweet</a></p>
 
 <p>At the time, I was headlong into a project helping Disney port Where&rsquo;s My Water
 from C++ to JavaScript using Emscripten.  I was intimately familiar with
