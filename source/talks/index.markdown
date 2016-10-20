@@ -5,6 +5,13 @@ comments: true
 sharing: true
 footer: true
 ---
+##2016
+
+### Tracing Android
+[Google Tech Talk](https://www.youtube.com/user/googletechtalks) - Mountain View, CA - September 16
+
+[slides](https://drive.google.com/file/d/0ByVEwX6HeL8CaHJXbmdodlRRS0E/view) - [video](https://www.youtube.com/watch?v=vM-pinH5R7A)
+
 ##2015
 
 ### WebVR, WebAssembly, Debugging Memory Leaks in Node.js Native Addons
