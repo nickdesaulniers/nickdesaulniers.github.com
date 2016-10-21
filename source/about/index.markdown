@@ -15,5 +15,5 @@ Contributing to
 and an accessible Internet for all are some of the things that Nick is most
 passionate about.
 
-[Twitter](https://twitter.com/LostOracle) - [LinkedIn](https://www.linkedin.com/pub/nick-desaulniers/34/203/755)
+[LinkedIn](https://www.linkedin.com/pub/nick-desaulniers/34/203/755)
 
