@@ -8,9 +8,10 @@ categories: Object file Symbol C C++ Demangle otool nm objdump
 What was supposed to be one blog post about memory segmentation turned into
 what will be a series of posts.  As the first in the series, we cover the
 extreme basics of object files and symbols.  In follow up posts, I
-plan to talk about static libraries, dynamic libraries, dynamic linkage, memory
-segments, and finally memory usage accounting.  I also cover command line tools
-for working with these notions, both in Linux and OSX.
+plan to talk about
+[static libraries, dynamic libraries,](/blog/2016/11/20/static-and-dynamic-libraries/)
+dynamic linkage, memory segments, and finally memory usage accounting.  I also
+cover command line tools for working with these notions, both in Linux and OSX.
 
 A quick review of the compilation+execution pipeline (for terminology):
 
@@ -313,3 +314,5 @@ relocating addresses are the main job of the linker, and will be the main theme
 of the posts in this series. Keep your eyes out for more in this series on
 memory segmentation.
 
+* [Part 1 - Object Files and Symbols](/blog/2016/08/13/object-files-and-symbols/)
+* [Part 2 - Static and Dynamic Libraries](/blog/2016/11/20/static-and-dynamic-libraries/)
