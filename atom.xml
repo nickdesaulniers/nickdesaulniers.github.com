@@ -4,7 +4,7 @@
   <title><![CDATA[Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2016-10-20T20:30:10-07:00</updated>
+  <updated>2016-11-21T00:46:48-08:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -14,6 +14,572 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Static and Dynamic Libraries]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/"/>
+    <updated>2016-11-20T23:55:00-08:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries</id>
+    <content type="html"><![CDATA[<p>This is the second post in a series on memory segmentation.  It covers working
+with static and dynamic libraries.  Make sure to check out the
+<a href="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/">first on object files and symbols</a>.</p>
+
+<p>Let’s say we wanted to reuse some of the code from our previous project in our
+next one.  We could continue to copy around object files, but let’s say we have
+a bunch and it’s hard to keep track of all of them.  Let’s combine multiple
+object files into an archive or static library.  Similar to a more conventional
+zip file or &ldquo;compressed archive,&rdquo; our static library will be an uncompressed
+archive.</p>
+
+<p>We can use the <code>ar</code> command to create and manipulate a static archive.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang -c x.c y.c
+</span><span class='line'><span class="nv">$ </span>ar -rv libhello.a x.o y.o
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>-r</code> flag will create the archive named <code>libhello.a</code> and add the files
+<code>x.o</code> and <code>y.o</code> to its index.  I like to add the <code>-v</code> flag for verbose output.
+Then we can use the familiar <code>nm</code> tool I introduced in the
+<a href="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/">previous post</a>
+to examine the content of the archives and their symbols.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>file libhello.a
+</span><span class='line'>libhello.a: current ar archive random library
+</span><span class='line'><span class="nv">$ </span>nm libhello.a
+</span><span class='line'>libhello.a<span class="o">(</span>x.o<span class="o">)</span>:
+</span><span class='line'>                 U _puts
+</span><span class='line'>0000000000000000 T _x
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>libhello.a<span class="o">(</span>y.o<span class="o">)</span>:
+</span><span class='line'>                 U _puts
+</span><span class='line'>0000000000000000 T _y
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Some other useful flags for <code>ar</code> are <code>-d</code> to delete an object file, ex. <code>ar -d
+libhello.a y.o</code> and <code>-u</code> to update existing members of the archive when their
+source and object files are updated.  Not only can we run <code>nm</code> on our archive,
+<code>otool</code> and <code>objdump</code> both work.</p>
+
+<p>Now that we have our static library, we can statically link it to our program
+and see the resulting symbols.  The <code>.a</code> suffix is typical on both OSX and
+Linux for archive files.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang main.o libhello.a
+</span><span class='line'><span class="nv">$ </span>nm a.out
+</span><span class='line'>0000000100000f30 T _main
+</span><span class='line'>                 U _puts
+</span><span class='line'>0000000100000f50 T _x
+</span><span class='line'>0000000100000f70 T _y
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Our compiler understands how to index into archive files and pull out the
+functions it needs to combine into the final executable.  If we use a static
+library to statically link all functions required, we can have one binary with
+no dependencies.  This can make deployment of binaries simple, but also greatly
+increase their size.  Upgrading large binaries incrementally becomes more
+costly in terms of space.</p>
+
+<p>While static libraries allowed us to reuse source code, static linkage does not
+allow us to reuse memory for executable code between different processes.  I
+really want to put off talking about memory benefits until the next post, but
+know that the solution to this problem lies in &ldquo;dynamic libraries.&rdquo;</p>
+
+<p>While having a single binary file keeps things simple, it can really hamper
+memory sharing and incremental relinking.  For example, if you have multiple
+executables that are all built with the same static library, unless your OS is
+really smart about copy-on-write page sharing, then you’re likely loading
+multiple copies of the same exact code into memory! What a waste!  Also, when
+you want to rebuild or update your binary, you spend time performing relocation
+again and again with static libraries.  What if we could set aside object files
+that we could share amongst multiple instances of the same or even different
+processes, and perform relocation at runtime?</p>
+
+<p>The solution is known as dynamic libraries.  If static libraries and static
+linkage were Atari controllers, dynamic libraries and dynamic linkage are Steel
+Battalion controllers.  We’ll show how to work with them in the rest of this
+post, but I’ll prove how memory is saved in a later post.</p>
+
+<p>Let’s say we want to created a shared version of libhello.  Dynamic libraries
+typically have different suffixes per OS since each OS has it’s preferred
+object file format.  On Linux the .so suffix is common, .dylib on OSX, and .dll
+on Windows.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang -shared -fpic x.c y.c -o libhello.dylib
+</span><span class='line'><span class="nv">$ </span>file libhello.dylib
+</span><span class='line'>libhello.dylib: Mach-O 64-bit dynamically linked shared library x86_64
+</span><span class='line'><span class="nv">$ </span>nm libhello.dylib
+</span><span class='line'>                 U _puts
+</span><span class='line'>0000000000000f50 T _x
+</span><span class='line'>0000000000000f70 T _y
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>-shared</code> flag tells the linker to create a special file called a shared
+library.  The <code>-fpic</code> option converts absolute addresses to relative addresses,
+which allows for different processes to load the library at different virtual
+addresses and share memory.</p>
+
+<p>Now that we have our shared library, let’s dynamically link it into our
+executable.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang main.c libhello.dylib
+</span><span class='line'><span class="nv">$ </span>./a.out
+</span><span class='line'>x
+</span><span class='line'>y
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The dynamic linker essential produces an incomplete binary.  You can verify
+with <code>nm</code>.  At runtime, we’ll delay start up to perform some memory mapping
+early on in the process start (performed by the dynamic linker) and pay slight
+costs for trampolining into position independent code.</p>
+
+<p>Let’s say we want to know what dynamic libraries a binary is using.  You can
+either query the executable (most executable object file formats contain a
+header the dynamic linker will parse and pull in libs) or observe the
+executable while running it.  Because each major OS has its own object file
+format, they each have their own tools for these two checks.  Note that
+statically linked libraries won’t show up here, since their object code has
+already been linked in and thus we’re not able to differentiate between object
+code that came from our first party code vs third party static libraries.</p>
+
+<p>On OSX, we can use <code>otool -L &lt;bin&gt;</code> to check which .dylibs will get pulled in.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>otool -L a.out
+</span><span class='line'>a.out:
+</span><span class='line'>           libhello.dylib <span class="o">(</span>compatibility version 0.0.0, current version 0.0.0<span class="o">)</span>
+</span><span class='line'>           /usr/lib/libSystem.B.dylib <span class="o">(</span>compatibility version 1.0.0, current version 1226.10.1<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So we can see that <code>a.out</code> depends on <code>libhello.dylib</code> (and expects to find it
+in the same directory as <code>a.out</code>).  It also depends on shared library called
+libSystem.B.dylib.  If you run <code>otool -L</code> on libSystem itself, you’ll see it
+depends on a bunch of other libraries including a C runtime, malloc
+implementation, pthreads implementation, and more.  Let’s say you want to find
+the final resting place of where a symbol is defined, without digging with <code>nm</code>
+and <code>otool</code>, you can fire up your trusty debugger and ask it.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>lldb a.out
+</span><span class='line'>...
+</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> image lookup -r -s puts
+</span><span class='line'>...
+</span><span class='line'>        Summary: libsystem_c.dylib<span class="sb">`</span>puts        Address: libsystem_c.dylib<span class="o">[</span>0x0000000000085c30<span class="o">]</span> <span class="o">(</span>libsystem_c.dylib.__TEXT.__stubs + 3216<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You’ll see a lot of output since <code>puts</code> is treated as a regex.  You’re looking
+for the Summary line that has an address and is <strong>not</strong> a symbol stub.  You can
+then check your work with <code>otool</code> and <code>nm</code>.</p>
+
+<p>If we want to observe the dynamic linker in action on OSX, we can use <code>dtruss</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo dtruss ./a.out
+</span><span class='line'>...
+</span><span class='line'>stat64<span class="o">(</span><span class="s2">&quot;libhello.dylib\0&quot;</span>, 0x7FFF50CEAC68, 0x1<span class="o">)</span>         <span class="o">=</span> 0 0
+</span><span class='line'>open<span class="o">(</span><span class="s2">&quot;libhello.dylib\0&quot;</span>, 0x0, 0x0<span class="o">)</span>              <span class="o">=</span> 3 0
+</span><span class='line'>...
+</span><span class='line'>mmap<span class="o">(</span>0x10EF27000, 0x1000, 0x5, 0x12, 0x3, 0x0<span class="o">)</span>          <span class="o">=</span> 0x10EF27000 0
+</span><span class='line'>mmap<span class="o">(</span>0x10EF28000, 0x1000, 0x3, 0x12, 0x3, 0x1000<span class="o">)</span>               <span class="o">=</span> 0x10EF28000 0
+</span><span class='line'>mmap<span class="o">(</span>0x10EF29000, 0xC0, 0x1, 0x12, 0x3, 0x2000<span class="o">)</span>         <span class="o">=</span> 0x10EF29000 0
+</span><span class='line'>...
+</span><span class='line'>close<span class="o">(</span>0x3<span class="o">)</span>              <span class="o">=</span> 0 0
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>On Linux, we can simply use <code>ldd</code> or <code>readelf -d</code> to query an executable for a
+list of its dynamic libraries.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang -shared -fpic x.c y.c -o libhello.so
+</span><span class='line'><span class="nv">$ </span>clang main.c libhello.so
+</span><span class='line'><span class="nv">$ </span>ldd a.out
+</span><span class='line'>           linux-vdso.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0x00007fff95d43000<span class="o">)</span>
+</span><span class='line'>           libhello.so <span class="o">=</span>&gt; not found
+</span><span class='line'>           libc.so.6 <span class="o">=</span>&gt; /lib/x86_64-linux-gnu/libc.so.6 <span class="o">(</span>0x00007fcc98c5f000<span class="o">)</span>
+</span><span class='line'>           /lib64/ld-linux-x86-64.so.2 <span class="o">(</span>0x0000555993852000<span class="o">)</span>
+</span><span class='line'><span class="nv">$ </span>readelf -d a.out
+</span><span class='line'>Dynamic section at offset 0xe18 contains 25 entries:
+</span><span class='line'>  Tag        Type                         Name/Value
+</span><span class='line'> 0x0000000000000001 <span class="o">(</span>NEEDED<span class="o">)</span>             Shared library: <span class="o">[</span>libhello.so<span class="o">]</span>
+</span><span class='line'> 0x0000000000000001 <span class="o">(</span>NEEDED<span class="o">)</span>             Shared library: <span class="o">[</span>libc.so.6<span class="o">]</span>
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can then use <code>strace</code> to observe the dynamic linker in action on Linux:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ LD_LIBRARY_PATH</span><span class="o">=</span>. strace ./a.out
+</span><span class='line'>...
+</span><span class='line'>open<span class="o">(</span><span class="s2">&quot;./libhello.so&quot;</span>, O_RDONLY|O_CLOEXEC<span class="o">)</span> <span class="o">=</span> 3
+</span><span class='line'>...
+</span><span class='line'><span class="nb">read</span><span class="o">(</span>3, <span class="s2">&quot;\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0&gt;\0\1\0\0\0\260\5\0\0\0\0\0\0&quot;</span>..., 832<span class="o">)</span> <span class="o">=</span> 832
+</span><span class='line'>fstat<span class="o">(</span>3, <span class="o">{</span><span class="nv">st_mode</span><span class="o">=</span>S_IFREG|0755, <span class="nv">st_size</span><span class="o">=</span>8216, ...<span class="o">})</span> <span class="o">=</span> 0
+</span><span class='line'>close<span class="o">(</span>3<span class="o">)</span>                                <span class="o">=</span> 0
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What’s this <code>LD_LIBRARY_PATH</code> thing?  That’s shell syntax for setting an
+environmental variable just for the duration of that command (as opposed to
+exporting it so it stays set for multiple commands).  As opposed to OSX’s
+dynamic linker, which was happy to look in the cwd for libhello.dylib, on Linux
+we must supply the cwd if the dynamic library we want to link in is not in the
+standard search path.</p>
+
+<p>But what is the standard search path?  Well, there’s another environmental
+variable we can set to see this, <code>LD_DEBUG</code>.  For example, on OSX:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ LD_DEBUG</span><span class="o">=</span>libs <span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>. ./a.out
+</span><span class='line'>     15828:        find <span class="nv">library</span><span class="o">=</span>libhello.so <span class="o">[</span>0<span class="o">]</span>; searching
+</span><span class='line'>     15828:         search <span class="nv">path</span><span class="o">=</span>./tls/x86_64:./tls:./x86_64:.             <span class="o">(</span>LD_LIBRARY_PATH<span class="o">)</span>
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./tls/x86_64/libhello.so
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./tls/libhello.so
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./x86_64/libhello.so
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./libhello.so
+</span><span class='line'>     15828:
+</span><span class='line'>     15828:        find <span class="nv">library</span><span class="o">=</span>libc.so.6 <span class="o">[</span>0<span class="o">]</span>; searching
+</span><span class='line'>     15828:         search <span class="nv">path</span><span class="o">=</span>./tls/x86_64:./tls:./x86_64:.             <span class="o">(</span>LD_LIBRARY_PATH<span class="o">)</span>
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./tls/x86_64/libc.so.6
+</span><span class='line'>     1earc:          trying <span class="nv">file</span><span class="o">=</span>./tls/libc.so.6
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./x86_64/libc.so.6
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./libc.so.6
+</span><span class='line'>     15828:         search <span class="nv">cache</span><span class="o">=</span>/etc/ld.so.cache
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>/lib/x86_64-linux-gnu/libc.so.6
+</span><span class='line'>     15828:        calling init: /lib/x86_64-linux-gnu/libc.so.6
+</span><span class='line'>     15828:        calling init: ./libhello.so
+</span><span class='line'>     15828:        initialize program: ./a.out
+</span><span class='line'>     15828:        transferring control: ./a.out
+</span><span class='line'>x
+</span><span class='line'>y
+</span><span class='line'>     15828:        calling fini: ./a.out <span class="o">[</span>0<span class="o">]</span>
+</span><span class='line'>     15828:        calling fini: ./libhello.so <span class="o">[</span>0<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>LD_DEBUG</code> is pretty useful.  Try:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ LD_DEBUG</span><span class="o">=</span><span class="nb">help</span> ./a.out
+</span><span class='line'>Valid options <span class="k">for </span>the LD_DEBUG environment variable are:
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  libs        display library search paths
+</span><span class='line'>  reloc       display relocation processing
+</span><span class='line'>  files       display progress <span class="k">for </span>input file
+</span><span class='line'>  symbols     display symbol table processing
+</span><span class='line'>  bindings    display information about symbol binding
+</span><span class='line'>  versions    display version dependencies
+</span><span class='line'>  scopes      display scope information
+</span><span class='line'>  all         all previous options combined
+</span><span class='line'>  statistics  display relocation statistics
+</span><span class='line'>  unused      determined unused DSOs
+</span><span class='line'>  <span class="nb">help        </span>display this <span class="nb">help </span>message and <span class="nb">exit</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>To direct the debugging output into a file instead of standard output
+</span><span class='line'>a filename can be specified using the LD_DEBUG_OUTPUT environment variable.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For some cool stuff, I recommend checking out <code>LD_DEBUG=symbols</code> and
+<code>LD_DEBUG=statistics</code>.</p>
+
+<p>Going back to <code>LD_LIBRARY_PATH</code>, usually libraries you create and want to reuse
+between projects go into /usr/local/lib and the headers into
+/usr/local/include.  I think of the convention as:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>tree -L 2 /usr/
+</span><span class='line'>/usr
+</span><span class='line'>├── bin <span class="c"># system installed binaries like nm, gcc</span>
+</span><span class='line'>├── include <span class="c"># system installed headers like stdio.h</span>
+</span><span class='line'>├── lib <span class="c"># system installed libraries, both static and dynamic</span>
+</span><span class='line'>└── <span class="nb">local</span>
+</span><span class='line'>    ├── bin <span class="c"># user installed binaries like rustc</span>
+</span><span class='line'>    ├── include <span class="c"># user installed headers</span>
+</span><span class='line'>    └── lib <span class="c"># user installed</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Unfortunately, it’s a loose convention that’s broken down over the years and
+things are scattered all over the place.  You can also run into dependency and
+versioning issues, that I don’t want to get into here, by placing libraries
+here instead of keeping them in-tree or out-of-tree of the source code of a
+project.  Just know when you see a library like <code>libc.so.6</code> that the numeric
+suffix is a major version number that follows semantic versioning.  For more
+information, you should read Michael Kerrisk’s excellent book <em>The Linux
+Programming Interface</em>.  This post is based on his chapter’s 41 &amp; 42 (but with
+more info on tooling and OSX).</p>
+
+<p>If we were to place our libhello.so into /usr/local/lib (on Linux you need to
+then run <code>sudo ldconfig</code>) and move x.h and y.h to /usr/local/include, then we
+could then compile with:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang main.c -lhello
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that rather than give a full path to our library, we can use the <code>-l</code> flag
+followed by the name of our library with the lib prefix and .so suffix removed.</p>
+
+<p>When working with shared libraries and external code, three flags I use pretty
+often:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>* -l&lt;libname to link, no lib prefix or file extension; ex: -lnanomsg to link libnanomsg.so&gt;
+</span><span class='line'>* -L &lt;path to search <span class="k">for </span>lib <span class="k">if </span>in non standard directory&gt;
+</span><span class='line'>* -I &lt;path to headers <span class="k">for </span>that library, <span class="k">if </span>in non standard directory&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For finding specific flags needed for compilation where dynamic linkage is
+required, a tool called <code>pkg-config</code> can be used for finding appropriate flags.
+I’ve had less than stellar experiences with the tool as it puts the onus on the
+library author to maintain the .pc files, and the user to have them installed
+in the right place that <code>pkg-config</code> looks.  When they do exist and are
+installed properly, the tool works well:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo apt-get install libpng12-dev
+</span><span class='line'><span class="nv">$ </span>pkg-config --libs --cflags libpng12
+</span><span class='line'>-I/usr/include/libpng12  -lpng12
+</span><span class='line'><span class="nv">$ </span>clang program.c <span class="sb">`</span>!!<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Using another neat environmental variable, we can hook into the dynamic linkage
+process and inject our own shared libraries to be linked instead of the
+expected libraries.  Let’s say libgood.so and libmalicous.so both define a
+symbol for a function (the same symbol name and function signature).  We can
+get a binary that links in libgood.so’s function to instead call
+libmalicous.so’s version:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./a.out
+</span><span class='line'>hello from libgood
+</span><span class='line'><span class="nv">$ LD_PRELOAD</span><span class="o">=</span>./libmalicious.so ./a.out
+</span><span class='line'>hello from libmalicious
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Manually invoking the dynamic linker from our code,
+<a href="https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs/">we can even man in the middle library calls (call our hooked function first, then invoke the original target)</a>.
+We’ll see more of this in the next post on using the dynamic linker.</p>
+
+<p>As you can guess, readjusting the search paths for dynamic libraries is a
+security concern as it let’s good and bad folks change the expected execution
+paths.  Guarding against the use of these env vars becomes a rabbit hole that
+gets pretty tricky to solve without the heavy handed use of statically linking
+dependencies.</p>
+
+<p>In the the previous post, I alluded to undefined symbols like <code>puts</code>.  <code>puts</code>
+is part of libc, which is probably the most shared dynamic library on most
+computing devices since most every program makes use of the C runtime.  (I
+think of a “runtime” as implicit code that runs in your program that you didn’t
+necessarily write yourself.  Usually a runtime is provided as a library that
+gets implicitly linked into your executable when you compile.)  You can
+statically link against libc with the <code>-static</code> flag, on Linux at least (OSX
+makes this difficult,
+<a href="https://developer.apple.com/library/content/qa/qa1118/_index.html">&ldquo;Apple does not support statically linked binaries on Mac OS X&rdquo;</a>).</p>
+
+<p>I’m not sure what the benefit would be to mixing static and dynamic linking,
+but after searching the search paths from LD_DEBUG=libs for shared versions of
+a library, if any static ones are found, they will get linked in.</p>
+
+<p>There’s also an interesting form of library called a &ldquo;virtual dynamic shared
+object&rdquo; on Linux.  I haven’t covered memory mapping yet, but know it exists, is
+usually hidden for libc, and that you can read more about it via <code>man 7 vdso</code>.</p>
+
+<p>One thing I find interesting and don’t quite understand how to recreate is that
+somehow glibc on Linux is also executable:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>/lib/x86_64-linux-gnu/libc.so.6
+</span><span class='line'>GNU C Library <span class="o">(</span>Ubuntu GLIBC 2.24-3ubuntu1<span class="o">)</span> stable release version 2.24, by Roland McGrath et al.
+</span><span class='line'>Copyright <span class="o">(</span>C<span class="o">)</span> 2016 Free Software Foundation, Inc.
+</span><span class='line'>This is free software; see the <span class="nb">source </span><span class="k">for </span>copying conditions.
+</span><span class='line'>There is NO warranty; not even <span class="k">for </span>MERCHANTABILITY or FITNESS FOR A
+</span><span class='line'>PARTICULAR PURPOSE.
+</span><span class='line'>Compiled by GNU CC version 6.2.0 20161005.
+</span><span class='line'>Available extensions:
+</span><span class='line'>    crypt add-on version 2.1 by Michael Glad and others
+</span><span class='line'>    GNU Libidn by Simon Josefsson
+</span><span class='line'>    Native POSIX Threads Library by Ulrich Drepper et al
+</span><span class='line'>    BIND-8.2.3-T5B
+</span><span class='line'>libc ABIs: UNIQUE IFUNC
+</span><span class='line'>For bug reporting instructions, please see:
+</span><span class='line'>&lt;https://bugs.launchpad.net/ubuntu/+source/glibc/+bugs&gt;.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Also, note that linking against third party code has licensing implications (of
+course) of particular interest when it’s GPL or LGPL.
+<a href="http://stackoverflow.com/a/10179181/1027966">Here is a good overview</a>
+which I’d summarize as: code that <em>statically</em> links against LGPL code must
+also be LGPL, while any form of linkage against GPL code must be GPL’d.</p>
+
+<p>Ok, that was a lot. In the previous post, we covered
+<a href="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>.
+In this post we covered hacking around with static and dynamic linkage.  In the
+next post, I hope to talk about manually invoking the dynamic linker at
+runtime.</p>
+
+<ul>
+<li><a href="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/">Part 1 &ndash; Object Files and Symbols</a></li>
+<li><a href="http://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/">Part 2 &ndash; Static and Dynamic Libraries</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Object Files and Symbols]]></title>
     <link href="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/"/>
     <updated>2016-08-13T20:46:00-07:00</updated>
@@ -21,9 +587,10 @@
     <content type="html"><![CDATA[<p>What was supposed to be one blog post about memory segmentation turned into
 what will be a series of posts.  As the first in the series, we cover the
 extreme basics of object files and symbols.  In follow up posts, I
-plan to talk about static libraries, dynamic libraries, dynamic linkage, memory
-segments, and finally memory usage accounting.  I also cover command line tools
-for working with these notions, both in Linux and OSX.</p>
+plan to talk about
+<a href="http://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/">static libraries, dynamic libraries,</a>
+dynamic linkage, memory segments, and finally memory usage accounting.  I also
+cover command line tools for working with these notions, both in Linux and OSX.</p>
 
 <p>A quick review of the compilation+execution pipeline (for terminology):</p>
 
@@ -464,6 +1031,12 @@ with C code. Finding symbols to be placed into a final executable and
 relocating addresses are the main job of the linker, and will be the main theme
 of the posts in this series. Keep your eyes out for more in this series on
 memory segmentation.</p>
+
+<ul>
+<li><a href="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/">Part 1 &ndash; Object Files and Symbols</a></li>
+<li><a href="http://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/">Part 2 &ndash; Static and Dynamic Libraries</a></li>
+</ul>
+
 ]]></content>
   </entry>
   
@@ -6647,142 +7220,6 @@ Option type.</li>
 no value, whereas the C++ compiler, clang++, did not.</li>
 <li>All conditional and switch statements can be replaced with pattern matching.</li>
 </ol>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[The Persistence of Memory]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/"/>
-    <updated>2013-04-29T20:35:00-07:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory</id>
-    <content type="html"><![CDATA[<blockquote><p>I would like to die on Mars&#8230;</p><footer><strong>Elon Musk, Bloomberg,</strong> <cite><a href='http://www.businessweek.com/articles/2012-09-13/elon-musk-the-21st-century-industrialist#p5,'>Elon Musk, the 21st Century Industrialist</a></cite></footer></blockquote>
-
-
-<p>Well, isn&rsquo;t that forward thinking?  Granted, the full quote
-<em>I would like to die on Mars, just not on impact</em> is meant to sound hopeful of
-his company, <a href="http://www.spacex.com/">SpaceX</a>.  I agree that some day, humans
-will be buried on Mars.  But is it forward thinking, enough?  Does it push the
-needle to where it needs to be pushed?  Does it strive for innovation and push
-our imagination like Star Trek did?  Or is it just a realistic goal for SpaceX?</p>
-
-<blockquote><p>The person with big dreams is more powerful than one with all the facts.</p><footer><strong>Albert Einstein</strong></footer></blockquote>
-
-
-<p>While Elon would like to die on Mars, I think it would be neat to transfer my &ldquo;soul&rdquo; into a
-computer.  We refer to data persistence within a computer as memory, using
-transistors and capacitors to store charges, effectively &ldquo;remembering&rdquo; a
-particular state.  While neurons, dendrites, and synapses within the human
-brain don&rsquo;t quite work the same as RAM, I believe we will find a way to
-interface them some day.  If one could transfer to a computer, maybe they could
-transfer back, or swap even.  One could
-theoretically trade entire bodies.  The jury is still out for me as far my
-opinion of Google&rsquo;s Glass, but I see wearable computing as a step in the right
-direction towards interfacing with the human body.  I guess it reminds me of the
-<a href="http://futurama.wikia.com/wiki/Heads_in_Jars">Heads in Jars from Futurama</a>.
-I recognize that the old guard must give way for the new guard, lest the new be
-held in place, bound socially by the old.</p>
-
-<p>In database systems, there is this notion of
-<a href="http://en.wikipedia.org/wiki/Atomic_transaction">Atomicity</a>, where a set of
-operations is guaranteed to either complete as a group, or all fail should
-at least one fail.  One of the most popular examples is a bank transfer.  Say
-you&rsquo;re transferring $100 from Bank A to Bank B.  Bank A&rsquo;s database should not
-dock your account $100 until Bank B has added $100, and vice versa.  Imagine
-if the power went out after Bank A docked your account, but before Bank B added
-to your account; that money could just disappear.  Bank B may have received it
-but not credited your account, or Bank A may have it, just not a record that
-it&rsquo;s yours.  You may have just doubled your money, or lost all of it.
-The notion of
-Atomicity provides for &ldquo;transactions,&rdquo; or sets of instructions that are
-guaranteed to all pass or all fail.</p>
-
-<p>Atomicity would be important for a memory transference device.  Once you were
-transferred into a machine, would it still be &ldquo;you&rdquo; if you remained in your
-body?  A physical clone, is as much <em>you</em>
-<del><a href="http://www.dailymail.co.uk/sciencetech/article-2232148/Identical-twins-genetically-different-research-suggests.html">as an identical twin</a></del>,
-but will never have the same memories and experiences that shape their mind.  If
-you merely copied your mind to a machine rather than transferred it, then you
-would still remained trapped in your
-<a href="http://www.quotefully.com/q/Jk3y3rG2aP">rotting piece of meat</a>.</p>
-
-<p>This is what I mean by transfer my &ldquo;soul.&rdquo;  An actual atomic transaction moving
-all of your memories and experiences from body to machine, all at once, or not
-at all.  I probably wouldn&rsquo;t want to
-be the first volunteer for such a machine, because if the machine failed at the
-atomic transaction, your soul would either be as lost as the $100 from the
-earlier example, or you&rsquo;d just be copied, not moved.</p>
-
-<p>In a world where diseases are too profitable to cure, I can imagine a world
-where the richest 1% live forever while the poor are forced to die.  Frozen Walt
-Disney just sat up.  An abuse of the technology, not too different a world from
-the one in <a href="http://en.wikipedia.org/wiki/Surrogates_%28film%29">Surrogates</a>.</p>
-
-<blockquote><p>Have you not done tormenting me with your accursed time! It&#8217;s Abominable! When! When! One day, is that not enough for you, one day he went dumb, one day I went blind, one day we&#8217;ll go deaf, one day we were born, one day we shall die, the same day, the same second, is that not enough for you? They give birth astride a grave, the light gleams an instant, then it&#8217;s night once more.</p><footer><strong>Pozzo</strong> <cite>Waiting for Godot by Samuel Becket</cite></footer></blockquote>
-
-
-
-
-<blockquote><p>They say that it is fear of death and what comes after death that makes men turn to religion.</p><footer><strong>Mustafa Mond</strong> <cite>Brave New World by Alduos Huxley</cite></footer></blockquote>
-
-
-<p>Ever since my father passed away, I&rsquo;ve occasionally suffered from existential
-anxiety attacks.  It usually starts with me thinking about those Discovery
-Channel shows about how the old the universe is, and how old it will become.
-Then my mind starts to think of all of the really cool technological
-advancements that have occurred in my lifetime, and how I wont be around to
-experience all future advancements, like a game that others get to play while I
-have to sit on the sidelines and watch.  Of course, if I&rsquo;m dead then I guess I
-won&rsquo;t care.  Currently, I calm myself down my telling myself that such an event
-is a long time away and I will live a long and happy life with many descendants,
-though I have no guarantees.  My father only lived to be 48.</p>
-
-<blockquote><p>&#8216;That&#8217;s such a weak excuse,&#8217; said Valentine. &#8216;Everyone dies. Everyone leaves. What matters is the things you build together before they go. What matters is the part of them that continues in you when they&#8217;re gone.&#8217;</p><footer><strong>Valentine</strong> <cite>Children of the Mind by Orson Scott Card</cite></footer></blockquote>
-
-
-
-
-<blockquote><p>Where before they would bloom and wither in the space of a single day, now they hold their blooms for three and four days at a time. Moistened by the dew of night, bathed in the light of the sun, the white flowers strive to live their lives to the fullest, beautifying the town as if striving to live out the portion of life denied to those whose &#8220;tomorrows&#8221; were snatched away from them forever.</p><footer><strong>White Flowers</strong> <cite>Lost Odyssey</cite></footer></blockquote>
-
-
-
-
-<blockquote><p>Human beings, who cannot live forever, daring to take a journey without end. This might be the ultimate tragedy, but it could just as well be the ultimate comedy. Kaim knows one thing, however: one cannot simply dismiss it as an exercise in futility.</p><footer><strong>The Upstreamers</strong> <cite>Lost Odyssey</cite></footer></blockquote>
-
-
-<p>Randy Pausch&rsquo;s <em>The Last Lecture</em> taught me that legacy is the greatest thing you
-can leave behind.  While I haven&rsquo;t yet started the business I&rsquo;ve always wanted,
-my first legacy I will leave my kiddos is my collection of Iron Maiden vinyl
-records.  They and their children will probably think I was nuts, but there is
-the slim chance they might really appreciate my taste in music.  I also want to
-write a book someday, that way I can marvel at how
-<a href="http://www.goodreads.com/quotes/287093-beneath-this-mask-there-is-more-than-flesh-beneath-this">my ideas will outlast me</a>.</p>
-
-<blockquote><p>I like to think that something survives after you die, it&#8217;s strange to think that you accumulate all this experience, and maybe a little wisdom, and it just goes away.  So I really want to believe that something survives, that maybe your consciousness endures.  But on the other hand, perhaps it&#8217;s like an on-off switch.  &#8220;Click!&#8221; And you&#8217;re gone.</p><footer><strong>Steve Jobs</strong> <cite>Steve Jobs by Walter Isaacson</cite></footer></blockquote>
-
-
-<p>It terrifies me to no end to think what could possibly drive someone to suicide.
-What doom a person would have to be surrounded with to honestly believe that no
-matter what they did, that they could not change their current situation.  I
-believe the journey is ultimately worth it.  It
-terrifies me to think of all of the amazing minds this world has seen, among so
-many who choose not to develop their own, that have come and gone.  Those who
-could change the world yet are snatched away.</p>
-
-<blockquote><p>This body holding me reminds me of my own mortality. Embrace this moment. Remember. We are eternal. All this pain is an illusion.</p><footer><strong>Parabola</strong> <cite>Tool</cite></footer></blockquote>
-
-
-<p>I&rsquo;m sorry this post turned a little dark.  By talking about my fears, I hope to
-not let them control me.  I believe publishing this will be a relief.  I think
-I&rsquo;ll join Elon on Mars, but unlike Elon, I believe I will transcend my physical
-being.  It&rsquo;s important therefor, to treasure your body while it lasts.</p>
-
-<blockquote><p>&#8216;But it [life] won&#8217;t have amounted to anything,&#8217; said Grego. &#8216;If your children die, then it was all a waste.&#8217; &#8216;No&#8217; said Olhado quietly. Grego shook his head. &#8216;Yes it does, Olhado. Death undoes everything.&#8217; Olhado shrugged. &#8216;Then why do you bother doing everything, Grego? Because someday you will die. Why should anyone ever have children? Someday they will die, their children will die, all children will die. Someday stars will wind down or blow up. Someday death will cover us all like the water of a lake and perhaps nothing will ever come to the surface to show that we were there. But we were there, and during the time we lived, we were alive. That&#8217;s the truth-what is, what was, what will be-not what could be, what should have been, what never can be. If we die, then our death has meaning to the rest of the universe. Even if our lives are unknown, the fact that someone lived here, and died, that will have repercussions, that will shape the universe.&#8217;</p><footer><strong>Children of the Mind</strong> <cite>Orson Scott Card</cite></footer></blockquote>
-
-
-
-
-<blockquote><p>There will allways be hope, wherever you are, until you yourself abondon it.</p><footer><strong>Old Revolutionary</strong> <cite>Lost Odyssey</cite></footer></blockquote>
 
 ]]></content>
   </entry>

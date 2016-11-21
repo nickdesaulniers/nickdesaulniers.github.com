@@ -9,8 +9,9 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="What was supposed to be one blog post about memory segmentation turned into
-what will be a series of posts. As the first in the series, we cover the &hellip;">
+  <meta name="description" content="This is the second post in a series on memory segmentation. It covers working
+with static and dynamic libraries. Make sure to check out the
+first on &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -87,6 +88,601 @@ what will be a series of posts. As the first in the series, we cover the &hellip
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2016/11/20/static-and-dynamic-libraries/">Static and Dynamic Libraries</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-11-20T23:55:00-08:00" pubdate data-updated="true">Nov 20<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/11/20/static-and-dynamic-libraries/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This is the second post in a series on memory segmentation.  It covers working
+with static and dynamic libraries.  Make sure to check out the
+<a href="/blog/2016/08/13/object-files-and-symbols/">first on object files and symbols</a>.</p>
+
+<p>Let’s say we wanted to reuse some of the code from our previous project in our
+next one.  We could continue to copy around object files, but let’s say we have
+a bunch and it’s hard to keep track of all of them.  Let’s combine multiple
+object files into an archive or static library.  Similar to a more conventional
+zip file or &ldquo;compressed archive,&rdquo; our static library will be an uncompressed
+archive.</p>
+
+<p>We can use the <code>ar</code> command to create and manipulate a static archive.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang -c x.c y.c
+</span><span class='line'><span class="nv">$ </span>ar -rv libhello.a x.o y.o
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>-r</code> flag will create the archive named <code>libhello.a</code> and add the files
+<code>x.o</code> and <code>y.o</code> to its index.  I like to add the <code>-v</code> flag for verbose output.
+Then we can use the familiar <code>nm</code> tool I introduced in the
+<a href="/blog/2016/08/13/object-files-and-symbols/">previous post</a>
+to examine the content of the archives and their symbols.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>file libhello.a
+</span><span class='line'>libhello.a: current ar archive random library
+</span><span class='line'><span class="nv">$ </span>nm libhello.a
+</span><span class='line'>libhello.a<span class="o">(</span>x.o<span class="o">)</span>:
+</span><span class='line'>                 U _puts
+</span><span class='line'>0000000000000000 T _x
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>libhello.a<span class="o">(</span>y.o<span class="o">)</span>:
+</span><span class='line'>                 U _puts
+</span><span class='line'>0000000000000000 T _y
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Some other useful flags for <code>ar</code> are <code>-d</code> to delete an object file, ex. <code>ar -d
+libhello.a y.o</code> and <code>-u</code> to update existing members of the archive when their
+source and object files are updated.  Not only can we run <code>nm</code> on our archive,
+<code>otool</code> and <code>objdump</code> both work.</p>
+
+<p>Now that we have our static library, we can statically link it to our program
+and see the resulting symbols.  The <code>.a</code> suffix is typical on both OSX and
+Linux for archive files.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang main.o libhello.a
+</span><span class='line'><span class="nv">$ </span>nm a.out
+</span><span class='line'>0000000100000f30 T _main
+</span><span class='line'>                 U _puts
+</span><span class='line'>0000000100000f50 T _x
+</span><span class='line'>0000000100000f70 T _y
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Our compiler understands how to index into archive files and pull out the
+functions it needs to combine into the final executable.  If we use a static
+library to statically link all functions required, we can have one binary with
+no dependencies.  This can make deployment of binaries simple, but also greatly
+increase their size.  Upgrading large binaries incrementally becomes more
+costly in terms of space.</p>
+
+<p>While static libraries allowed us to reuse source code, static linkage does not
+allow us to reuse memory for executable code between different processes.  I
+really want to put off talking about memory benefits until the next post, but
+know that the solution to this problem lies in &ldquo;dynamic libraries.&rdquo;</p>
+
+<p>While having a single binary file keeps things simple, it can really hamper
+memory sharing and incremental relinking.  For example, if you have multiple
+executables that are all built with the same static library, unless your OS is
+really smart about copy-on-write page sharing, then you’re likely loading
+multiple copies of the same exact code into memory! What a waste!  Also, when
+you want to rebuild or update your binary, you spend time performing relocation
+again and again with static libraries.  What if we could set aside object files
+that we could share amongst multiple instances of the same or even different
+processes, and perform relocation at runtime?</p>
+
+<p>The solution is known as dynamic libraries.  If static libraries and static
+linkage were Atari controllers, dynamic libraries and dynamic linkage are Steel
+Battalion controllers.  We’ll show how to work with them in the rest of this
+post, but I’ll prove how memory is saved in a later post.</p>
+
+<p>Let’s say we want to created a shared version of libhello.  Dynamic libraries
+typically have different suffixes per OS since each OS has it’s preferred
+object file format.  On Linux the .so suffix is common, .dylib on OSX, and .dll
+on Windows.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang -shared -fpic x.c y.c -o libhello.dylib
+</span><span class='line'><span class="nv">$ </span>file libhello.dylib
+</span><span class='line'>libhello.dylib: Mach-O 64-bit dynamically linked shared library x86_64
+</span><span class='line'><span class="nv">$ </span>nm libhello.dylib
+</span><span class='line'>                 U _puts
+</span><span class='line'>0000000000000f50 T _x
+</span><span class='line'>0000000000000f70 T _y
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>-shared</code> flag tells the linker to create a special file called a shared
+library.  The <code>-fpic</code> option converts absolute addresses to relative addresses,
+which allows for different processes to load the library at different virtual
+addresses and share memory.</p>
+
+<p>Now that we have our shared library, let’s dynamically link it into our
+executable.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang main.c libhello.dylib
+</span><span class='line'><span class="nv">$ </span>./a.out
+</span><span class='line'>x
+</span><span class='line'>y
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The dynamic linker essential produces an incomplete binary.  You can verify
+with <code>nm</code>.  At runtime, we’ll delay start up to perform some memory mapping
+early on in the process start (performed by the dynamic linker) and pay slight
+costs for trampolining into position independent code.</p>
+
+<p>Let’s say we want to know what dynamic libraries a binary is using.  You can
+either query the executable (most executable object file formats contain a
+header the dynamic linker will parse and pull in libs) or observe the
+executable while running it.  Because each major OS has its own object file
+format, they each have their own tools for these two checks.  Note that
+statically linked libraries won’t show up here, since their object code has
+already been linked in and thus we’re not able to differentiate between object
+code that came from our first party code vs third party static libraries.</p>
+
+<p>On OSX, we can use <code>otool -L &lt;bin&gt;</code> to check which .dylibs will get pulled in.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>otool -L a.out
+</span><span class='line'>a.out:
+</span><span class='line'>           libhello.dylib <span class="o">(</span>compatibility version 0.0.0, current version 0.0.0<span class="o">)</span>
+</span><span class='line'>           /usr/lib/libSystem.B.dylib <span class="o">(</span>compatibility version 1.0.0, current version 1226.10.1<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So we can see that <code>a.out</code> depends on <code>libhello.dylib</code> (and expects to find it
+in the same directory as <code>a.out</code>).  It also depends on shared library called
+libSystem.B.dylib.  If you run <code>otool -L</code> on libSystem itself, you’ll see it
+depends on a bunch of other libraries including a C runtime, malloc
+implementation, pthreads implementation, and more.  Let’s say you want to find
+the final resting place of where a symbol is defined, without digging with <code>nm</code>
+and <code>otool</code>, you can fire up your trusty debugger and ask it.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>lldb a.out
+</span><span class='line'>...
+</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> image lookup -r -s puts
+</span><span class='line'>...
+</span><span class='line'>        Summary: libsystem_c.dylib<span class="sb">`</span>puts        Address: libsystem_c.dylib<span class="o">[</span>0x0000000000085c30<span class="o">]</span> <span class="o">(</span>libsystem_c.dylib.__TEXT.__stubs + 3216<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You’ll see a lot of output since <code>puts</code> is treated as a regex.  You’re looking
+for the Summary line that has an address and is <strong>not</strong> a symbol stub.  You can
+then check your work with <code>otool</code> and <code>nm</code>.</p>
+
+<p>If we want to observe the dynamic linker in action on OSX, we can use <code>dtruss</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo dtruss ./a.out
+</span><span class='line'>...
+</span><span class='line'>stat64<span class="o">(</span><span class="s2">&quot;libhello.dylib\0&quot;</span>, 0x7FFF50CEAC68, 0x1<span class="o">)</span>         <span class="o">=</span> 0 0
+</span><span class='line'>open<span class="o">(</span><span class="s2">&quot;libhello.dylib\0&quot;</span>, 0x0, 0x0<span class="o">)</span>              <span class="o">=</span> 3 0
+</span><span class='line'>...
+</span><span class='line'>mmap<span class="o">(</span>0x10EF27000, 0x1000, 0x5, 0x12, 0x3, 0x0<span class="o">)</span>          <span class="o">=</span> 0x10EF27000 0
+</span><span class='line'>mmap<span class="o">(</span>0x10EF28000, 0x1000, 0x3, 0x12, 0x3, 0x1000<span class="o">)</span>               <span class="o">=</span> 0x10EF28000 0
+</span><span class='line'>mmap<span class="o">(</span>0x10EF29000, 0xC0, 0x1, 0x12, 0x3, 0x2000<span class="o">)</span>         <span class="o">=</span> 0x10EF29000 0
+</span><span class='line'>...
+</span><span class='line'>close<span class="o">(</span>0x3<span class="o">)</span>              <span class="o">=</span> 0 0
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>On Linux, we can simply use <code>ldd</code> or <code>readelf -d</code> to query an executable for a
+list of its dynamic libraries.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang -shared -fpic x.c y.c -o libhello.so
+</span><span class='line'><span class="nv">$ </span>clang main.c libhello.so
+</span><span class='line'><span class="nv">$ </span>ldd a.out
+</span><span class='line'>           linux-vdso.so.1 <span class="o">=</span>&gt;  <span class="o">(</span>0x00007fff95d43000<span class="o">)</span>
+</span><span class='line'>           libhello.so <span class="o">=</span>&gt; not found
+</span><span class='line'>           libc.so.6 <span class="o">=</span>&gt; /lib/x86_64-linux-gnu/libc.so.6 <span class="o">(</span>0x00007fcc98c5f000<span class="o">)</span>
+</span><span class='line'>           /lib64/ld-linux-x86-64.so.2 <span class="o">(</span>0x0000555993852000<span class="o">)</span>
+</span><span class='line'><span class="nv">$ </span>readelf -d a.out
+</span><span class='line'>Dynamic section at offset 0xe18 contains 25 entries:
+</span><span class='line'>  Tag        Type                         Name/Value
+</span><span class='line'> 0x0000000000000001 <span class="o">(</span>NEEDED<span class="o">)</span>             Shared library: <span class="o">[</span>libhello.so<span class="o">]</span>
+</span><span class='line'> 0x0000000000000001 <span class="o">(</span>NEEDED<span class="o">)</span>             Shared library: <span class="o">[</span>libc.so.6<span class="o">]</span>
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can then use <code>strace</code> to observe the dynamic linker in action on Linux:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ LD_LIBRARY_PATH</span><span class="o">=</span>. strace ./a.out
+</span><span class='line'>...
+</span><span class='line'>open<span class="o">(</span><span class="s2">&quot;./libhello.so&quot;</span>, O_RDONLY|O_CLOEXEC<span class="o">)</span> <span class="o">=</span> 3
+</span><span class='line'>...
+</span><span class='line'><span class="nb">read</span><span class="o">(</span>3, <span class="s2">&quot;\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0&gt;\0\1\0\0\0\260\5\0\0\0\0\0\0&quot;</span>..., 832<span class="o">)</span> <span class="o">=</span> 832
+</span><span class='line'>fstat<span class="o">(</span>3, <span class="o">{</span><span class="nv">st_mode</span><span class="o">=</span>S_IFREG|0755, <span class="nv">st_size</span><span class="o">=</span>8216, ...<span class="o">})</span> <span class="o">=</span> 0
+</span><span class='line'>close<span class="o">(</span>3<span class="o">)</span>                                <span class="o">=</span> 0
+</span><span class='line'>...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What’s this <code>LD_LIBRARY_PATH</code> thing?  That’s shell syntax for setting an
+environmental variable just for the duration of that command (as opposed to
+exporting it so it stays set for multiple commands).  As opposed to OSX’s
+dynamic linker, which was happy to look in the cwd for libhello.dylib, on Linux
+we must supply the cwd if the dynamic library we want to link in is not in the
+standard search path.</p>
+
+<p>But what is the standard search path?  Well, there’s another environmental
+variable we can set to see this, <code>LD_DEBUG</code>.  For example, on OSX:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ LD_DEBUG</span><span class="o">=</span>libs <span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>. ./a.out
+</span><span class='line'>     15828:        find <span class="nv">library</span><span class="o">=</span>libhello.so <span class="o">[</span>0<span class="o">]</span>; searching
+</span><span class='line'>     15828:         search <span class="nv">path</span><span class="o">=</span>./tls/x86_64:./tls:./x86_64:.             <span class="o">(</span>LD_LIBRARY_PATH<span class="o">)</span>
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./tls/x86_64/libhello.so
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./tls/libhello.so
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./x86_64/libhello.so
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./libhello.so
+</span><span class='line'>     15828:
+</span><span class='line'>     15828:        find <span class="nv">library</span><span class="o">=</span>libc.so.6 <span class="o">[</span>0<span class="o">]</span>; searching
+</span><span class='line'>     15828:         search <span class="nv">path</span><span class="o">=</span>./tls/x86_64:./tls:./x86_64:.             <span class="o">(</span>LD_LIBRARY_PATH<span class="o">)</span>
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./tls/x86_64/libc.so.6
+</span><span class='line'>     1earc:          trying <span class="nv">file</span><span class="o">=</span>./tls/libc.so.6
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./x86_64/libc.so.6
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>./libc.so.6
+</span><span class='line'>     15828:         search <span class="nv">cache</span><span class="o">=</span>/etc/ld.so.cache
+</span><span class='line'>     15828:          trying <span class="nv">file</span><span class="o">=</span>/lib/x86_64-linux-gnu/libc.so.6
+</span><span class='line'>     15828:        calling init: /lib/x86_64-linux-gnu/libc.so.6
+</span><span class='line'>     15828:        calling init: ./libhello.so
+</span><span class='line'>     15828:        initialize program: ./a.out
+</span><span class='line'>     15828:        transferring control: ./a.out
+</span><span class='line'>x
+</span><span class='line'>y
+</span><span class='line'>     15828:        calling fini: ./a.out <span class="o">[</span>0<span class="o">]</span>
+</span><span class='line'>     15828:        calling fini: ./libhello.so <span class="o">[</span>0<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>LD_DEBUG</code> is pretty useful.  Try:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ LD_DEBUG</span><span class="o">=</span><span class="nb">help</span> ./a.out
+</span><span class='line'>Valid options <span class="k">for </span>the LD_DEBUG environment variable are:
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>  libs        display library search paths
+</span><span class='line'>  reloc       display relocation processing
+</span><span class='line'>  files       display progress <span class="k">for </span>input file
+</span><span class='line'>  symbols     display symbol table processing
+</span><span class='line'>  bindings    display information about symbol binding
+</span><span class='line'>  versions    display version dependencies
+</span><span class='line'>  scopes      display scope information
+</span><span class='line'>  all         all previous options combined
+</span><span class='line'>  statistics  display relocation statistics
+</span><span class='line'>  unused      determined unused DSOs
+</span><span class='line'>  <span class="nb">help        </span>display this <span class="nb">help </span>message and <span class="nb">exit</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'>To direct the debugging output into a file instead of standard output
+</span><span class='line'>a filename can be specified using the LD_DEBUG_OUTPUT environment variable.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For some cool stuff, I recommend checking out <code>LD_DEBUG=symbols</code> and
+<code>LD_DEBUG=statistics</code>.</p>
+
+<p>Going back to <code>LD_LIBRARY_PATH</code>, usually libraries you create and want to reuse
+between projects go into /usr/local/lib and the headers into
+/usr/local/include.  I think of the convention as:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>tree -L 2 /usr/
+</span><span class='line'>/usr
+</span><span class='line'>├── bin <span class="c"># system installed binaries like nm, gcc</span>
+</span><span class='line'>├── include <span class="c"># system installed headers like stdio.h</span>
+</span><span class='line'>├── lib <span class="c"># system installed libraries, both static and dynamic</span>
+</span><span class='line'>└── <span class="nb">local</span>
+</span><span class='line'>    ├── bin <span class="c"># user installed binaries like rustc</span>
+</span><span class='line'>    ├── include <span class="c"># user installed headers</span>
+</span><span class='line'>    └── lib <span class="c"># user installed</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Unfortunately, it’s a loose convention that’s broken down over the years and
+things are scattered all over the place.  You can also run into dependency and
+versioning issues, that I don’t want to get into here, by placing libraries
+here instead of keeping them in-tree or out-of-tree of the source code of a
+project.  Just know when you see a library like <code>libc.so.6</code> that the numeric
+suffix is a major version number that follows semantic versioning.  For more
+information, you should read Michael Kerrisk’s excellent book <em>The Linux
+Programming Interface</em>.  This post is based on his chapter’s 41 &amp; 42 (but with
+more info on tooling and OSX).</p>
+
+<p>If we were to place our libhello.so into /usr/local/lib (on Linux you need to
+then run <code>sudo ldconfig</code>) and move x.h and y.h to /usr/local/include, then we
+could then compile with:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang main.c -lhello
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note that rather than give a full path to our library, we can use the <code>-l</code> flag
+followed by the name of our library with the lib prefix and .so suffix removed.</p>
+
+<p>When working with shared libraries and external code, three flags I use pretty
+often:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>* -l&lt;libname to link, no lib prefix or file extension; ex: -lnanomsg to link libnanomsg.so&gt;
+</span><span class='line'>* -L &lt;path to search <span class="k">for </span>lib <span class="k">if </span>in non standard directory&gt;
+</span><span class='line'>* -I &lt;path to headers <span class="k">for </span>that library, <span class="k">if </span>in non standard directory&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For finding specific flags needed for compilation where dynamic linkage is
+required, a tool called <code>pkg-config</code> can be used for finding appropriate flags.
+I’ve had less than stellar experiences with the tool as it puts the onus on the
+library author to maintain the .pc files, and the user to have them installed
+in the right place that <code>pkg-config</code> looks.  When they do exist and are
+installed properly, the tool works well:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo apt-get install libpng12-dev
+</span><span class='line'><span class="nv">$ </span>pkg-config --libs --cflags libpng12
+</span><span class='line'>-I/usr/include/libpng12  -lpng12
+</span><span class='line'><span class="nv">$ </span>clang program.c <span class="sb">`</span>!!<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Using another neat environmental variable, we can hook into the dynamic linkage
+process and inject our own shared libraries to be linked instead of the
+expected libraries.  Let’s say libgood.so and libmalicous.so both define a
+symbol for a function (the same symbol name and function signature).  We can
+get a binary that links in libgood.so’s function to instead call
+libmalicous.so’s version:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./a.out
+</span><span class='line'>hello from libgood
+</span><span class='line'><span class="nv">$ LD_PRELOAD</span><span class="o">=</span>./libmalicious.so ./a.out
+</span><span class='line'>hello from libmalicious
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Manually invoking the dynamic linker from our code,
+<a href="https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs/">we can even man in the middle library calls (call our hooked function first, then invoke the original target)</a>.
+We’ll see more of this in the next post on using the dynamic linker.</p>
+
+<p>As you can guess, readjusting the search paths for dynamic libraries is a
+security concern as it let’s good and bad folks change the expected execution
+paths.  Guarding against the use of these env vars becomes a rabbit hole that
+gets pretty tricky to solve without the heavy handed use of statically linking
+dependencies.</p>
+
+<p>In the the previous post, I alluded to undefined symbols like <code>puts</code>.  <code>puts</code>
+is part of libc, which is probably the most shared dynamic library on most
+computing devices since most every program makes use of the C runtime.  (I
+think of a “runtime” as implicit code that runs in your program that you didn’t
+necessarily write yourself.  Usually a runtime is provided as a library that
+gets implicitly linked into your executable when you compile.)  You can
+statically link against libc with the <code>-static</code> flag, on Linux at least (OSX
+makes this difficult,
+<a href="https://developer.apple.com/library/content/qa/qa1118/_index.html">&ldquo;Apple does not support statically linked binaries on Mac OS X&rdquo;</a>).</p>
+
+<p>I’m not sure what the benefit would be to mixing static and dynamic linking,
+but after searching the search paths from LD_DEBUG=libs for shared versions of
+a library, if any static ones are found, they will get linked in.</p>
+
+<p>There’s also an interesting form of library called a &ldquo;virtual dynamic shared
+object&rdquo; on Linux.  I haven’t covered memory mapping yet, but know it exists, is
+usually hidden for libc, and that you can read more about it via <code>man 7 vdso</code>.</p>
+
+<p>One thing I find interesting and don’t quite understand how to recreate is that
+somehow glibc on Linux is also executable:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>/lib/x86_64-linux-gnu/libc.so.6
+</span><span class='line'>GNU C Library <span class="o">(</span>Ubuntu GLIBC 2.24-3ubuntu1<span class="o">)</span> stable release version 2.24, by Roland McGrath et al.
+</span><span class='line'>Copyright <span class="o">(</span>C<span class="o">)</span> 2016 Free Software Foundation, Inc.
+</span><span class='line'>This is free software; see the <span class="nb">source </span><span class="k">for </span>copying conditions.
+</span><span class='line'>There is NO warranty; not even <span class="k">for </span>MERCHANTABILITY or FITNESS FOR A
+</span><span class='line'>PARTICULAR PURPOSE.
+</span><span class='line'>Compiled by GNU CC version 6.2.0 20161005.
+</span><span class='line'>Available extensions:
+</span><span class='line'>    crypt add-on version 2.1 by Michael Glad and others
+</span><span class='line'>    GNU Libidn by Simon Josefsson
+</span><span class='line'>    Native POSIX Threads Library by Ulrich Drepper et al
+</span><span class='line'>    BIND-8.2.3-T5B
+</span><span class='line'>libc ABIs: UNIQUE IFUNC
+</span><span class='line'>For bug reporting instructions, please see:
+</span><span class='line'>&lt;https://bugs.launchpad.net/ubuntu/+source/glibc/+bugs&gt;.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Also, note that linking against third party code has licensing implications (of
+course) of particular interest when it’s GPL or LGPL.
+<a href="http://stackoverflow.com/a/10179181/1027966">Here is a good overview</a>
+which I’d summarize as: code that <em>statically</em> links against LGPL code must
+also be LGPL, while any form of linkage against GPL code must be GPL’d.</p>
+
+<p>Ok, that was a lot. In the previous post, we covered
+<a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>.
+In this post we covered hacking around with static and dynamic linkage.  In the
+next post, I hope to talk about manually invoking the dynamic linker at
+runtime.</p>
+
+<ul>
+<li><a href="/blog/2016/08/13/object-files-and-symbols/">Part 1 &ndash; Object Files and Symbols</a></li>
+<li><a href="/blog/2016/11/20/static-and-dynamic-libraries/">Part 2 &ndash; Static and Dynamic Libraries</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a></h1>
     
     
@@ -115,9 +711,10 @@ what will be a series of posts. As the first in the series, we cover the &hellip
   <div class="entry-content"><p>What was supposed to be one blog post about memory segmentation turned into
 what will be a series of posts.  As the first in the series, we cover the
 extreme basics of object files and symbols.  In follow up posts, I
-plan to talk about static libraries, dynamic libraries, dynamic linkage, memory
-segments, and finally memory usage accounting.  I also cover command line tools
-for working with these notions, both in Linux and OSX.</p>
+plan to talk about
+<a href="/blog/2016/11/20/static-and-dynamic-libraries/">static libraries, dynamic libraries,</a>
+dynamic linkage, memory segments, and finally memory usage accounting.  I also
+cover command line tools for working with these notions, both in Linux and OSX.</p>
 
 <p>A quick review of the compilation+execution pipeline (for terminology):</p>
 
@@ -558,6 +1155,12 @@ with C code. Finding symbols to be placed into a final executable and
 relocating addresses are the main job of the linker, and will be the main theme
 of the posts in this series. Keep your eyes out for more in this series on
 memory segmentation.</p>
+
+<ul>
+<li><a href="/blog/2016/08/13/object-files-and-symbols/">Part 1 &ndash; Object Files and Symbols</a></li>
+<li><a href="/blog/2016/11/20/static-and-dynamic-libraries/">Part 2 &ndash; Static and Dynamic Libraries</a></li>
+</ul>
+
 </div>
   
   
@@ -3083,345 +3686,6 @@ worlds.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/02/22/public-key-crypto-code-example/">Hidden in Plain Sight - Public Key Crypto</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2015-02-22T11:48:00-08:00" pubdate data-updated="true">Feb 22<span>nd</span>, 2015</time>
-        
-         | <a href="/blog/2015/02/22/public-key-crypto-code-example/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>How is it possible for us to communicate securely when there&rsquo;s the possibility
-of a third party eavesdropping on us?  How can we communicate private secrets
-through public channels?  How do such techniques enable us to bank online and
-carry out other sensitive transactions on the Internet while trusting numerous
-relays?  In this post, I hope
-to explain public key cryptography, with actual code examples, so that the
-concepts are a little more concrete.</p>
-
-<p>First, please check out this excellent video on public key crypto:</p>
-
-<div class="embed-video-container"><iframe src="//www.youtube.com/embed/YEBfamv-_do" allowfullscreen></iframe></div>
-
-
-<p>Hopefully that explains the gist of the technique, but what might it actually
-look like in code?  Let&rsquo;s take a look at example code in JavaScript using the
-Node.js crypto module.  We&rsquo;ll later compare the upcoming WebCrypto API and
-look at a TLS handshake.</p>
-
-<p>Meet Alice.  Meet Bob. Meet Eve.  Alice would like to send Bob a secret
-message.  Alice would not like Eve to view the message.  Assume Eve can
-intercept, but not tamper with, everything Alice and Bob try to share with each
-other.</p>
-
-<p>Alice chooses a modular exponential key group, such as modp4, then creates a
-public and private key.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">group</span> <span class="o">=</span> <span class="s2">&quot;modp4&quot;</span><span class="p">;</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">aliceDH</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">getDiffieHellman</span><span class="p">(</span><span class="nx">group</span><span class="p">);</span>
-</span><span class='line'><span class="nx">aliceDH</span><span class="p">.</span><span class="nx">generateKeys</span><span class="p">();</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>A modular exponential key group is simply a &ldquo;sufficiently large&rdquo; prime number,
-paired with a generator (specific number), such as those defined in
-<a href="http://tools.ietf.org/html/rfc2412">RFC2412</a> and
-<a href="http://tools.ietf.org/html/rfc3526">RFC3526</a>.</p>
-
-<p>The public key is meant to be shared; it is ok for Eve to know the public key.
-The private key must not ever be shared, even with the person communicating to.</p>
-
-<p>Alice then shares her public key and group with Bob.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">Public</span> <span class="nx">Key</span><span class="o">:</span>
-</span><span class='line'> <span class="o">&lt;</span><span class="nx">Buffer</span> <span class="mi">96</span> <span class="mi">33</span> <span class="nx">c5</span> <span class="mi">9</span><span class="nx">e</span> <span class="nx">b9</span> <span class="mi">07</span> <span class="mi">3</span><span class="nx">e</span> <span class="nx">f2</span> <span class="nx">ec</span> <span class="mi">56</span> <span class="mi">6</span><span class="nx">d</span> <span class="nx">f4</span> <span class="mi">1</span><span class="nx">a</span> <span class="nx">b4</span> <span class="nx">f8</span> <span class="mi">4</span><span class="nx">c</span> <span class="mi">77</span> <span class="nx">e6</span> <span class="mi">5</span><span class="nx">f</span> <span class="nx">a0</span> <span class="mi">93</span> <span class="nx">cf</span> <span class="mi">32</span> <span class="nx">d3</span> <span class="mi">22</span> <span class="mi">42</span> <span class="nx">c8</span> <span class="nx">b4</span> <span class="mi">7</span><span class="nx">b</span> <span class="mi">2</span><span class="nx">b</span> <span class="mi">1</span><span class="nx">f</span> <span class="nx">a9</span> <span class="mi">55</span> <span class="mi">86</span> <span class="mi">05</span> <span class="nx">a4</span> <span class="mi">60</span> <span class="mi">17</span> <span class="nx">ae</span> <span class="nx">f9</span> <span class="nx">ee</span> <span class="nx">bf</span> <span class="nx">b3</span> <span class="nx">c9</span> <span class="mi">05</span> <span class="nx">a9</span> <span class="mi">31</span> <span class="mi">31</span> <span class="mi">94</span> <span class="mi">0</span><span class="nx">f</span> <span class="p">...</span> <span class="o">&gt;</span>
-</span><span class='line'><span class="nx">Group</span><span class="o">:</span>
-</span><span class='line'> <span class="nx">modp14</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Bob now creates a public and private key pair with the same group as Alice.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">bobDH</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">getDiffieHellman</span><span class="p">(</span><span class="nx">group</span><span class="p">);</span>
-</span><span class='line'><span class="nx">bobDH</span><span class="p">.</span><span class="nx">generateKeys</span><span class="p">();</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Bob shares his public key with Alice.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">Public</span> <span class="nx">key</span><span class="o">:</span>
-</span><span class='line'> <span class="o">&lt;</span><span class="nx">Buffer</span> <span class="nx">ee</span> <span class="nx">d7</span> <span class="nx">e2</span> <span class="mi">00</span> <span class="nx">e5</span> <span class="mi">82</span> <span class="mi">11</span> <span class="nx">eb</span> <span class="mi">67</span> <span class="nx">ab</span> <span class="mi">50</span> <span class="mi">20</span> <span class="mi">30</span> <span class="mi">81</span> <span class="nx">b1</span> <span class="mi">74</span> <span class="mi">7</span><span class="nx">a</span> <span class="mi">51</span> <span class="mi">0</span><span class="nx">d</span> <span class="mi">7</span><span class="nx">e</span> <span class="mi">2</span><span class="nx">a</span> <span class="nx">de</span> <span class="nx">b7</span> <span class="nx">df</span> <span class="nx">db</span> <span class="nx">cf</span> <span class="nx">ac</span> <span class="mi">57</span> <span class="nx">de</span> <span class="nx">a4</span> <span class="nx">f0</span> <span class="nx">bd</span> <span class="nx">bc</span> <span class="nx">b5</span> <span class="mi">7</span><span class="nx">e</span> <span class="nx">ea</span> <span class="nx">df</span> <span class="nx">b0</span> <span class="mi">3</span><span class="nx">b</span> <span class="nx">c3</span> <span class="mi">3</span><span class="nx">a</span> <span class="nx">e2</span> <span class="nx">fa</span> <span class="mi">0</span><span class="nx">e</span> <span class="nx">ed</span> <span class="mi">22</span> <span class="mi">90</span> <span class="mi">31</span> <span class="mi">01</span> <span class="mi">67</span> <span class="p">...</span> <span class="o">&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Alice and Bob now compute a shared secret.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">aliceSecret</span> <span class="o">=</span> <span class="nx">aliceDH</span><span class="p">.</span><span class="nx">computeSecret</span><span class="p">(</span><span class="nx">bobDH</span><span class="p">.</span><span class="nx">getPublicKey</span><span class="p">(),</span> <span class="kc">null</span><span class="p">,</span> <span class="s2">&quot;hex&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">bobSecret</span> <span class="o">=</span> <span class="nx">bobDH</span><span class="p">.</span><span class="nx">computeSecret</span><span class="p">(</span><span class="nx">aliceDH</span><span class="p">.</span><span class="nx">getPublicKey</span><span class="p">(),</span> <span class="kc">null</span><span class="p">,</span> <span class="s2">&quot;hex&quot;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Alice and Bob have now derived a shared secret from each others&#8217; public keys.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">aliceSecret</span> <span class="o">===</span> <span class="nx">bobSecret</span><span class="p">;</span> <span class="c1">// =&gt; true</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Meanwhile, Eve has intercepted Alice and Bob&rsquo;s public keys and group.  Eve
-tries to compute the same secret.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">eveDH</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">getDiffieHellman</span><span class="p">(</span><span class="nx">group</span><span class="p">);</span>
-</span><span class='line'><span class="nx">eveDH</span><span class="p">.</span><span class="nx">generateKeys</span><span class="p">();</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">eveSecret</span> <span class="o">=</span> <span class="nx">eveDH</span><span class="p">.</span><span class="nx">computeSecret</span><span class="p">(</span><span class="nx">aliceDH</span><span class="p">.</span><span class="nx">getPublicKeys</span><span class="p">(),</span> <span class="kc">null</span><span class="p">,</span> <span class="s2">&quot;hex&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="nx">eveSecret</span> <span class="o">===</span> <span class="nx">aliceSecret</span><span class="p">;</span> <span class="c1">// =&gt; false</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This is because Alice&rsquo;s secret is derived from Alice and Bob&rsquo;s private keys,
-which Eve does not have.  Eve may not realize her secret is not the same as
-Alice and Bob&rsquo;s until later.</p>
-
-<p>That was asymmetric encryption; using different keys.  The shared secret may
-now be used in symmetric encryption; using the same keys.</p>
-
-<p>Alice creates a symmetric block cypher using her favorite algorithm, a hash of
-their secret as a key, and random bytes as an initialization vector.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">cypher</span> <span class="o">=</span> <span class="s2">&quot;aes-256-ctr&quot;</span><span class="p">;</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">hash</span> <span class="o">=</span> <span class="s2">&quot;sha256&quot;</span><span class="p">;</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">aliceIV</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">randomBytes</span><span class="p">(</span><span class="mi">128</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">aliceHashedSecret</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">createHash</span><span class="p">(</span><span class="nx">hash</span><span class="p">).</span><span class="nx">update</span><span class="p">(</span><span class="nx">aliceSecret</span><span class="p">).</span><span class="nx">digest</span><span class="p">(</span><span class="s2">&quot;binary&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">aliceCypher</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">createCypher</span><span class="p">(</span><span class="nx">cypher</span><span class="p">,</span> <span class="nx">aliceHashedSecret</span><span class="p">,</span> <span class="nx">aliceIV</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Alice then uses her cypher to encrypt her message to Bob.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">cypherText</span> <span class="o">=</span> <span class="nx">aliceCypher</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Alice then sends the cypher text, cypher, and hash to Bob.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">cypherText</span><span class="o">:</span>
-</span><span class='line'> <span class="o">&lt;</span><span class="nx">Buffer</span> <span class="nx">bd</span> <span class="mi">29</span> <span class="mi">96</span> <span class="mi">83</span> <span class="nx">fa</span> <span class="nx">a8</span> <span class="mi">7</span><span class="nx">d</span> <span class="mi">9</span><span class="nx">c</span> <span class="nx">ea</span> <span class="mi">90</span> <span class="nx">ab</span><span class="o">&gt;</span>
-</span><span class='line'><span class="nx">cypher</span><span class="o">:</span>
-</span><span class='line'> <span class="nx">aes</span><span class="o">-</span><span class="mi">256</span><span class="o">-</span><span class="nx">ctr</span>
-</span><span class='line'><span class="nx">hash</span><span class="o">:</span>
-</span><span class='line'> <span class="nx">sha256</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Bob now constructs a symmetric block cypher using the algorithm from Alice,
-and a hash of their shared secret.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">bobHashedSecret</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">createHash</span><span class="p">(</span><span class="nx">hash</span><span class="p">).</span><span class="nx">update</span><span class="p">(</span><span class="nx">bobSecret</span><span class="p">).</span><span class="nx">digest</span><span class="p">(</span><span class="s2">&quot;binary&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">bobCypher</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">createDecipher</span><span class="p">(</span><span class="nx">cypher</span><span class="p">,</span> <span class="nx">bobHashedSecret</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Bob now decyphers the encrypted message (cypher text) from Alice.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">plainText</span> <span class="o">=</span> <span class="nx">bobCypher</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">cypherText</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">plainText</span><span class="p">);</span> <span class="c1">// =&gt; &quot;I love you&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Eve has intercepted the cypher text, cypher, hash, and tries to decrypt it.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">eveHashedSecret</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">createHash</span><span class="p">(</span><span class="nx">hash</span><span class="p">).</span><span class="nx">update</span><span class="p">(</span><span class="nx">eveSecret</span><span class="p">).</span><span class="nx">digest</span><span class="p">(</span><span class="s2">&quot;binary&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">eveCypher</span> <span class="o">=</span> <span class="nx">crypto</span><span class="p">.</span><span class="nx">createDecipher</span><span class="p">(</span><span class="nx">cypher</span><span class="p">,</span> <span class="nx">eveHashedSecret</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">eveCypher</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">cypherText</span><span class="p">).</span><span class="nx">toString</span><span class="p">());</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// =&gt; ��_r](�i)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Here&rsquo;s where Eve realizes her secret is not correct.</p>
-
-<p>This prevents passive eavesdropping, but not active man-in-the-middle (MITM)
-attacks.  For example, how does Alice know that the messages she was supposedly
-receiving from Bob actually came from Bob, not Eve posing as Bob?</p>
-
-<p>Today, we use a system of certificates to provide authentication.  This system
-certainly <a href="http://thenextweb.com/insider/2015/02/19/lenovo-caught-installing-adware-new-computers/">has</a> its
-<a href="https://deadbeefsec.wordpress.com/2012/09/30/who-do-you-trust-why-certificate-authorities-are-a-cartel/">flaws</a>,
-but it is what we use today.  This is more advanced topic that won&rsquo;t be covered
-here.  Trust is a funny thing.</p>
-
-<p>What&rsquo;s interesting to note is that the prime and generator used to generate
-Diffie-Hellman public and private keys have strings that represent the
-corresponding modular key exponential groups, ie &ldquo;modp14&rdquo;.  Web crypto&rsquo;s API
-gives you
-<a href="https://hg.mozilla.org/mozilla-central/file/d866ac7f8606/dom/crypto/test/test_WebCrypto_DH.html#l30">finer grain control</a>
-to specify the generator and
-<a href="https://hg.mozilla.org/mozilla-central/file/d866ac7f8606/dom/crypto/test/test-vectors.js#l662">large prime number</a>
-in a Typed Array.  I&rsquo;m not sure why this is; if it allows you to have finer
-grain control, or allows you to support newer groups before the implementation
-does?  To me, it seems like a source for errors to be made; hopefully someone
-will make a library to provide these prime/generator pairs.</p>
-
-<p>One issue with my approach is that I assumed that Alice and Bob both had
-support for the same hashing algorithms, modular exponential key group, and
-symmetric block cypher.  In the real world, this is not always the case.
-Instead, it is much more common for the client to broadcast publicly all of the
-algorithms it supports, and the server to pick one.  This list of algorithms is
-called a &ldquo;suite,&rdquo; ie &ldquo;cypher suit.&rdquo; I learned this the hard way recently trying
-to
-<a href="https://stribika.github.io/2015/01/04/secure-secure-shell.html">upgrade</a>
-the <a href="https://wiki.mozilla.org/Security/Guidelines/OpenSSH">cypher suit</a>
-on my ssh server and finding out that
-<a href="https://mochtu.de/2015/01/07/updating-openssh-on-mac-os-x-10-10-yosemite/">my client did not support the lastest cyphers</a>. In this case, Alice and Bob might not have the same
-versions of Node.js, which statically link their own versions of OpenSSL. Thus,
-one should use <code>cryto.getCiphers()</code> and <code>crypto.getHashes()</code> before assuming
-the party they&rsquo;re communicating to can do the math to decrypt. We&rsquo;ll see &ldquo;cypher
-suites&rdquo; come up again in TLS handshakes. The NSA
-<a href="http://en.wikipedia.org/wiki/NSA_Suite_B_Cryptography">publishes a list of endorsed cryptographic components</a>,
-for what it&rsquo;s worth.  There are also neat tricks we can do to prevent the
-message from being decrypted at a later time should the private key be
-compromised and encrytped message recorded, called Perfect Forward Secrecy.</p>
-
-<p>Let&rsquo;s take a look now at how a browser does a TLS handshake.  Here&rsquo;s a
-capture from Wireshark of me navigating to <a href="https://google.com.">https://google.com.</a> First we have a
-TLSv1.2 Client Hello to start the handshake.  Here we can see a list of the
-cypher suites.</p>
-
-<p><img class="center" src="/images/tls_1_client_hello.png"></p>
-
-<p>Next is the response from the server, a TLSv1.2 Server Hello.  Here you can see
-the server has picked a cypher to use.</p>
-
-<p><img class="center" src="/images/tls_2_server_hello.png"></p>
-
-<p>The server then sends its certificate, which contains a copy of its public key.</p>
-
-<p><img class="center" src="/images/tls_3_server_cert.png"></p>
-
-<p>Now that we&rsquo;ve agreed on a cypher suite, the client now sends its public key.
-The server sets up a session, that way it may abbreviate the handshake in the
-future. Finally, the client may now start making requests to the server with
-encrypted application data.</p>
-
-<p><img class="center" src="/images/tls_4_key_exchange.png"></p>
-
-<p>For more information on TLS handshakes, you should read
-<a href="https://www.igvita.com/">Ilya Grigorik&rsquo;s</a>
-High Performance Browser Networking book chapter
-<a href="http://chimera.labs.oreilly.com/books/1230000000545/ch04.html#TLS_HANDSHAKE">TLS Handshake</a>,
-<a href="https://wiki.mozilla.org/Security/Server_Side_TLS#DHE_handshake_and_dhparam">Mozilla OpSec&rsquo;s fantastic wiki</a>,
-and
-<a href="http://security.stackexchange.com/questions/20803/how-does-ssl-tls-work/20833">this exellent Stack Exchange post</a>.
-As you might imagine, all of these back and forth trips made during the TLS
-handshake add latency overhead when compared to unencrypted HTTP requests.</p>
-
-<p>I hope this post helped you understand how we can use cryptography to exchange
-secret information through public channels.  This isn&rsquo;t enough information to
-implement a perfectly secure system; end to end security means one single
-mistake can compromise the entire system.  Peer review and open source,
-<a href="https://danielmiessler.com/writing/cryptography_opensource/">battle tested</a>
-implementations
-<a href="http://dodcio.defense.gov/OpenSourceSoftwareFAQ.aspx#Q%3a_Doesn.27t_hiding_source_code_automatically_make_software_more_secure.3F">go a long way</a>.</p>
-
-<blockquote><p>A cryptosystem should be secure even if everything about the system, except the key, is public knowledge.</p><footer><strong>Kerckhoffs&#8217;s principle</strong></footer></blockquote>
-
-
-<p>I wanted to write this post because I believe abstinence-only crypto education
-isn&rsquo;t working and I cant stand when anyone acts like part of a cabal from their
-ivory tower to those trying to learn new things.
-Someone will surely cite
-<a href="http://matasano.com/articles/javascript-cryptography/">Javascript Cryptography Considered Harmful</a>,
-which while valid, misses my point of simply trying to show people more concrete
-basics with code examples.
-The first crypto system you implement will have its holes, but you
-can&rsquo;t go from ignorance of crypto to perfect knowledge without implementing a
-few imperfect systems.  Don&rsquo;t be afraid to, just don&rsquo;t start with trying to protect
-high value data.  Crypto is dangerous, because it can be difficult to
-impossible to tell when your system fails.
-<a href="https://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/">Assembly</a>
-is also akin to juggling knives, but at least
-you&rsquo;ll usually segfault if you mess up and program execution will halt.</p>
-
-<p>With upcoming APIs like
-<a href="http://www.w3.org/TR/service-workers/#security-considerations">Service Workers requiring TLS</a>,
-protocols like <a href="http://http2.github.io/faq/#does-http2-require-encryption">HTTP2</a>,
-pushes for all <a href="http://blog.codinghorror.com/should-all-web-traffic-be-encrypted/">web traffic to be encrypted</a>,
-and <a href="https://nickdesaulniers.github.io/blog/2013/07/03/why-ill-be-marching-this-4th/">shitty things governments</a>,
-<a href="http://www.theguardian.com/technology/2015/jan/16/david-cameron-encryption-lavabit-ladar-levison">politicians</a>,
-and <a href="https://www.youtube.com/watch?v=fpbOEoRrHyU">ISPs</a> do,
-web developers are going to have to start boning up on their crypto knowledge.</p>
-
-<p>What are your recommendations for correctly learning crypto?  Leave me some
-thoughts in the comments below.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -3437,6 +3701,10 @@ thoughts in the comments below.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/11/20/static-and-dynamic-libraries/">Static and Dynamic Libraries</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>
       </li>
     
@@ -3450,10 +3718,6 @@ thoughts in the comments below.</p>
     
       <li class="post">
         <a href="/blog/2016/05/30/data-models-and-word-size/">Data Models and Word Size</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/05/15/whats-in-a-word/">What&#8217;s in a Word?</a>
       </li>
     
   </ul>
