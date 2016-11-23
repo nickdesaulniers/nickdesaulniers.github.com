@@ -6,7 +6,7 @@ comments: true
 categories: Static Dynamic Library Linkage C C++ ar fpic nm objdump otool shared
 ---
 This is the second post in a series on memory segmentation.  It covers working
-with static and dynamic libraries.  Make sure to check out the
+with static and dynamic libraries in Linux and OSX.  Make sure to check out the
 [first on object files and symbols](/blog/2016/08/13/object-files-and-symbols/).
 
 
