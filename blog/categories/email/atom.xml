@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Email | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/email/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2017-05-16T01:23:13-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Submitting Your First Patch to the Linux kernel and Responding to Feedback]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/"/>
+    <updated>2017-05-16T01:02:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback</id>
+    <content type="html"><![CDATA[<p>After working on the Linux kernel for Nexus and Pixel phones for nearly a year,
+and messing around with the
+excellent <a href="http://eudyptula-challenge.org/">Eudyptula challenge</a>, I finally
+wanted to take a crack at submitting patches upstream to the Linux kernel.</p>
+
+<p>This post is woefully inadequate compared to the existing documentation, which
+should be preferred.</p>
+
+<ul>
+<li><a href="http://elixir.free-electrons.com/linux/latest/source/Documentation/process">http://elixir.free-electrons.com/linux/latest/source/Documentation/process</a></li>
+<li><a href="https://kernelnewbies.org/FirstKernelPatch">https://kernelnewbies.org/FirstKernelPatch</a></li>
+</ul>
+
+
+<p>I figure I’d document my workflow, now that I’ve gotten a few patches accepted
+(and so I can refer to this post rather than my shell history&hellip;).  Feedback
+welcome
+(<a href="https://github.com/nickdesaulniers/nickdesaulniers.github.com/issues">open an issue</a>
+or email me).</p>
+
+<h2>Step 1: Setting up an email client</h2>
+
+<p>Covered in
+<a href="https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/.">https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/.</a>  I mostly
+use <code>git send-email</code> for sending patch files.  In my <code>~/,gitconfig</code> I have
+added:</p>
+
+<p><code>ini
+[sendemail]
+  ; setup for using git send-email; prompts for password
+  smtpuser = myemailaddr@gmail.com
+  smtpserver = smtp.googlemail.com
+  smtpencryption = tls
+  smtpserverport = 587
+</code></p>
+
+<p>To send patches through my gmail account.  I don’t add my password so that I
+don’t have to worry about it when I publish my dotfiles.  I simply get prompted
+every time I want to send an email.</p>
+
+<h2>Step 2: Make fixes</h2>
+
+<p>How do you find a bug to fix?  My general approach to finding bugs in open
+source C/C++ code bases has been using static analysis, a different compiler,
+and/or more compiler warnings turned on.  The kernel also has an instance of
+<a href="https://bugzilla.kernel.org/describecomponents.cgi">bugzilla</a>
+running as an issue tracker.  Work out of a new branch, in case you choose to
+abandon it later.  Rebase your branch before submitting (pull early, pull
+often).</p>
+
+<h2>Step 3: Thoughtful commit messages</h2>
+
+<p>I always run <code>git log &lt;file I modified&gt;</code> to see some of the previous commit
+messages on the file I modified.</p>
+
+<p>```sh
+$ git log arch/x86/Makefile</p>
+
+<p>commit a5859c6d7b6114fc0e52be40f7b0f5451c4aba93
+&hellip;</p>
+
+<pre><code>x86/build: convert function graph '-Os' error to warning
+</code></pre>
+
+<p>commit 3f135e57a4f76d24ae8d8a490314331f0ced40c5
+&hellip;</p>
+
+<pre><code>x86/build: Mostly disable '-maccumulate-outgoing-args'
+</code></pre>
+
+<p>```</p>
+
+<p>The first words of commit messages in Linux are usually
+`<subsystem>/&lt;sub-subsystem>: <descriptive comment></p>
+
+<p>Let’s commit, <code>git commit &lt;files&gt; -s</code>.  We use the <code>-s</code> flag to <code>git commit</code> to
+add our signoff.  Signing your patches is standard and notes your agreement to
+the
+<a href="https://ltsi.linuxfoundation.org/developers/signed-process">Linux Kernel Certificate of Origin</a>.</p>
+
+<h2>Step 4: Generate Patch file</h2>
+
+<p><code>git format-patch HEAD~</code>.  You can use <code>git format-patch HEAD~&lt;number of
+commits to convert to patches&gt;</code> to turn multiple commits into patch files.
+These patch files will be emailed to the
+<a href="https://lkml.org/">Linux Kernel Mailing List (lkml)</a>.
+They can be applied with <code>git am &lt;patchfile&gt;</code>.  I like to back these files up
+in another directory for future reference, and cause I still make a lot of
+mistakes with git.</p>
+
+<h2>Step 5: checkpatch</h2>
+
+<p>You’re going to want to run the kernel’s linter before submitting.  It will
+catch style issues and other potential issues.</p>
+
+<p>```sh
+$ ./scripts/checkpatch.pl 0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+total: 0 errors, 0 warnings, 9 lines checked</p>
+
+<p>0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch has no obvious style problems and is ready for submission.
+```</p>
+
+<p>If you hit issues here, fix up your changes, update your commit with <code>git
+commit --amend &lt;files updated&gt;</code>, rerun format-patch, then rerun checkpatch
+until you’re good to go.</p>
+
+<h2>Step 6: email the patch to yourself</h2>
+
+<p>This is good to do when you’re starting off.  While I use mutt for responding
+to email, I use <code>git send-email</code> for sending patches.  Once you’ve gotten a
+hang of the workflow, this step is optional, more of a sanity check.</p>
+
+<p><code>sh
+$ git send-email \
+0001-x86-build-require-only-gcc-use-maccumulate-outgoing-.patch
+</code></p>
+
+<p>You don’t need to use command line arguments to cc yourself, assuming you set
+up git correctly, git-email should add you to the cc line as the author of the
+patch.  Send the patch just to yourself and make sure everything looks ok.</p>
+
+<h2>Step 7: get maintainers</h2>
+
+<p>Linux is huge, and has a trusted set of maintainers for various subsystems.
+The
+<a href="http://elixir.free-electrons.com/linux/latest/source/MAINTAINERS">MAINTAINERS file</a>
+keeps track of these, but Linux has a tool to help you figure out where to send
+your patch:</p>
+
+<p><code>sh
+$ ./scripts/get_maintainer.pl 0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+Person A &lt;person@a.com&gt; (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT))
+Person B &lt;person@b.com&gt; (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT))
+Person C &lt;person@c.com&gt; (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT))
+x86@kernel.org (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT))
+linux-kernel@vger.kernel.org (open list:X86 ARCHITECTURE (32-BIT AND 64-BIT))
+</code></p>
+
+<h2>Step 8: fire off the patch</h2>
+
+<p><code>sh
+&amp; git send-email \
+--cc person@a.com \
+--cc person@b.com \
+--cc person@c.com \
+--cc x86@kernel.org \
+--cc linux-kernel@vger.kernel.org \
+0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+</code></p>
+
+<p>Make sure to cc yourself when prompted.  Otherwise if you don’t subscribe to
+LKML, then it will be difficult to reply to feedback.  It’s also a good idea to
+cc any other author that has touched this functionality recently.</p>
+
+<h2>Step 8: monitor feedback</h2>
+
+<p><a href="https://patchwork.kernel.org/project/LKML/list/">Patchwork</a>
+for the LKML is a great tool for tracking the progress of patches.  You should
+register an account there.   I highly recommend bookmarking your submitter
+link.  In Patchwork, click any submitter, then Filters (hidden in the top
+left), change submitter to your name, click apply, then bookmark it.
+<a href="https://patchwork.kernel.org/project/LKML/list/?submitter=171273">Here’s what mine looks like</a>.
+Not much today, and mostly trivial patches, but hopefully this post won’t age
+well in that regard.</p>
+
+<p>Feedback may or may not be swift.  I think my first patch I had to ping a
+couple of times, but eventually got a response.</p>
+
+<h2>Step 9: responding to feedback</h2>
+
+<p>Update your file, <code>git commit &lt;changed files&gt; --amend</code> to update your latest
+commit, <code>git format-patch --subject-prefix="Patch v2" HEAD~</code>, edit the patch
+file to put the changes below the dash below the signed off lines
+(<a href="https://patchwork.kernel.org/patch/9720097/">example</a>), rerun checkpatch,
+rerun get_maintainer if the files you modified changed since V1.  Next, you
+need to find the messageID to respond to the thread properly.</p>
+
+<p>In gmail, when viewing the message I want to respond to, you can click “Show
+Original” from the dropdown near the reply button.  From there, copy the
+MessageID from the top (everything in the angle brackets, but not the brackets
+themselves).  Finally, we send the patch:</p>
+
+<p><code>sh
+$ git send-email \
+--cc nick.desaulniers@gmail.com \
+--cc person@a.com \
+--cc person@b.com \
+--cc person@c.com \
+--cc person@d.com \
+--cc x86@kernel.org \
+--cc linux-kernel@vger.kernel.org \
+--in-reply-to 2017datesandletters@somehostname \
+0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+</code></p>
+
+<p>We make sure to add anyone who may have commented on the patch from the mailing
+list to keep them in the loop.  Rinse and repeat 2 through 9 as desired until
+patch is signed off/acked or rejected.</p>
+
+<p>Finding out when your patch gets merged is a little tricky; each subsystem
+maintainer seems to do things differently.  My first patch, I didn’t know it
+went in until a bot at Google notified me.  The maintainers for the second and
+third patches had bots notify me that it got merged into their trees, but when
+they send Linus a PR and when that gets merged isn’t immediately obvious.</p>
+
+<p>It’s not like Github where everyone involved gets an email that a PR got merged
+and the UI changes.  While there’s pros and cons to having this fairly
+decentralized process, and while it is kind of is git’s original designed-for
+use case, I’d be remiss not to mention that I really miss Github.  Getting your
+first patch acknowledged and even merged is
+<a href="https://github.com/nickdesaulniers/What-Open-Source-Means-To-Me#what-open-source-means-to-me">intoxicating and makes you want to contribute more</a>;
+radio silence has the opposite effect.</p>
+
+<p>Happy hacking!</p>
+]]></content>
+  </entry>
+  
+</feed>
