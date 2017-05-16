@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Write a Test Case - Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="Your application just broke, oh no! It couldn&rsquo;t have been your code, right? I&rsquo;ve always had trouble spotting mistakes in my own work such &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemy's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/about">About</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/">Blog</a></li>
+  <li><a href="/publications">Publications</a></li>
+  <li><a href="/talks">Talks</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Write a Test Case</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-01T13:22:00-08:00" pubdate data-updated="true">Mar 1<span>st</span>, 2014</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Your application just broke, oh no!  It couldn&rsquo;t have been <em>your</em> code, right?</p>
+
+<p>I&rsquo;ve always had trouble spotting mistakes in my own work such as spelling,
+grammar, mathematical, or even in programming.  With spelling or grammar,
+office applications quickly pick up on my mistakes and underline them for me,
+but most of my mistakes come from my own hubris.  I&rsquo;m confident in what I do,
+and that gets me in trouble when I make little mistakes.  I&rsquo;m confident that I
+solved this problem correctly and didn&rsquo;t make any small mistakes.  As a kid
+competing in timed math competitions, I quickly learned that reviewing your
+work cost time, so it was important to recognize where common mistakes would
+crop up on certain problems and spend slightly extra time the first time
+through those problem areas, rather than double checking the work in its
+entirety, unless I had the time to spare.  Measure twice, cut once.</p>
+
+<p>The same is true for programming.  Writing test cases is time consuming, and if
+time is money, then it could be said that writing tests is costly.  There&rsquo;s
+probably a logical fallacy in there.  In general, we hope that the time-cost of
+writing test
+cases will be recuperated by the time-cost of bugs caught, though it&rsquo;s not easy
+to measure the time-cost of averted bugs.  I&rsquo;m all for test cases.  I think
+that
+<a href="http://sqlite.org/testing.html#coverage">SQLite having 100% branch coverage</a>
+is incredible, truly an lofty
+achievement.  People get bogged down in arguments over type systems where
+testing is more of a must for languages without a compiler to catch certain
+bugs.</p>
+
+<p>Ok, so going back to your code, something is wrong.  But we&rsquo;re confident it
+couldn&rsquo;t be <em>our</em> code.  Maybe it&rsquo;s one of those open source modules I&rsquo;m using
+not being tested enough, or that pesky browser implementation, or this damned
+OS.  It couldn&rsquo;t be <em>my</em> code.</p>
+
+<p><strong>Prove it.</strong></p>
+
+<p>I see bug reports all the time where people say your X breaks my Y, but when
+asked to provide Y they can&rsquo;t for whatever software licensing reason.  The bug
+resolver (person who is enabled to fix said bug in X), doesn&rsquo;t know at this
+point whether the bug reporter (developer of Y) did their homework; the bug is
+unconfirmed.  Both reporter and resolver are suspicious of each others&#8217; code.
+<em>I</em> don&rsquo;t make silly mistakes, right?</p>
+
+<p><img class="center" src="/images/dude.jpg"></p>
+
+<p>So it&rsquo;s up to the resolver to work out a test case.  Being able to reproduce
+said issue is the first goal to resolving a bug.  Just like scientific
+statements aren&rsquo;t taken as fact until reproducible, so too will this bug be
+merely conjecture at this point.  It kills me when the bug resolver closes an
+issue because it <em>works for me</em>.  Nothing boils my blood more; I took the time
+to try and help you and wasn&rsquo;t rewarded on some level so I feel that I wasted
+my time.  But from where you stand the resolver is not correct, so again I
+say&hellip;</p>
+
+<p><strong>Prove it.</strong></p>
+
+<p>I think that it&rsquo;s super hard to get meaningful feedback from users.  It&rsquo;s hard
+for them to express why they&rsquo;re frustrated.  We as software developers don&rsquo;t
+always point them in the right direction.  As users can have wide ranges of
+technical capabilities, sometimes we as more technical oriented people have to
+do a little hand holding.  For instance, from Firefox, how many hops does it
+take to get from the application&rsquo;s menus to their open bug tracker,
+<a href="https://bugzilla.mozilla.org/">bugzilla</a>?
+Where can I report an issue?  How do I report an issue?
+Do I annoy the hell out of the user until they rate my app?
+Users might be complaining on Twitter, but that&rsquo;s sure as hell not where
+devlopers are looking for bug reports.
+Enabling the user to provide feedback could be
+viewed as a double edged sword.  Can I make meaningful conclusions from the
+torrent of feedback I&rsquo;m now getting?  Did I structure my form in such a way to
+ask the right questions?  Should we make our issue tracker public?  Should we
+make security issues that could harm users, if more widely understood, public?
+Public to fellow employees, even?  What did you expect to happen, and is that
+what actually happened?  This rabbit hole goes deep.</p>
+
+<p>The other day, I was writing a patch for a large application that was developed
+by someone else and that I still don&rsquo;t fully comprehend in its entirety. My
+patch should have worked, why wasn&rsquo;t it working?  Probably something in this
+person&rsquo;s code right?  Sure enough, I wrote a simple test case to eliminate
+everything but the control variables, and it turns out <em>I was wrong</em>.</p>
+
+<p>It&rsquo;s hard to get users to
+do more than the bare minimum to report an issue, even at all, but to prevent
+the issue from being ignored or closed because it works for the developer in
+their environment, take the time to report it correctly the first time.
+As someone who understands technology more than the average person, take the
+time to write a cut down test case that
+exposes the issue. The developer who looks at the issue will be grateful;
+instead of wasting their time with something that may not even be a bug, you&rsquo;ve
+just done something that would have to be done anyways if it is indeed a bug.
+You might find that a reduced code size shows that it&rsquo;s in
+fact not an issue with someone else&rsquo;s code, but in fact a simple mistake you
+made somewhere in your monolithic application.  Or it might be exactly the
+evidence you need to get someone&rsquo;s attention to fix said problem.  That test
+case might even be included in the latest test suite.  Either way, you have now
+proved beyond a reasonable doubt that the issue does not lie in your fault.</p>
+
+<p><strong>Write a Test Case for Your Next Bug Report or Issue.</strong></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-01T13:22:00-08:00" pubdate data-updated="true">Mar 1<span>st</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/bug/'>Bug</a>, <a class='category' href='/blog/categories/case/'>Case</a>, <a class='category' href='/blog/categories/developer/'>Developer</a>, <a class='category' href='/blog/categories/issue/'>Issue</a>, <a class='category' href='/blog/categories/open/'>Open</a>, <a class='category' href='/blog/categories/report/'>Report</a>, <a class='category' href='/blog/categories/source/'>Source</a>, <a class='category' href='/blog/categories/technical/'>Technical</a>, <a class='category' href='/blog/categories/test/'>Test</a>, <a class='category' href='/blog/categories/tracker/'>Tracker</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/" data-via="" data-counturl="http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/" title="Previous Post: Function.prototype.bind Edge Cases">&laquo; Function.prototype.bind Edge Cases</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2014/04/18/lets-write-some-x86-64/" title="Next Post: Let's Write Some x86-64">Let's Write Some x86-64 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/11/20/static-and-dynamic-libraries/">Static and Dynamic Libraries</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/01/android-cli/">Cross Compiling C/C++ for Android</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/06/18/mutt-gmail-ubuntu/">Setting Up Mutt With Gmail on Ubuntu</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/05/30/data-models-and-word-size/">Data Models and Word Size</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2017 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/';
+        var disqus_url = 'http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

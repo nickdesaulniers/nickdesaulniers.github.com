@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Internet | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/internet/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2017-05-15T23:26:14-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Commandments of a Mobile Web]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2013/02/28/commandments-of-a-mobile-web/"/>
+    <updated>2013-02-28T22:43:00-08:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2013/02/28/commandments-of-a-mobile-web</id>
+    <content type="html"><![CDATA[<p>Over the past few years, there&rsquo;s been certain
+<a href="http://en.wikipedia.org/wiki/Paradigm_shift">paradigm shifts</a>
+in web development. When you think of milestones that really changed how
+development on the web was done, the two biggest were
+<a href="https://www.ibm.com/developerworks/mydeveloperworks/blogs/BobZurek/entry/the_ajax_paradigm_shift?lang=en">Ajax</a>
+and <a href="http://www.html5rocks.com/en/why">HTML5</a>.  Development was identifiably
+different before and after such technological advancements.  There were
+<a href="http://java.sys-con.com/node/315210">some</a> who initially
+<a href="http://blog.tobie.me/post/31366970040/when-im-introspective-about-the-last-few-years-i">doubted</a>
+the technologies, but I&rsquo;m sure such doubters eventually
+<a href="http://www.sencha.com/blog/the-making-of-fastbook-an-html5-love-story/">saw the light</a>.
+After spending time working on applications for Mozilla&rsquo;s upcoming mobile
+operating system, Firefox OS, and talking with my fellow employees, I feel that
+the mobile web is another one of those shifts in how we
+approach web development that looking back will be an identifiable point in
+time where we can say that we did things differently before and after.
+So in that sense, I want to share some of the insights I&rsquo;ve found to
+help other developers wrap their heads around how developing for the mobile web
+isn&rsquo;t their traditional cup of tea.</p>
+
+<h1>Internet connectivity is not guaranteed</h1>
+
+<p>This is a fundamental divorce from the World Wide Web and the Internet. I feel
+that a lot of people having trouble differentiating the Web from the Internet;
+where you&rsquo;ve had one, you&rsquo;ve always had the other. Don&rsquo;t
+assume your application will always have a valid connection.  When a user
+is on a wifi connection, or hardwired, it&rsquo;s so obvious that if they&rsquo;re on your
+website, then they must be connected to the Internet.  Right?  But what happens
+now when one of your users loads up your site or app on a mobile device, then enters
+a tunnel?  What does it do when offline?  Does it work?  Maybe it
+doesn&rsquo;t make sense if you&rsquo;re offering a service that requires data from the
+back end, but does that mean that the front end should totally look like crap
+or break when the back end can&rsquo;t be reached?  Do your Ajax requests have error
+callbacks?  Do you try and reconnect your WebSocket connections after they&rsquo;ve
+failed?  Do you cache previous requests or use one of the many forms of offline
+storage to show something to the user?  Developing on the loopback is literally
+the best case for connectivity, but it gives the developer a false sense of
+how latency and connectivity issues affect their application.  It&rsquo;s literally
+shocking the first time you encounter your site/application offline if you
+didn&rsquo;t think about the user experience up front.</p>
+
+<h1>Bandwidth is not free</h1>
+
+<p>The advent of broadband made it acceptable for sites to utilize massive amounts
+of assets.  Seeing sites that load up so much stuff makes my heart sink when
+I wonder about viewing such a site on my mobile device.  I only pay for so much
+mobile data per month, then I&rsquo;m billed ridiculous amounts as a
+<a href="http://forums.att.com/t5/Data-Messaging-Features-Internet/What-does-quot-Data-MB-Overage-quot-mean/td-p/2872883">&ldquo;Data Overage&rdquo;</a>.
+Users in other countries frequently have a more pay as you go style plan, so
+they&rsquo;re being billed for each bit across the wire.  In countries without the
+infrastructure necessary to get broadband Internet to every household, mobile
+is more prolific in getting users connected.</p>
+
+<p>Things like minification and gzip certainly help, but deferred loading of
+assets until they&rsquo;re necessary is frequently overlooked.
+Massive libraries are nice for devs, but may end up giving mobile users more
+problems than they are worth. There exist more advanced techniques such as
+<a href="http://buildnewgames.com/optimizing-websockets-bandwidth/">WebSocket compression</a>.</p>
+
+<p>How much does your site <a href="http://www.sitepoint.com/minimizing-page-weight-matters/">weigh</a>?</p>
+
+<h1>An expensive website does not make an awesome app</h1>
+
+<p><blockquote><p>Why doesn&rsquo;t my million dollar website make a kick ass web app?</p></blockquote></p>
+
+<p>This point is brought to you by <a href="http://www.mattbasta.com/">Matt Basta</a>.  The
+point is that there is something fundamentally different between a web &ldquo;site&rdquo;
+and a web &ldquo;app&rdquo;.  In a web site the usual flow involves loading up a page
+and maybe navigating between pages.  An app more often than not will be a
+single page that loads data asynchronously and dynamically modifies the content
+displayed to the user.  Some web sites make great use of things like Ajax, and
+are great example of single page sites.  But not all are.  Some still haven&rsquo;t
+come around to loading all data asynchronously on request.  And it&rsquo;s not that
+they necessarily even have to, they can be a website and never have to be
+anything more.  But you&rsquo;ll find that some sites make better apps than others.</p>
+
+<h2>No chrome</h2>
+
+<p>Not the browser made by Google, Google Chrome; the actual
+<a href="https://developer.mozilla.org/en-US/docs/Chrome">controls</a> on the top
+of your browser such as the back and reload buttons, and the url bar.  This
+point comes from <a href="https://github.com/cvan">Chris Van Wiemeersch</a>.  One of
+the things you&rsquo;ll find when evaluating whether a site makes a good app is
+whether it relies on chrome to navigate.  If it does, then it&rsquo;s not really
+going to cut it as an app.  If you&rsquo;re going to make a single page app, try
+making it fullscreen in your browser and try navigating around. Are you
+hindered without the chrome?  One thing I
+found recently was an error condition where I notified the user that they had
+to be online to check for an update.  But when I was developing, I would just
+refresh the page to clear the error message and try again.  On a device, as an
+app, where there was no chrome, this meant closing and restarting the app.
+That sucked, so I made it so the user could click/touch, after figuring out
+their connectivity issues, to retry the fetch.  Even better may have
+been to listen for online events!</p>
+
+<h2>Traditional forms of input are not fun</h2>
+
+<p>Here&rsquo;s some tips from <a href="http://potch.me/">Matthew &ldquo;Potch&rdquo; Claypotch</a>.</p>
+
+<h3>Fingers aren&rsquo;t as precise as cursors</h3>
+
+<p>Having tiny click
+targets is really frustrating.  How many times have you clicked the wrong
+thing on a mobile device?  Tiny buttons are not the easiest thing for users
+to specify, especially when groups of them are clustered nearby.  Custom
+buttons enabled by <a href="http://www.cssbuttongenerator.com/">a little CSS</a> can go a
+long way.</p>
+
+<h3>Typing on little keyboards in tedious</h3>
+
+<p>This is an effect of tiny buttons, but requiring the user to type in large
+strings gets annoying fast.  Sometimes this can&rsquo;t be avoided, but it should be
+when it can.  Just as typing in a long, complex url to a mobile browser is
+not enjoyable, neither is doing so in an app.</p>
+
+<h1>Detect features not browser engine (User agent sniffing is a sin)</h1>
+
+<p>Print <a href="http://diveintohtml5.com/everything.html">this</a> and staple it to your
+wall above your workspace.  This should be
+<a href="http://www.nczonline.net/blog/2009/12/29/feature-detection-is-not-browser-detection/">old</a>
+<a href="http://msdn.microsoft.com/en-us/magazine/hh475813.aspx">news</a> at this point.</p>
+
+<h2>Vendor prefixes are meant for browser vendors to test, not production code</h2>
+
+<p>I place a majority of the blame for this on vendors; prefixes should never see
+the light of day in release builds.  It&rsquo;s ridiculous to have to write four
+copies of the same rule, when you&rsquo;re trying to express one thing.  I should
+rewrite this sentence four different ways to prove a point.  -o-Do you understand
+what I&rsquo;m getting at?  -ms-It&rsquo;s almost like rambling. -moz-Repetitive department
+of repetition. -webkit-This is ridiculous.</p>
+
+<p>But developers need to recognize the habit as an addiction, and not feed it.
+If you have, I forgive you.  Now stop doing it.</p>
+
+<p>These two particular articles are just so good, it wouldn&rsquo;t do them justice to
+try and summarize them.  Please go read them, I&rsquo;ll wait.
+<a href="http://hsivonen.iki.fi/vendor-prefixes/">this</a>
+and
+<a href="http://www.quirksmode.org/blog/archives/2010/03/css_vendor_pref.html">this</a></p>
+
+<h2>Developing towards WebKit and not HTML5 is a sin</h2>
+
+<p>I understand that Google Chrome is your favorite browser, and I am so happy for
+you; but it is not mine.  I&rsquo;ll be the first to admit that Google
+caught all of the other browser vendors with their pants down, but when I see
+pages that look flawless in Chrome and
+not so hot in others, it reminds me of days when sites only worked in IE6.
+Surely you remember <em>those</em> days.  I hate when content publishers try and
+dictate which browser I should use to view their content.  I understand WebKit
+based browsers dominant in mobile, but so did IE6 in desktop share at one point.
+It&rsquo;s not unreasonable to expect users to use the most updated version of their
+browser, but empower your users to choose their browser.  Don&rsquo;t take that
+choice away from them.</p>
+
+<p>A neat <a href="http://robertnyman.com/2013/02/14/webkit-an-objective-view/">point</a> by
+<a href="http://robertnyman.com/">Robert Nyman</a> is that WebKit itself already has forks.
+Can you imagine if there were eventually vendor prefixes for forks of WebKit?
+Continuing with vendor prefixes means that we&rsquo;ll now have seven vendor prefixes:
+unprefixed, -moz-, -o-, -ms-, -webkit-o-, -webkit-chrome-, -webkit-safari-.
+Awesome!  Maybe I should rewrite this sentence seven different ways to make a
+point!</p>
+
+<p>I&rsquo;m also curious if Google, Apple, and the WebKit maintainers are turning a
+blind eye to this, or what their opinions are? Being a vendor and wanting an
+open web are almost conflicts of interest; you want your browser to &ldquo;win&rdquo; or
+dominate in marketshare, but at the same time you don&rsquo;t want any one browser
+having too much marketshare.</p>
+
+<h1>Design Responsively</h1>
+
+<p>What is
+<a href="http://mashable.com/2012/12/11/responsive-web-design/">responsive design</a>?
+<a href="http://www.smashingmagazine.com/responsive-web-design-guidelines-tutorials/">Responsive design</a>
+is making a site look great on
+any size screen, without duplicating assets or sniffing a user agent string.
+Firefox has a neat web dev tool called
+<a href="https://developer.mozilla.org/en-US/docs/Tools/Responsive_Design_View">&ldquo;Responsive Design View&rdquo;</a>.
+It&rsquo;s great for testing out your site on various screen sizes.
+<a href="http://twitter.github.com/bootstrap/index.html">Twitter Bootstrap</a> is an
+excellent example of a framework for developing a single app that looks great
+on any screen size.  Even if you don&rsquo;t want to use a whole big framework,
+simple things like using CSS rules in terms of percentages instead of hard
+coded pixels can go a long way.</p>
+
+<p>Sites that are trying to become more app like have trouble with conforming to
+responsive design.  Instead of starting with a site and trying to figure out
+how to hide
+or not display information as the screen gets smaller, you&rsquo;ll find it much
+<a href="http://johnpolacek.github.com/scrolldeck.js/decks/responsive/">easier</a> to
+start small, and dynamically add content as the screen gets bigger.</p>
+
+<h1>High performance code respects battery life</h1>
+
+<p>In the end of the day, all of the code you write that runs in the browser is
+a set of instructions the processor can decode, not necessarily the high level
+JavaScript you wrote.  While it&rsquo;s important to avoid premature optimizations,
+having a few
+<a href="http://christianheilmann.com/2013/01/25/five-things-you-can-do-to-make-html5-perform-better/">rules of thumb</a>
+up front will help you write better, faster code.
+If the same overall action can be expressed in one instruction or one hundred,
+which do you think will use
+<a href="http://coding.smashingmagazine.com/2012/11/05/writing-fast-memory-efficient-javascript/">less power</a>?
+Keep in mind that transistors leak current while switching.</p>
+
+<h2>Native methods over library methods, CSS over JS</h2>
+
+<p>What do I mean by &ldquo;native methods?&rdquo; Like C++?  Well, yes.  You see under the
+hood the DOM bindings that you&rsquo;re calling are probably written in C++.  Call
+<code>toSource()</code> on <code>document.getElementById()</code>.  The <code>[native code]</code> statement
+in the returned string refers to the implementation.  While type specialized
+code emitted by the JIT can match or even beat native code, you can only count
+on that for hot loops.  In the same vein, library code is going to be
+<a href="http://jsperf.com/getelementbyid-vs-jquery-id/25">slower</a> than any code
+written natively.  I&rsquo;m not saying that you shouldn&rsquo;t use libraries, just know
+that the use of libraries can incur some overhead.  Things like animations will
+also be faster
+when handled by natively implemented CSS over JS.  You can use JS to
+dynamically add classes to elements to get finer resolution over events, but
+then get the performance of CSS.</p>
+
+<h2>Avoid JIT bailout</h2>
+
+<p>The Just In Time (JIT) interpreter is a
+<a href="http://www.slideshare.net/amdgigabyte/know-your-javascript-engine">new breed</a>
+of VM that most browser
+vendors are now using.  The JIT can
+<a href="http://s3.mrale.ph/nodecamp.eu/#1">analyze</a> running code, and
+<a href="http://en.wikipedia.org/wiki/Code_generation_%28compiler%29#Runtime_code_generation">emit</a>
+native code
+that is faster than reinterpreting code again, and even higher-optimized code
+for type stable JavaScript, as long as certain &ldquo;guard&rdquo; conditions are met.
+When a guard fails, the JIT has to
+<a href="http://mxr.mozilla.org/mozilla-central/source/js/src/ion/Bailouts.h#19">bailout</a>
+the emitted native code and start reinterpreting code again.</p>
+
+<h2>Keep up to date on new APIs</h2>
+
+<p>HTML5 is a big
+<a href="http://www.w3.org/html/wg/drafts/html/master/single-page.html">spec</a>, and is
+getting bigger.  So big that some recommendations are
+being <a href="http://www.websocket.org/aboutwebsocket.html">spun off</a> from the
+original HTML5 spec.  As an engineer, I&rsquo;m painfully aware that you need to
+<a href="http://bonsaiden.github.com/JavaScript-Garden/">keep up</a>
+in whatever industry you work in in order to stay relevant.
+The complacent are the most vulnerable.  There&rsquo;s
+<a href="http://caniuse.com/">a lot to keep track of</a> with
+HTML5 and CSS3, but many new features offer higher performance methods of
+skinning the cat.</p>
+
+<h3>requestAnimationFrame</h3>
+
+<p>window.requestAnimation frame is a godsend for animation.  Not too long ago, I
+wrote up a quick
+<a href="https://github.com/nickdesaulniers/canvas2dcontext/blob/master/examples/sprite.html#L6">example</a>
+of various ways of implementing animation loops and their issues; you should
+check it out.</p>
+
+<h3>indexedDB over localstorage</h3>
+
+<p>The indexedDB api might not be as simple as localstorage&rsquo;s is, but localstorage
+is synchronous and is noticeably slow on mobile.  If you can bite the bullet
+and use indexedDB, you&rsquo;ll find you&rsquo;re JS isn&rsquo;t blocking on
+serializing/deserializing objects for storage.
+<a href="https://twitter.com/fabricedesre">Fabrice Desré</a> shared this with me.</p>
+
+<h3>WebWorkers</h3>
+
+<p>Webworkers can&rsquo;t modify the DOM, but they can do heavy lifting without blocking
+the main thread.</p>
+
+<h3>CSS translate over absolute top and left rules</h3>
+
+<p><a href="http://digitarald.de/">Harald Kirschner</a> recommends CSS translates over top
+and left rules for absolutely positioning some elements.</p>
+
+<h3>Gradients are expensive</h3>
+
+<p><a href="http://www.backalleycoder.com/">Dan Buchner</a> notes that without beefy graphics
+processing units of their desktop counterparts to enable hardware acceleration,
+things like gradients will give you noticeable performance hits.</p>
+
+<h3>createDocumentFragment</h3>
+
+<p>Dan also suggests queuing up DOM changes.
+Whenever you manipulate items in the DOM, you&rsquo;re going to trigger a reflow,
+which may consist of an update to the layout and/or a repaint.  Minimizing these
+makes for a faster update to the DOM.  For example, it can be faster to use
+document.createDocumentFragment and append child nodes to it, and then append
+that to the DOM, instead of appending lots of child nodes in between timer calls.
+Surprise, this isn&rsquo;t actually a
+<a href="http://ejohn.org/blog/dom-documentfragments/">new</a> DOM binding from HTML5.</p>
+
+<h1>Conclusion</h1>
+
+<p>These are just some tips I have for application developers.  I am by no means
+an expert; I&rsquo;m sure if you dig deep enough, you can find plenty of examples of
+my past work that contradicts some of my recommendations from this article.  But
+I&rsquo;m a little smarter today than I was yesterday, and now so are you!  What are some
+tips that you have to share that you&rsquo;ve found helpful developing for the
+mobile web?</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[[Internet] Freedom is Not Free]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2013/01/19/internet-freedom-is-not-free/"/>
+    <updated>2013-01-19T20:12:00-08:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2013/01/19/internet-freedom-is-not-free</id>
+    <content type="html"><![CDATA[<p>Last week, the Internet community
+<a href="http://tech.mit.edu/V132/N61/swartz.html">lost</a> a member in the on going war
+against the copyright industry.  While I&rsquo;ve never met the deceased, or
+even heard of the deceased before his suicide, I&rsquo;m horrified.  I&rsquo;m
+horrified that the government we are asked to put so much faith in,
+would give someone, not that different from myself, such a <a href="http://www.techdirt.com/articles/20120917/17393320412/us-government-ups-felony-count-jstoraaron-swartz-case-four-to-thirteen.shtml">ridiculous sentence</a>.
+That I could be thrown away, locked away from the things that
+I love for 35 years, for freeing information that
+<a href="http://arstechnica.com/tech-policy/2013/01/aaron-swartz-memorial-jstor-liberator-sets-public-domain-academic-articles-free/">should</a>
+have been free, and was later
+<a href="http://www.3news.co.nz/Reddit-co-founder-dies-weeks-before-trial/tabid/412/articleID/282905/Default.aspx">made</a> free.</p>
+
+<p>That my government would strike such fear into someone&rsquo;s life that they
+would prefer death by their own hands to punishment.  Why do we put up
+with this?</p>
+
+<p>The Internet, and the technology sector evolves so quickly.  It&rsquo;s
+amazing that the law the deceased was being prosecuted under, pertaining
+to computers, is from
+<a href="http://en.wikipedia.org/wiki/Computer_Fraud_and_Abuse_Act">1986</a>.  Can
+you even remember what computers were like in 1986?  I didn&rsquo;t even
+exist!  My first family computer ran Windows 95.  I can only imagine how
+archaic laws would be that were based on such rapidly evolving tech.</p>
+
+<p>The limiting of information is problematic to me.  How do the people of
+China, Iran, and others feel about their government?  I assume they are
+aware that the government is limiting their body of knowledge.  Even the
+US television news agencies can&rsquo;t get the story straight.  It
+reminds me of George Orwell&rsquo;s <em>1984</em>, where the language is limited to
+curtail expression.  If the free world uses the Internet as <a href="http://en.wikipedia.org/wiki/Transactive_memory">Transactive Memory</a>, does the
+oppressed world know what they&rsquo;re missing?  Can you know what you&rsquo;re
+missing, before you&rsquo;ve lost it?</p>
+
+<p>The media and copyright lobby disgust me.  I&rsquo;m disgusted that <a href="http://www.mpaa.org/about/ceo">my former state senator</a>
+is now the Chairman and
+CEO of the MPAA.  Remember learning in high school civics the term
+<a href="http://en.wikipedia.org/wiki/Revolving_door_%28politics%29">&ldquo;Revolving Door&rdquo;</a>? Case
+in point.</p>
+
+<p>America was constitutionalized as a republic, but through
+amendment has <a href="http://en.wikipedia.org/wiki/Democratic_republic">evolved</a>
+into a democratic republic.  The idea of a republic was important to an
+<a href="http://seattletimes.com/html/nationworld/2003332210_tuesday31.html">agrarian society</a>,
+and we still feel the effects every first Tuesday in
+November; the least convenient day of the week.  Voting for someone
+just to represent you was convenient when your form of long-range
+communication was a man on a pony.  With the rise of the Internet, and
+representatives who work for their lobbies and not the people,
+why do we still elect officials?  Why are we a republic?  Why not just a
+democracy?  Allow voters to authenticate and cast their vote online.
+Everyone.  No computer or internet?  I&rsquo;m sure your local library offers
+both free for public use.  &ldquo;But people don&rsquo;t always know what&rsquo;s right.&rdquo;
+Sure, I think some people aren&rsquo;t too bright.  But then I see the
+deadlock in congress, fiscal cliff after fiscal cliff, and I can&rsquo;t help
+but think we could do better if we just fired all of these assholes.</p>
+
+<p>Why can&rsquo;t the difference in viewpoints be celebrated?  A good leader
+recognizes both sides of the coin.  I love having a diverse team of
+people with varying backgrounds, because they come up with solutions I
+never could have.  And if you want to beat your enemy, you have to know
+your enemy.  That means empathizing, understanding where they come from.</p>
+
+<p><blockquote><p>If you give orders and explain nothing, you might get obedience, but<br/>you&rsquo;ll get no creativity. If you tell them your purpose, then when your<br/>original plan is shown to be faulty, they&rsquo;ll find another way to achieve<br/>your goal. Explaining to your men doesn&rsquo;t weaken their respect for you,<br/>it proves your respect for them.</p><footer><strong>Han Tzu</strong> <cite>Shadow of the Giant Pg. 303 by Orson Scott Card</cite></footer></blockquote></p>
+
+<p>I don&rsquo;t hate anyone for what they believe, nor do I
+try to persuade them otherwise.  I just feel like the technologically
+minded are under represented in Washington.  I wish we had a
+technological party.  We need a
+party that strives to protect the internet, the ideals behind
+the freedom and preservation of information, the technical investment in
+sovereign energy and our failing infrastructure, and internet access
+speeds that are unrivaled in the world, not stagnated by corporations
+who are relatively regional monopolies.  One where social
+issues are open to debate, but also where protecting our greatest asset and
+achievement is top priority.  One where the media industry is invited to
+the table, unlike the back door <a href="http://en.wikipedia.org/wiki/Stop_Online_Piracy_Act">policies</a>
+they would try to slip in under our noses.  My dad advocated a turn the
+other cheek policy.  That&rsquo;s called acting like an adult.</p>
+
+<p>My belief of good vs. evil is that there is no good or evil, but that people
+are inherently selfish.  They
+do things that are perceived by others as evil.  But they don&rsquo;t do
+things because those actions are evil, they do them because they gain
+some form of personal utility from the action; they perceive the action
+as good.  And it is good&hellip;to them.  It&rsquo;s easy to be evil.  It&rsquo;s the easy
+way out.  It&rsquo;s harder to think about other people.  It&rsquo;s tougher to do
+the right thing.  Being good is so recognizably hard; it&rsquo;s impressive.</p>
+
+<p>The president of MIT, L. Rafael Reif, had this to say regarding the
+deceased: <a href="http://touch.latimes.com/#section/-1/article/p2p-74009443/">&ldquo;It pains me to think that MIT played any role in a series of events that have ended in tragedy&hellip;&rdquo;</a>
+Fuck you. Maybe if MIT&rsquo;s bottom line wasn&rsquo;t their acceptance rate, they
+might be able to look out for more than just their own.</p>
+
+<p><blockquote><p>All that is necessary for the triumph of evil is that good men do<br/>nothing.</p><footer><strong>Edmund Burke</strong> <cite>Thoughts on the Cause of Present Discontents</cite></footer></blockquote></p>
+
+<p>Suicide is never the answer.  No matter how shitty your current
+situation is, no matter if things will never go back to the way they
+were, you will always be able to change your situation.  Maybe not
+immediately, but that&rsquo;s what goals are for.  Anyone who ever committed
+suicide to prove a point could have done more for their cause dedicating
+the rest of their life to it.  If you&rsquo;re feeling depressed, talk to
+someone.  It will make you feel so much better to talk to someone about
+what&rsquo;s upsetting you.  As much as people like to shit on the Catholic
+Church, I feel like the Catholic practice of penance (confession),
+provides a cathartic placebo effect.  If you are depressed or hurting, and
+you need someone to talk to, even a complete stranger, feel free to
+contact me.  I will always provide an ear and a shoulder.</p>
+
+<p><blockquote><p>It seems strange that my life should end in such a terrible place, but<br/>for three years I had roses and apologized to no one. I shall die here.<br/>Every inch of me shall perish. Every inch, but one. An inch. It is small<br/>and it is fragile and it is the only thing in the world worth having. We<br/>must never lose it or give it away. We must NEVER let them take it from<br/>us. I hope that whoever you are, you escape this place. I hope that the<br/>world turns, and that things get better. But what I hope most of all is<br/>that you understand what I mean when I tell you that, even though I do<br/>not know you, and even though I may never meet you, laugh with you, cry<br/>with you, or kiss you, I love you. With all my heart, I love you.</p><footer><strong>Valerie</strong> <cite>V for Vendetta</cite></footer></blockquote></p>
+
+<p>The next time the media industry tries to limit what you have access to
+on the Internet, make a big ruckus.  Inform everyone you know about the
+facts.  Pushing for an increase in media piracy activities is not the
+right answer.  Instead we should push to boycott working for
+organizations like the RIAA and MPAA and their ilk.  Think about how
+much better off we would be in the United States if teachers were paid
+like rock stars and rock stars were paid like teachers?  Instead, everyone
+in the media industry needs a fat paycheck.  Celebrity is the case in
+point of the blind leading the blind.  Did you know that EMI
+<a href="https://mashable.com/2013/01/18/i-have-a-dream-internet-freedom/">owns</a>
+the copyright to the footage of Martin Luther King&rsquo;s &ldquo;I have a
+dream&rdquo; speech?  If you can find it, I bet it wont be up long.  Frankly,
+I&rsquo;m surprised EMI doesn&rsquo;t also own the Declaration of Independence and
+Constitution, charging admission.</p>
+
+<p>Revolutions are a continuation of the battle between sword and shield.
+Something new is created and shows potential, then doubters pop up
+seeking to curtail that which upsets their competitive edge.  In the
+case of information, many make money and become powerful off
+limiting the access to knowledge.  I think all knowledge that is
+beneficial to mankind should be open, and that the Internet is the ultimate
+utility for the sharing of our collective knowledge.  Where do you draw
+the line, you might ask?  I think the knowledge required to make atomic
+weapons and 3D-print receivers is decidedly unbefitting of society,
+for instance.
+And in the end, you can&rsquo;t take any of the knowledge you protect with
+you.  If everyone shared what they knew, then you&rsquo;d have a more
+improved life, since then the right people would be
+in the know to advance our being.  Technology would advance even faster
+than it does currently if we weren&rsquo;t limited to
+<a href="http://www.techradar.com/us/news/computing-components/processors/why-intels-new-cpus-disappoint-1077260">tick-tock</a> product
+cycles and business secrets.</p>
+
+<p>So what does a rant about government, antiquated laws, corrupt
+representatives, celebrating diversity, hypothetical political parties,
+inaction, and established industries have to do with anything?
+They&rsquo;re all anchored to a suicide.  They&rsquo;re all that&rsquo;s been running
+through my mind lately.  What I see in the deceased, I see in myself.
+Standing amongst my peers, celebrating <a href="http://www.internetfreedomday.net/">Internet Freedom Day</a>
+, listening to <a href="https://www.eff.org/about/staff/peter-eckersley">Peter Eckersley</a> of the
+<a href="https://www.eff.org/">EFF</a> talk, I realized <a href="http://www.youtube.com/watch?v=Vo0D6bzxLLw">&lsquo;The power is
+yours!&rsquo;</a>.
+So now I add my voice to the or so 20 Internet activists that will continue to
+spring up as one falls.</p>
+
+<p>What will you do to shape the world you live in?  What are you going to do to
+fix it?  If you don&rsquo;t, I will.  Because if you want something done
+right, you have to do it yourself.</p>
+
+<p><blockquote><p>It has to start somewhere It has to start sometime<br/>What better place than here, what better time than now?</p><footer><strong>Rage Against the Machine</strong> <cite>Guerrilla Radio</cite></footer></blockquote></p>
+]]></content>
+  </entry>
+  
+</feed>
