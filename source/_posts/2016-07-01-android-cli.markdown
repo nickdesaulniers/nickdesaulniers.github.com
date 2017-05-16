@@ -8,7 +8,7 @@ categories: Android NDK C C++ ARM ARMv8 ARMv8-A AArch64 Compile Standalone CLI C
 Let’s say you want to build a hello world command line application in C or C++
 and run it on your Android phone.  How would you go about it?  It’s not super
 practical; apps visible and distributable to end users must use the framework
-(AFAIK), but for folks looking to get into developing on ARM it’s they likely
+(AFAIK), but for folks looking to get into developing on ARM it’s likely they
 have an ARM device in their pocket.
 
 This post is for folks who typically invoke their compiler from the command

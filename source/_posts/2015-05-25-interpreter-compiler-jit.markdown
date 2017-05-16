@@ -318,7 +318,7 @@ Let's save that for later.
 
 Wouldn't it be nice if there was a translation & execution technique that
 didn't force us to compile our code every time we changed it and wanted to run
-it, but also performance closer to that of compiled code?  That's where a JIT
+it, but also performed closer to that of compiled code?  That's where a JIT
 compiler comes in!
 
 For the basics of JITing code, make sure you read [my previous article on the basics of JITing code in C](/blog/2013/04/03/basic-jit/).  We're going to follow the same technique of
