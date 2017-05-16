@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Null Pointer | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/null-pointer/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:26:14-07:00</updated>
+  <updated>2017-05-15T23:33:51-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -52,7 +52,9 @@ and usually leads to a segfault and program crash.</p>
 <p>It can be so unsafe to work with null pointers that
 C. A. R. Hoare refers to them as his billion-dollar mistake:</p>
 
-<p><blockquote><p>I call it my billion-dollar mistake. It was the invention of the null reference in 1965. At that time, I was designing the first comprehensive type system for references in an object oriented language (ALGOL W). My goal was to ensure that all use of references should be absolutely safe, with checking performed automatically by the compiler. But I couldn&rsquo;t resist the temptation to put in a null reference, simply because it was so easy to implement. This has led to innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years.</p><footer><strong>C.A.R. Hoare</strong> <cite>InfoQ <a href="http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare">http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare</a> Null References: The Billion Dollar Mistake</cite></footer></blockquote></p>
+<p>{% blockquote C.A.R. Hoare, InfoQ <a href="http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare">http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare</a> Null References: The Billion Dollar Mistake %}
+I call it my billion-dollar mistake. It was the invention of the null reference in 1965. At that time, I was designing the first comprehensive type system for references in an object oriented language (ALGOL W). My goal was to ensure that all use of references should be absolutely safe, with checking performed automatically by the compiler. But I couldn&rsquo;t resist the temptation to put in a null reference, simply because it was so easy to implement. This has led to innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years.
+{% endblockquote %}</p>
 
 <p>So how do we represent the value of nothing?  With an integer, for example, your
 first instinct might be to use 0 to refer to no value.  But 0 <em>is</em> a value, so

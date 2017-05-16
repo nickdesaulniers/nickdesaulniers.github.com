@@ -4,7 +4,7 @@
   <title><![CDATA[Category: SIGGRAPH | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/siggraph/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:26:14-07:00</updated>
+  <updated>2017-05-15T23:33:51-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -41,11 +41,11 @@ hanging off the back and could walk around.  Toyota and Ford had demos where you
 could inspect their vehicles in virtual space.  I did not see a single HTC/Valve
 Vive at SIGGRAPH.</p>
 
-<p><img class="center" src="/images/siggraph/s8.jpg">
-<img class="center" src="/images/siggraph/s1.jpg">
-<img class="center" src="/images/siggraph/s3.jpg">
-<img class="center" src="/images/siggraph/s2.jpg">
-<img class="center" src="/images/siggraph/s4.jpg"></p>
+<p>{% img center /images/siggraph/s8.jpg %}
+{% img center /images/siggraph/s1.jpg %}
+{% img center /images/siggraph/s3.jpg %}
+{% img center /images/siggraph/s2.jpg %}
+{% img center /images/siggraph/s4.jpg %}</p>
 
 <h2>AR</h2>
 
@@ -67,7 +67,7 @@ special screen.  When walking around the screen, the viewing angle always seemed
 correct.  It was very convincing, except for the jarring restart of the animated
 loop which could be smoothed out (think looping/seamless gifs).</p>
 
-<p><img class="center" src="/images/siggraph/s5.jpg"></p>
+<p>{% img center /images/siggraph/s5.jpg %}</p>
 
 <h2>VR/3D video</h2>
 
@@ -106,7 +106,7 @@ being projected on a hemisphere, but it was neat in that like IMAX your entire
 FOV was encompassed, but you could move your head, not see any pixels, and
 didn&rsquo;t experience any motion sickness or disorientation.</p>
 
-<p><img class="center" src="/images/siggraph/s7.jpg"></p>
+<p>{% img center /images/siggraph/s7.jpg %}</p>
 
 <h2>X3D/X3DOM</h2>
 
@@ -125,7 +125,7 @@ works, that I plan on showing off at the upcoming BrazilJS.</p>
 (young hackers in training) were <a href="http://cannybots.com/">Canny bots</a>,
 <a href="http://ebeeproject.net/">eBee</a> and <a href="http://www.withpiper.com/">Piper</a>.</p>
 
-<p><img class="center" src="/images/siggraph/s6.jpg"></p>
+<p>{% img center /images/siggraph/s6.jpg %}</p>
 
 <h2>Experimental tech</h2>
 
@@ -142,9 +142,9 @@ looked gorgeous, hardcover printed in color.  I met about half of the fellow
 authors who were also at SIGGRAPH, and our editor.  I even got to meet Eric
 Haines, who reviewed my chapter before publication!</p>
 
-<p><img class="center" src="/images/siggraph/s9.jpg">
-<img class="center" src="/images/siggraph/s10.jpg">
-<img class="center" src="/images/siggraph/s11.jpg"></p>
+<p>{% img center /images/siggraph/s9.jpg %}
+{% img center /images/siggraph/s10.jpg %}
+{% img center /images/siggraph/s11.jpg %}</p>
 ]]></content>
   </entry>
   

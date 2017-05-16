@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Freedom | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/freedom/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:26:14-07:00</updated>
+  <updated>2017-05-15T23:33:51-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -80,7 +80,13 @@ people with varying backgrounds, because they come up with solutions I
 never could have.  And if you want to beat your enemy, you have to know
 your enemy.  That means empathizing, understanding where they come from.</p>
 
-<p><blockquote><p>If you give orders and explain nothing, you might get obedience, but<br/>you&rsquo;ll get no creativity. If you tell them your purpose, then when your<br/>original plan is shown to be faulty, they&rsquo;ll find another way to achieve<br/>your goal. Explaining to your men doesn&rsquo;t weaken their respect for you,<br/>it proves your respect for them.</p><footer><strong>Han Tzu</strong> <cite>Shadow of the Giant Pg. 303 by Orson Scott Card</cite></footer></blockquote></p>
+<p>{% blockquote Han Tzu, Shadow of The Giant pg. 303 by Orson Scott Card %}
+If you give orders and explain nothing, you might get obedience, but
+you&rsquo;ll get no creativity. If you tell them your purpose, then when your
+original plan is shown to be faulty, they&rsquo;ll find another way to achieve
+your goal. Explaining to your men doesn&rsquo;t weaken their respect for you,
+it proves your respect for them.
+{% endblockquote %}</p>
 
 <p>I don&rsquo;t hate anyone for what they believe, nor do I
 try to persuade them otherwise.  I just feel like the technologically
@@ -111,7 +117,10 @@ deceased: <a href="http://touch.latimes.com/#section/-1/article/p2p-74009443/">&
 Fuck you. Maybe if MIT&rsquo;s bottom line wasn&rsquo;t their acceptance rate, they
 might be able to look out for more than just their own.</p>
 
-<p><blockquote><p>All that is necessary for the triumph of evil is that good men do<br/>nothing.</p><footer><strong>Edmund Burke</strong> <cite>Thoughts on the Cause of Present Discontents</cite></footer></blockquote></p>
+<p>{% blockquote Edmund Burke, Thoughts on the Cause of Present Discontents %}
+All that is necessary for the triumph of evil is that good men do
+nothing.
+{% endblockquote %}</p>
 
 <p>Suicide is never the answer.  No matter how shitty your current
 situation is, no matter if things will never go back to the way they
@@ -126,7 +135,18 @@ provides a cathartic placebo effect.  If you are depressed or hurting, and
 you need someone to talk to, even a complete stranger, feel free to
 contact me.  I will always provide an ear and a shoulder.</p>
 
-<p><blockquote><p>It seems strange that my life should end in such a terrible place, but<br/>for three years I had roses and apologized to no one. I shall die here.<br/>Every inch of me shall perish. Every inch, but one. An inch. It is small<br/>and it is fragile and it is the only thing in the world worth having. We<br/>must never lose it or give it away. We must NEVER let them take it from<br/>us. I hope that whoever you are, you escape this place. I hope that the<br/>world turns, and that things get better. But what I hope most of all is<br/>that you understand what I mean when I tell you that, even though I do<br/>not know you, and even though I may never meet you, laugh with you, cry<br/>with you, or kiss you, I love you. With all my heart, I love you.</p><footer><strong>Valerie</strong> <cite>V for Vendetta</cite></footer></blockquote></p>
+<p>{% blockquote Valerie, V for Vendetta %}
+It seems strange that my life should end in such a terrible place, but
+for three years I had roses and apologized to no one. I shall die here.
+Every inch of me shall perish. Every inch, but one. An inch. It is small
+and it is fragile and it is the only thing in the world worth having. We
+must never lose it or give it away. We must NEVER let them take it from
+us. I hope that whoever you are, you escape this place. I hope that the
+world turns, and that things get better. But what I hope most of all is
+that you understand what I mean when I tell you that, even though I do
+not know you, and even though I may never meet you, laugh with you, cry
+with you, or kiss you, I love you. With all my heart, I love you.
+{% endblockquote %}</p>
 
 <p>The next time the media industry tries to limit what you have access to
 on the Internet, make a big ruckus.  Inform everyone you know about the
@@ -177,7 +197,10 @@ spring up as one falls.</p>
 fix it?  If you don&rsquo;t, I will.  Because if you want something done
 right, you have to do it yourself.</p>
 
-<p><blockquote><p>It has to start somewhere It has to start sometime<br/>What better place than here, what better time than now?</p><footer><strong>Rage Against the Machine</strong> <cite>Guerrilla Radio</cite></footer></blockquote></p>
+<p>{% blockquote Rage Against the Machine, Guerrilla Radio %}
+It has to start somewhere It has to start sometime
+What better place than here, what better time than now?
+{% endblockquote %}</p>
 ]]></content>
   </entry>
   

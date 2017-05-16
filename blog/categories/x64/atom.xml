@@ -4,7 +4,7 @@
   <title><![CDATA[Category: x64 | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/x64/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:26:14-07:00</updated>
+  <updated>2017-05-15T23:33:51-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -277,7 +277,15 @@ because it can do amazing things like step backwards.  Another day&hellip;</p>
     <link href="http://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/"/>
     <updated>2014-04-18T16:16:00-07:00</updated>
     <id>http://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64</id>
-    <content type="html"><![CDATA[<p><blockquote><p>&hellip;&ldquo;&lsquo;Our speech interposes itself between apprehension and truth like a dusty pane or warped mirror.  The tongue of Eden was like a flawless glass; a light of total understanding streamed through it.  Thus Babel was a second Fall.&rsquo; And Isaac the Blind, an early Kabbalist, said that, to quote Gershom Scholem&rsquo;s translation, &lsquo;The speech of men is connected with divine speech and all language whether heavenly or human derives from one source: the Divine Name.&rsquo; The practical kabbalists, the sorcerers, bore the title Ba'al Shem, meaning &lsquo;master of the divine name.&rsquo;&rdquo;</p></p><p><p>&ldquo;The machine language of the world,&rdquo; Hiro says.</p></p><p><p>&ldquo;Is this another analogy?&rdquo;</p></p><p><p>&ldquo;Computers speak machine language,&rdquo; Hiro says.  &ldquo;It&rsquo;s written in ones and zeroes &ndash; binary code.  At the lowest level, all computers are programmed with strings of ones and zeroes.  When you program in machine language, you are controlling the computer at its brainstem, the root of its existence.  It&rsquo;s the tongue of Eden.  But it&rsquo;s very difficult to work in machine language because you go crazy after a while, working at such a minute level.  So a whole Babel of computer languages has been created for programmers: FORTRAN, BASIC, COBOL, LISP, Pascal, C, PROLOG, FORTH.  You talk to the computer in one of these languages, and a piece of software called a compiler converts it into machine language.  But you never can tell exactly what the compiler is doing.  It doesn&rsquo;t always come out the way you want.  Like a dusty pane or warped mirror. A really advanced hacker comes to understand the true inner workings of the machine – he sees through the language he&rsquo;s working in and glimpses the secret functioning of the binary code – becomes a Ba'al Shem of sorts.&rdquo;</p><footer><strong>Hiro Protagonist and The Librarian</strong> <cite>Snow Crash by Neal Stephenson</cite></footer></blockquote></p>
+    <content type="html"><![CDATA[<p>{% blockquote Hiro Protagonist and The Librarian, Snow Crash by Neal Stephenson %}
+&hellip;&ldquo;&lsquo;Our speech interposes itself between apprehension and truth like a dusty pane or warped mirror.  The tongue of Eden was like a flawless glass; a light of total understanding streamed through it.  Thus Babel was a second Fall.&rsquo; And Isaac the Blind, an early Kabbalist, said that, to quote Gershom Scholem&rsquo;s translation, &lsquo;The speech of men is connected with divine speech and all language whether heavenly or human derives from one source: the Divine Name.&rsquo; The practical kabbalists, the sorcerers, bore the title Ba'al Shem, meaning &lsquo;master of the divine name.&rsquo;&rdquo;</p>
+
+<p>&ldquo;The machine language of the world,&rdquo; Hiro says.</p>
+
+<p>&ldquo;Is this another analogy?&rdquo;</p>
+
+<p>&ldquo;Computers speak machine language,&rdquo; Hiro says.  &ldquo;It&rsquo;s written in ones and zeroes &ndash; binary code.  At the lowest level, all computers are programmed with strings of ones and zeroes.  When you program in machine language, you are controlling the computer at its brainstem, the root of its existence.  It&rsquo;s the tongue of Eden.  But it&rsquo;s very difficult to work in machine language because you go crazy after a while, working at such a minute level.  So a whole Babel of computer languages has been created for programmers: FORTRAN, BASIC, COBOL, LISP, Pascal, C, PROLOG, FORTH.  You talk to the computer in one of these languages, and a piece of software called a compiler converts it into machine language.  But you never can tell exactly what the compiler is doing.  It doesn&rsquo;t always come out the way you want.  Like a dusty pane or warped mirror. A really advanced hacker comes to understand the true inner workings of the machine – he sees through the language he&rsquo;s working in and glimpses the secret functioning of the binary code – becomes a Ba'al Shem of sorts.&rdquo;
+{% endblockquote %}</p>
 
 <p>This a beautiful quote, one that I think truly captures the relationship between
 higher level languages and the Instruction Set Architecture (ISA)&rsquo;s machine
@@ -510,7 +518,11 @@ section visible to other sections.  You may be
 <a href="http://stackoverflow.com/a/5908708/1027966">wondering</a>
 why directives and sections both begin with a dot.</p>
 
-<p><blockquote><p>&lsquo;.&rsquo;&lsquo; isn&rsquo;t a valid identifier character in C, so way back when it became common to use &rsquo;.&lsquo;&rsquo; as a prefix in the assembler and linker in order to avoid clashing with C symbol names. This unfortunately was used for both section names and directives, because both can appear in contexts where a simple parser wouldn&rsquo;t be able to disambiguate otherwise.</p></p><p><p>I don&rsquo;t know why they used the same convention for directives and section names, but they did, and it&rsquo;s not practical to change it now.</p><footer><strong>Dan Gohman</strong></footer></blockquote></p>
+<p>{% blockquote Dan Gohman %}
+&lsquo;.&rsquo;&lsquo; isn&rsquo;t a valid identifier character in C, so way back when it became common to use &rsquo;.&lsquo;&rsquo; as a prefix in the assembler and linker in order to avoid clashing with C symbol names. This unfortunately was used for both section names and directives, because both can appear in contexts where a simple parser wouldn&rsquo;t be able to disambiguate otherwise.</p>
+
+<p>I don&rsquo;t know why they used the same convention for directives and section names, but they did, and it&rsquo;s not practical to change it now.
+{% endblockquote %}</p>
 
 <p>Ok now the subtraction instruction.  We&rsquo;ve got a bit to go over with just this
 one line.  The first is the instruction itself.  The sub instruction has
@@ -532,7 +544,9 @@ last
 (<a href="http://stackoverflow.com/q/972602/1027966">as opposed to the Intel syntax</a>,
 where the destination follows the instruction name ex. <code>subq rsp, 8</code>).</p>
 
-<p><blockquote><p>I&rsquo;m biased towards AT&amp;T-syntax because GCC, LLVM, and icc (at least on Unix-like platforms) all use it, so it&rsquo;s what I&rsquo;m used to by necessity. People familiar with assembly languages on other platforms sometimes find it feels backwards from what they&rsquo;re used to, but it is learnable.</p><footer><strong>Dan Gohman</strong></footer></blockquote></p>
+<p>{% blockquote Dan Gohman %}
+I&rsquo;m biased towards AT&amp;T-syntax because GCC, LLVM, and icc (at least on Unix-like platforms) all use it, so it&rsquo;s what I&rsquo;m used to by necessity. People familiar with assembly languages on other platforms sometimes find it feels backwards from what they&rsquo;re used to, but it is learnable.
+{% endblockquote %}</p>
 
 <p>I&rsquo;m writing my examples in AT&amp;T syntax simply because when I compile my C code
 from clang with the -S flag, or run my object files through gobjdump, I get AT&amp;T
@@ -688,7 +702,7 @@ bottom plate if you can imagine, in this case.  The stack grows towards the
 heap, and it is possible for them to collide if you don&rsquo;t ask the OS to expand
 your data segment (sbrk).</p>
 
-<p><img class="center" src="/images/stack.png"> <a href="http://mcfunley.com/the-debugger-extension-part-6-scanning-threads">credit</a></p>
+<p>{% img center /images/stack.png %} <a href="http://mcfunley.com/the-debugger-extension-part-6-scanning-threads">credit</a></p>
 
 <p>Let&rsquo;s say we want to call something like memset, which from <code>man memset</code> we can
 see takes an address, a value to fill, and a number of bytes to fill.  The
@@ -873,7 +887,11 @@ on May 22 demystifying Raw WebGL.  You should come and check it out.</p>
 
 <p>Closing thoughts by Dan:</p>
 
-<p><blockquote><p>To me, machine code doesn&rsquo;t feel analogous to this concept of the divine name. I certainly wouldn&rsquo;t describe it as &ldquo;like a flawless glass; a light of total understanding streamed through it&rdquo;. Even if you strip away all the accidental complexity, machine code is still permeated by mundane implementation-oriented concerns. Also, the abstractions which we use to organize and &ldquo;understand&rdquo; the program are gone; information is lost.</p></p><p><p>My imagination of a divine language looks a lot more like an idealized and cleaned-up LISP. It&rsquo;d be capable of representing all known means of abstraction and combination (in the SICP sense), it might be thought of as a kind of super-language of which all of our real-world languages are just messy subsets.</p><footer><strong>Dan Gohman</strong></footer></blockquote></p>
+<p>{% blockquote Dan Gohman %}
+To me, machine code doesn&rsquo;t feel analogous to this concept of the divine name. I certainly wouldn&rsquo;t describe it as &ldquo;like a flawless glass; a light of total understanding streamed through it&rdquo;. Even if you strip away all the accidental complexity, machine code is still permeated by mundane implementation-oriented concerns. Also, the abstractions which we use to organize and &ldquo;understand&rdquo; the program are gone; information is lost.</p>
+
+<p>My imagination of a divine language looks a lot more like an idealized and cleaned-up LISP. It&rsquo;d be capable of representing all known means of abstraction and combination (in the SICP sense), it might be thought of as a kind of super-language of which all of our real-world languages are just messy subsets.
+{% endblockquote %}</p>
 ]]></content>
   </entry>
   

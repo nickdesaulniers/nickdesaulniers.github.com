@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Source | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/source/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:26:14-07:00</updated>
+  <updated>2017-05-15T23:33:51-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -59,7 +59,7 @@ point whether the bug reporter (developer of Y) did their homework; the bug is
 unconfirmed.  Both reporter and resolver are suspicious of each others' code.
 <em>I</em> don&rsquo;t make silly mistakes, right?</p>
 
-<p><img class="center" src="/images/dude.jpg"></p>
+<p>{% img center /images/dude.jpg %}</p>
 
 <p>So it&rsquo;s up to the resolver to work out a test case.  Being able to reproduce
 said issue is the first goal to resolving a bug.  Just like scientific
