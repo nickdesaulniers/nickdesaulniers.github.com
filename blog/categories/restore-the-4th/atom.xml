@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Restore the 4th | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/restore-the-4th/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:33:51-07:00</updated>
+  <updated>2017-05-15T23:37:21-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -18,9 +18,7 @@
     <link href="http://nickdesaulniers.github.io/blog/2013/07/03/why-ill-be-marching-this-4th/"/>
     <updated>2013-07-03T22:27:00-07:00</updated>
     <id>http://nickdesaulniers.github.io/blog/2013/07/03/why-ill-be-marching-this-4th</id>
-    <content type="html"><![CDATA[<p>{% blockquote %}
-If you&rsquo;ve done nothing wrong, then you&rsquo;ve got nothing to hide.
-{% endblockquote %}</p>
+    <content type="html"><![CDATA[<p><blockquote><p>If you&rsquo;ve done nothing wrong, then you&rsquo;ve got nothing to hide.</p></blockquote></p>
 
 <p>Wrong.  Nothing ever justifies giving up your
 <a href="http://www.un.org/en/documents/udhr/index.shtml#a12">human rights</a>
@@ -88,10 +86,7 @@ looking the other way.
 Sounds to me like the crew hasn&rsquo;t been doing enough reflection.  What about the
 captain?</p>
 
-<p>{% blockquote President Obama <a href="http://www.youtube.com/watch?v=Xec48sUutuA">http://www.youtube.com/watch?v=Xec48sUutuA</a> %}
-I think it’s important to recognize that you can’t have 100 percent security
-and also then have 100 per cent privacy and zero inconvenience.
-{% endblockquote %}</p>
+<p><blockquote><p>I think it’s important to recognize that you can’t have 100 percent security<br/>and also then have 100 per cent privacy and zero inconvenience.</p><footer><strong>President Obama <a href="http://www.youtube.com/watch?v=Xec48sUutuA">http://www.youtube.com/watch?v=Xec48sUutuA</a></strong></footer></blockquote></p>
 
 <p>Hearing the President of our country say that,
 <a href="http://www.washingtonpost.com/blogs/wonkblog/wp/2013/07/03/how-ed-snowden-became-a-bigger-story-than-nsa-spying-in-two-charts/">the incompetent media&rsquo;s focus on Snowden</a>,
@@ -101,9 +96,7 @@ literally reminds me of the part in Star Wars where in order to stop a growing
 threat and protect the people, a democracy is turned into an authoritarian
 empire.</p>
 
-<p>{% blockquote Padme, Star Wars Ep. 3 <a href="http://vimeo.com/57563428">http://vimeo.com/57563428</a> %}
-So this is how liberty dies&hellip;with thunderous applause?
-{% endblockquote %}</p>
+<p><blockquote><p>So this is how liberty dies&hellip;with thunderous applause?</p><footer><strong>Padme</strong> <cite>Star Wars Ep. 3 <a href="http://vimeo.com/57563428">http://vimeo.com/57563428</a></cite></footer></blockquote></p>
 
 <p>Not on my watch.  And not on yours either.  Join us this 4th of July for a
 peaceful rally against infringements on our 4th Amendment rights as part of the

@@ -4,7 +4,7 @@
   <title><![CDATA[Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:26:14-07:00</updated>
+  <updated>2017-05-15T23:37:21-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -2765,7 +2765,7 @@ Let&rsquo;s save that for later.</p>
 
 <p>Wouldn&rsquo;t it be nice if there was a translation &amp; execution technique that
 didn&rsquo;t force us to compile our code every time we changed it and wanted to run
-it, but also performance closer to that of compiled code?  That&rsquo;s where a JIT
+it, but also performed closer to that of compiled code?  That&rsquo;s where a JIT
 compiler comes in!</p>
 
 <p>For the basics of JITing code, make sure you read <a href="http://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/">my previous article on the basics of JITing code in C</a>.  We&rsquo;re going to follow the same technique of

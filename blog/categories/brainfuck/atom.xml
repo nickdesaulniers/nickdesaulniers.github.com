@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Brainfuck | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/brainfuck/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:33:51-07:00</updated>
+  <updated>2017-05-15T23:37:21-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -35,7 +35,7 @@ of C code each.</p>
 
 <p>All of the code in the post is up on <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler">GitHub</a>.</p>
 
-<p>{% youtube _C5AHaS1mOA %}</p>
+<p><div class="embed-video-container"><iframe src="//www.youtube.com/embed/_C5AHaS1mOA" allowfullscreen></iframe></div></p>
 
 <p>Brainfuck is an interesting, if hard to read, language.  It only has eight
 operations it can perform <code>&gt; &lt; + - . , [ ]</code>, yet is Turing complete.  There&rsquo;s nothing really to
@@ -195,7 +195,7 @@ second misaligns it; that&rsquo;s why we allocate an additional 8 B on the stack
 (<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #1</a>).  The stack is mis-aligned upon function entry in x86-64.
 30000 is a multiple of 16.</p>
 
-<p>{% img center /images/compiler_stack_alignment.png %}</p>
+<p><img class="center" src="/images/compiler_stack_alignment.png"></p>
 
 <p>Moving the instruction pointer (<code>&gt;</code>, <code>&lt;</code>) and modifying the pointed to value
 (<code>+</code>, <code>-</code>) are straight-forward:</p>
@@ -388,7 +388,7 @@ address of putchar, and %rdx will contain the address of getchar, see
 calling any of them, else they may clobber %rdi, %rsi, or %rdx since they&rsquo;re
 not &ldquo;callee saved,&rdquo; rather &ldquo;call clobbered.&rdquo;  See <a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 ABI point #4</a>.</p>
 
-<p>{% img center /images/prologue1.png %}</p>
+<p><img class="center" src="/images/prologue1.png"></p>
 
 <p><code>c
   0x49, 0x89, 0xFC, // movq %rdi, %r12
@@ -399,7 +399,7 @@ not &ldquo;callee saved,&rdquo; rather &ldquo;call clobbered.&rdquo;  See <a hre
 <p>At this point, %r12 will contain the address of memset, %r13 will contain the
 address of putchar, and %r14 will contain the address of getchar.</p>
 
-<p>{% img center /images/prologue2.png %}</p>
+<p><img class="center" src="/images/prologue2.png"></p>
 
 <p>Next up is allocating 30008 B on the stack:</p>
 
@@ -422,7 +422,7 @@ stack. We&rsquo;re allocating an additional 8 B on the stack for alignment
 requirements, similar to the compiler.  By pushing even numbers of 64 b
 registers, we need to realign our stack pointer.</p>
 
-<p>{% img center /images/prologue3.png %}</p>
+<p><img class="center" src="/images/prologue3.png"></p>
 
 <p>Next in the prologue, we set up and call memset:</p>
 
@@ -448,7 +448,7 @@ tape.  That&rsquo;s the end of our prologue.</p>
 };
 </code></p>
 
-<p>{% img center /images/prologue4.png %}</p>
+<p><img class="center" src="/images/prologue4.png"></p>
 
 <p>We can then push our prologue into our dynamic array implementation:</p>
 
@@ -619,7 +619,7 @@ little simpler, as were not done yet with this case.</p>
   // ...
 </code></p>
 
-<p>{% img center /images/relative_jump_unknown.png %}</p>
+<p><img class="center" src="/images/relative_jump_unknown.png"></p>
 
 <p>We pop the matching offset into the dynamic array (from the matching open
 bracket), and calculate the difference from the current size of the instruction
@@ -719,7 +719,7 @@ vector_push(&amp;instruction_stream, opcodes, sizeof(opcodes));
 <p>Let&rsquo;s now examine the performance of these three.  One of the longer running
 Brainfuck programs I can find is <a href="https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/samples/mandelbrot.b">one that prints the Mandelbrot set as ASCII art to stdout</a>.</p>
 
-<p>{% video /video/jit.mp4 %}</p>
+<p><video width='' height='' preload='none' controls poster=''><source src='/video/jit.mp4 ' ></video></p>
 
 <p>Running the UNIX command <code>time</code> on the interpreter, compiled
 result, and the JIT, we should expect numbers similar to:</p>

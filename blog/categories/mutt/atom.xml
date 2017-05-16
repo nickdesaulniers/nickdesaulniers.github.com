@@ -4,7 +4,7 @@
   <title><![CDATA[Category: mutt | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/mutt/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:33:51-07:00</updated>
+  <updated>2017-05-15T23:37:21-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -84,7 +84,7 @@ $ mutt
 <p>We should see it connect and download our messages.  <code>m</code> to start sending new
 messages. <code>G</code> to fetch new messages.</p>
 
-<p>{% img center /images/mutt.png %}</p>
+<p><img class="center" src="/images/mutt.png"></p>
 ]]></content>
   </entry>
   

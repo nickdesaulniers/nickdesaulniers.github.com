@@ -4,7 +4,7 @@
   <title><![CDATA[Category: node | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/node/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:33:51-07:00</updated>
+  <updated>2017-05-15T23:37:21-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -28,7 +28,7 @@ concepts are a little more concrete.</p>
 
 <p>First, please check out this excellent video on public key crypto:</p>
 
-<p>{% youtube YEBfamv-_do %}</p>
+<p><div class="embed-video-container"><iframe src="//www.youtube.com/embed/YEBfamv-_do" allowfullscreen></iframe></div></p>
 
 <p>Hopefully that explains the gist of the technique, but what might it actually
 look like in code?  Let&rsquo;s take a look at example code in JavaScript using the
@@ -213,23 +213,23 @@ capture from Wireshark of me navigating to <a href="https://google.com.">https:/
 TLSv1.2 Client Hello to start the handshake.  Here we can see a list of the
 cypher suites.</p>
 
-<p>{% img center /images/tls_1_client_hello.png %}</p>
+<p><img class="center" src="/images/tls_1_client_hello.png"></p>
 
 <p>Next is the response from the server, a TLSv1.2 Server Hello.  Here you can see
 the server has picked a cypher to use.</p>
 
-<p>{% img center /images/tls_2_server_hello.png %}</p>
+<p><img class="center" src="/images/tls_2_server_hello.png"></p>
 
 <p>The server then sends its certificate, which contains a copy of its public key.</p>
 
-<p>{% img center /images/tls_3_server_cert.png %}</p>
+<p><img class="center" src="/images/tls_3_server_cert.png"></p>
 
 <p>Now that we&rsquo;ve agreed on a cypher suite, the client now sends its public key.
 The server sets up a session, that way it may abbreviate the handshake in the
 future. Finally, the client may now start making requests to the server with
 encrypted application data.</p>
 
-<p>{% img center /images/tls_4_key_exchange.png %}</p>
+<p><img class="center" src="/images/tls_4_key_exchange.png"></p>
 
 <p>For more information on TLS handshakes, you should read
 <a href="https://www.igvita.com/">Ilya Grigorik&rsquo;s</a>
@@ -249,9 +249,7 @@ mistake can compromise the entire system.  Peer review and open source,
 implementations
 <a href="http://dodcio.defense.gov/OpenSourceSoftwareFAQ.aspx#Q%3a_Doesn.27t_hiding_source_code_automatically_make_software_more_secure.3F">go a long way</a>.</p>
 
-<p>{% blockquote Kerckhoffs&rsquo;s principle %}
-A cryptosystem should be secure even if everything about the system, except the key, is public knowledge.
-{% endblockquote%}</p>
+<p><blockquote><p>A cryptosystem should be secure even if everything about the system, except the key, is public knowledge.</p><footer><strong>Kerckhoffs&rsquo;s principle</strong></footer></blockquote></p>
 
 <p>I wanted to write this post because I believe abstinence-only crypto education
 isn&rsquo;t working and I cant stand when anyone acts like part of a cabal from their

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Commandment | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/commandment/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-15T23:33:51-07:00</updated>
+  <updated>2017-05-15T23:37:21-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -81,9 +81,7 @@ problems than they are worth. There exist more advanced techniques such as
 
 <h1>An expensive website does not make an awesome app</h1>
 
-<p>{% blockquote %}
-Why doesn&rsquo;t my million dollar website make a kick ass web app?
-{% endblockquote %}</p>
+<p><blockquote><p>Why doesn&rsquo;t my million dollar website make a kick ass web app?</p></blockquote></p>
 
 <p>This point is brought to you by <a href="http://www.mattbasta.com/">Matt Basta</a>.  The
 point is that there is something fundamentally different between a web &ldquo;site&rdquo;
