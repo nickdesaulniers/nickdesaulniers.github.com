@@ -24,10 +24,8 @@ or email me).
 
 ## Step 1: Setting up an email client
 
-Covered in
-https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/.  I mostly
-use `git send-email` for sending patch files.  In my `~/,gitconfig` I have
-added:
+I mostly use `git send-email` for sending patch files.  In my `~/,gitconfig` I
+have added:
 
 ```ini
 [sendemail]
@@ -41,6 +39,10 @@ added:
 To send patches through my gmail account.  I don’t add my password so that I
 don’t have to worry about it when I publish my dotfiles.  I simply get prompted
 every time I want to send an email.
+
+I use
+[mutt](https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/)
+to respond to threads when I *don't* have a patch to send.
 
 ## Step 2: Make fixes
 
@@ -69,7 +71,7 @@ commit 3f135e57a4f76d24ae8d8a490314331f0ced40c5
 ```
 
 The first words of commit messages in Linux are usually
-`<subsystem>/<sub-subsystem>: <descriptive comment>
+`<subsystem>/<sub-subsystem>: <descriptive comment>`.
 
 Let’s commit, `git commit <files> -s`.  We use the `-s` flag to `git commit` to
 add our signoff.  Signing your patches is standard and notes your agreement to
@@ -104,9 +106,11 @@ until you’re good to go.
 
 ## Step 6: email the patch to yourself
 
-This is good to do when you’re starting off.  While I use mutt for responding
-to email, I use `git send-email` for sending patches.  Once you’ve gotten a
-hang of the workflow, this step is optional, more of a sanity check.
+This is good to do when you’re starting off.  While I use
+[mutt](https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/)
+for responding to email, I use `git send-email` for sending patches.  Once
+you’ve gotten a hang of the workflow, this step is optional, more of a sanity
+check.
 
 ```sh
 $ git send-email \
@@ -114,8 +118,8 @@ $ git send-email \
 ```
 
 You don’t need to use command line arguments to cc yourself, assuming you set
-up git correctly, git-email should add you to the cc line as the author of the
-patch.  Send the patch just to yourself and make sure everything looks ok.
+up git correctly, git send-email should add you to the cc line as the author of
+the patch.  Send the patch just to yourself and make sure everything looks ok.
 
 ## Step 7: get maintainers
 
@@ -137,7 +141,7 @@ linux-kernel@vger.kernel.org (open list:X86 ARCHITECTURE (32-BIT AND 64-BIT))
 ## Step 8: fire off the patch
 
 ```sh
-& git send-email \
+$ git send-email \
 --cc person@a.com \
 --cc person@b.com \
 --cc person@c.com \
