@@ -132,10 +132,8 @@ or email me).</p>
 
 <h2>Step 1: Setting up an email client</h2>
 
-<p>Covered in
-<a href="https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/.">https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/.</a>  I mostly
-use <code>git send-email</code> for sending patch files.  In my <code>~/,gitconfig</code> I have
-added:</p>
+<p>I mostly use <code>git send-email</code> for sending patch files.  In my <code>~/,gitconfig</code> I
+have added:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -155,6 +153,10 @@ added:</p>
 <p>To send patches through my gmail account.  I don’t add my password so that I
 don’t have to worry about it when I publish my dotfiles.  I simply get prompted
 every time I want to send an email.</p>
+
+<p>I use
+<a href="https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/">mutt</a>
+to respond to threads when I <em>don&rsquo;t</em> have a patch to send.</p>
 
 <h2>Step 2: Make fixes</h2>
 
@@ -191,7 +193,7 @@ messages on the file I modified.</p>
 
 
 <p>The first words of commit messages in Linux are usually
-`<subsystem>/&lt;sub-subsystem>: <descriptive comment></p>
+<code>&lt;subsystem&gt;/&lt;sub-subsystem&gt;: &lt;descriptive comment&gt;</code>.</p>
 
 <p>Let’s commit, <code>git commit &lt;files&gt; -s</code>.  We use the <code>-s</code> flag to <code>git commit</code> to
 add our signoff.  Signing your patches is standard and notes your agreement to
@@ -230,9 +232,11 @@ until you’re good to go.</p>
 
 <h2>Step 6: email the patch to yourself</h2>
 
-<p>This is good to do when you’re starting off.  While I use mutt for responding
-to email, I use <code>git send-email</code> for sending patches.  Once you’ve gotten a
-hang of the workflow, this step is optional, more of a sanity check.</p>
+<p>This is good to do when you’re starting off.  While I use
+<a href="https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/">mutt</a>
+for responding to email, I use <code>git send-email</code> for sending patches.  Once
+you’ve gotten a hang of the workflow, this step is optional, more of a sanity
+check.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -242,8 +246,8 @@ hang of the workflow, this step is optional, more of a sanity check.</p>
 
 
 <p>You don’t need to use command line arguments to cc yourself, assuming you set
-up git correctly, git-email should add you to the cc line as the author of the
-patch.  Send the patch just to yourself and make sure everything looks ok.</p>
+up git correctly, git send-email should add you to the cc line as the author of
+the patch.  Send the patch just to yourself and make sure everything looks ok.</p>
 
 <h2>Step 7: get maintainers</h2>
 
@@ -277,7 +281,7 @@ your patch:</p>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>&amp; git send-email <span class="se">\</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>git send-email <span class="se">\</span>
 </span><span class='line'>--cc person@a.com <span class="se">\</span>
 </span><span class='line'>--cc person@b.com <span class="se">\</span>
 </span><span class='line'>--cc person@c.com <span class="se">\</span>

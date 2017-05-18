@@ -586,6 +586,13 @@ libmalicous.so’s version:</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
+<p>LD_PRELOAD is not available on OSX, instead you can use
+<code>DYLD_INSERT_LIBRARIES</code>, <code>DYLD_LIBRARY_PATH</code>, and recompile the original
+executable with <code>-flat_namespace</code>. Having to recompile the original executable
+is less than ideal for hooking an existing binary, but I could not hook libc
+as in the previous libmalicious example.  I would be interested to know if you
+can though!</p>
+
 <p>Manually invoking the dynamic linker from our code,
 <a href="https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs/">we can even man in the middle library calls (call our hooked function first, then invoke the original target)</a>.
 We’ll see more of this in the next post on using the dynamic linker.</p>

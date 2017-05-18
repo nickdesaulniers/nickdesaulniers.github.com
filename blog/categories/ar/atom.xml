@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ar | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/ar/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-16T01:23:13-07:00</updated>
+  <updated>2017-05-17T20:40:43-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -385,6 +385,13 @@ hello from libgood
 $ LD_PRELOAD=./libmalicious.so ./a.out
 hello from libmalicious
 </code></p>
+
+<p>LD_PRELOAD is not available on OSX, instead you can use
+<code>DYLD_INSERT_LIBRARIES</code>, <code>DYLD_LIBRARY_PATH</code>, and recompile the original
+executable with <code>-flat_namespace</code>. Having to recompile the original executable
+is less than ideal for hooking an existing binary, but I could not hook libc
+as in the previous libmalicious example.  I would be interested to know if you
+can though!</p>
 
 <p>Manually invoking the dynamic linker from our code,
 <a href="https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs/">we can even man in the middle library calls (call our hooked function first, then invoke the original target)</a>.

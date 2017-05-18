@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-16T01:23:13-07:00</updated>
+  <updated>2017-05-17T20:40:43-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -40,10 +40,8 @@ or email me).</p>
 
 <h2>Step 1: Setting up an email client</h2>
 
-<p>Covered in
-<a href="https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/.">https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/.</a>  I mostly
-use <code>git send-email</code> for sending patch files.  In my <code>~/,gitconfig</code> I have
-added:</p>
+<p>I mostly use <code>git send-email</code> for sending patch files.  In my <code>~/,gitconfig</code> I
+have added:</p>
 
 <p><code>ini
 [sendemail]
@@ -57,6 +55,10 @@ added:</p>
 <p>To send patches through my gmail account.  I don’t add my password so that I
 don’t have to worry about it when I publish my dotfiles.  I simply get prompted
 every time I want to send an email.</p>
+
+<p>I use
+<a href="https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/">mutt</a>
+to respond to threads when I <em>don&rsquo;t</em> have a patch to send.</p>
 
 <h2>Step 2: Make fixes</h2>
 
@@ -91,7 +93,7 @@ $ git log arch/x86/Makefile</p>
 <p>```</p>
 
 <p>The first words of commit messages in Linux are usually
-`<subsystem>/&lt;sub-subsystem>: <descriptive comment></p>
+<code>&lt;subsystem&gt;/&lt;sub-subsystem&gt;: &lt;descriptive comment&gt;</code>.</p>
 
 <p>Let’s commit, <code>git commit &lt;files&gt; -s</code>.  We use the <code>-s</code> flag to <code>git commit</code> to
 add our signoff.  Signing your patches is standard and notes your agreement to
@@ -126,9 +128,11 @@ until you’re good to go.</p>
 
 <h2>Step 6: email the patch to yourself</h2>
 
-<p>This is good to do when you’re starting off.  While I use mutt for responding
-to email, I use <code>git send-email</code> for sending patches.  Once you’ve gotten a
-hang of the workflow, this step is optional, more of a sanity check.</p>
+<p>This is good to do when you’re starting off.  While I use
+<a href="https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/">mutt</a>
+for responding to email, I use <code>git send-email</code> for sending patches.  Once
+you’ve gotten a hang of the workflow, this step is optional, more of a sanity
+check.</p>
 
 <p><code>sh
 $ git send-email \
@@ -136,8 +140,8 @@ $ git send-email \
 </code></p>
 
 <p>You don’t need to use command line arguments to cc yourself, assuming you set
-up git correctly, git-email should add you to the cc line as the author of the
-patch.  Send the patch just to yourself and make sure everything looks ok.</p>
+up git correctly, git send-email should add you to the cc line as the author of
+the patch.  Send the patch just to yourself and make sure everything looks ok.</p>
 
 <h2>Step 7: get maintainers</h2>
 
@@ -159,7 +163,7 @@ linux-kernel@vger.kernel.org (open list:X86 ARCHITECTURE (32-BIT AND 64-BIT))
 <h2>Step 8: fire off the patch</h2>
 
 <p><code>sh
-&amp; git send-email \
+$ git send-email \
 --cc person@a.com \
 --cc person@b.com \
 --cc person@c.com \
