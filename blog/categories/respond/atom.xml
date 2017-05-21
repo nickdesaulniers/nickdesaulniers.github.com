@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Respond | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/respond/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-21T00:36:14-07:00</updated>
+  <updated>2017-05-21T00:42:00-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -143,7 +143,7 @@ $ git send-email \
 up git correctly, git send-email should add you to the cc line as the author of
 the patch.  Send the patch just to yourself and make sure everything looks ok.</p>
 
-<h2>Step 7: get maintainers</h2>
+<h2>Step 7: fire off the patch</h2>
 
 <p>Linux is huge, and has a trusted set of maintainers for various subsystems.
 The
@@ -160,7 +160,8 @@ x86@kernel.org (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT))
 linux-kernel@vger.kernel.org (open list:X86 ARCHITECTURE (32-BIT AND 64-BIT))
 </code></p>
 
-<h2>Step 8: fire off the patch</h2>
+<p>With some additional flags, we can feed this output directly into
+<code>git send-email</code>.</p>
 
 <p><code>sh
 $ git send-email \
