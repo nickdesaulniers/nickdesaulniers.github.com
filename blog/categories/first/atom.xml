@@ -4,7 +4,7 @@
   <title><![CDATA[Category: First | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/first/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-17T20:40:43-07:00</updated>
+  <updated>2017-05-21T00:36:14-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -164,12 +164,9 @@ linux-kernel@vger.kernel.org (open list:X86 ARCHITECTURE (32-BIT AND 64-BIT))
 
 <p><code>sh
 $ git send-email \
+--cc-cmd='./scripts/get_maintainer.pl --norolestats 0001-my.patch' \
 --cc person@a.com \
---cc person@b.com \
---cc person@c.com \
---cc x86@kernel.org \
---cc linux-kernel@vger.kernel.org \
-0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+0001-my.patch
 </code></p>
 
 <p>Make sure to cc yourself when prompted.  Otherwise if you don’t subscribe to
@@ -193,7 +190,7 @@ couple of times, but eventually got a response.</p>
 <h2>Step 9: responding to feedback</h2>
 
 <p>Update your file, <code>git commit &lt;changed files&gt; --amend</code> to update your latest
-commit, <code>git format-patch --subject-prefix="Patch v2" HEAD~</code>, edit the patch
+commit, <code>git format-patch -v2 HEAD~</code>, edit the patch
 file to put the changes below the dash below the signed off lines
 (<a href="https://patchwork.kernel.org/patch/9720097/">example</a>), rerun checkpatch,
 rerun get_maintainer if the files you modified changed since V1.  Next, you
@@ -206,15 +203,10 @@ themselves).  Finally, we send the patch:</p>
 
 <p><code>sh
 $ git send-email \
---cc nick.desaulniers@gmail.com \
+--cc-cmd='./scripts/get_maintainer.pl --norolestats 0001-my.patch' \
 --cc person@a.com \
---cc person@b.com \
---cc person@c.com \
---cc person@d.com \
---cc x86@kernel.org \
---cc linux-kernel@vger.kernel.org \
 --in-reply-to 2017datesandletters@somehostname \
-0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+0001-my.patch
 </code></p>
 
 <p>We make sure to add anyone who may have commented on the patch from the mailing
@@ -236,6 +228,9 @@ first patch acknowledged and even merged is
 radio silence has the opposite effect.</p>
 
 <p>Happy hacking!</p>
+
+<p>(Thanks to Reddit user /u/EliteTK for pointing out that <code>-v2</code> was more concise
+than <code>--subject-prefix="Patch vX"</code>).</p>
 ]]></content>
   </entry>
   

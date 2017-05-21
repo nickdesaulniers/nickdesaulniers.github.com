@@ -278,16 +278,10 @@ your patch:</p>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>git send-email <span class="se">\</span>
+</span><span class='line'>--cc-cmd<span class="o">=</span><span class="s1">&#39;./scripts/get_maintainer.pl --norolestats 0001-my.patch&#39;</span> <span class="se">\</span>
 </span><span class='line'>--cc person@a.com <span class="se">\</span>
-</span><span class='line'>--cc person@b.com <span class="se">\</span>
-</span><span class='line'>--cc person@c.com <span class="se">\</span>
-</span><span class='line'>--cc x86@kernel.org <span class="se">\</span>
-</span><span class='line'>--cc linux-kernel@vger.kernel.org <span class="se">\</span>
-</span><span class='line'>0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+</span><span class='line'>0001-my.patch
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -312,7 +306,7 @@ couple of times, but eventually got a response.</p>
 <h2>Step 9: responding to feedback</h2>
 
 <p>Update your file, <code>git commit &lt;changed files&gt; --amend</code> to update your latest
-commit, <code>git format-patch --subject-prefix="Patch v2" HEAD~</code>, edit the patch
+commit, <code>git format-patch -v2 HEAD~</code>, edit the patch
 file to put the changes below the dash below the signed off lines
 (<a href="https://patchwork.kernel.org/patch/9720097/">example</a>), rerun checkpatch,
 rerun get_maintainer if the files you modified changed since V1.  Next, you
@@ -328,21 +322,11 @@ themselves).  Finally, we send the patch:</p>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>git send-email <span class="se">\</span>
-</span><span class='line'>--cc nick.desaulniers@gmail.com <span class="se">\</span>
+</span><span class='line'>--cc-cmd<span class="o">=</span><span class="s1">&#39;./scripts/get_maintainer.pl --norolestats 0001-my.patch&#39;</span> <span class="se">\</span>
 </span><span class='line'>--cc person@a.com <span class="se">\</span>
-</span><span class='line'>--cc person@b.com <span class="se">\</span>
-</span><span class='line'>--cc person@c.com <span class="se">\</span>
-</span><span class='line'>--cc person@d.com <span class="se">\</span>
-</span><span class='line'>--cc x86@kernel.org <span class="se">\</span>
-</span><span class='line'>--cc linux-kernel@vger.kernel.org <span class="se">\</span>
 </span><span class='line'>--in-reply-to 2017datesandletters@somehostname <span class="se">\</span>
-</span><span class='line'>0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+</span><span class='line'>0001-my.patch
 </span></code></pre></td></tr></table></div></figure>
 
 
@@ -365,6 +349,9 @@ first patch acknowledged and even merged is
 radio silence has the opposite effect.</p>
 
 <p>Happy hacking!</p>
+
+<p>(Thanks to Reddit user /u/EliteTK for pointing out that <code>-v2</code> was more concise
+than <code>--subject-prefix="Patch vX"</code>).</p>
 </div>
 
 
