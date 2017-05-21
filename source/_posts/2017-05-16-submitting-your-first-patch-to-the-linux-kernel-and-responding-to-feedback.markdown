@@ -121,7 +121,7 @@ You don’t need to use command line arguments to cc yourself, assuming you set
 up git correctly, git send-email should add you to the cc line as the author of
 the patch.  Send the patch just to yourself and make sure everything looks ok.
 
-## Step 7: get maintainers
+## Step 7: fire off the patch
 
 Linux is huge, and has a trusted set of maintainers for various subsystems.
 The
@@ -138,7 +138,8 @@ x86@kernel.org (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT))
 linux-kernel@vger.kernel.org (open list:X86 ARCHITECTURE (32-BIT AND 64-BIT))
 ```
 
-## Step 8: fire off the patch
+With some additional flags, we can feed this output directly into
+`git send-email`.
 
 ```sh
 $ git send-email \
