@@ -142,12 +142,9 @@ linux-kernel@vger.kernel.org (open list:X86 ARCHITECTURE (32-BIT AND 64-BIT))
 
 ```sh
 $ git send-email \
+--cc-cmd='./scripts/get_maintainer.pl --norolestats 0001-my.patch' \
 --cc person@a.com \
---cc person@b.com \
---cc person@c.com \
---cc x86@kernel.org \
---cc linux-kernel@vger.kernel.org \
-0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+0001-my.patch
 ```
 
 Make sure to cc yourself when prompted.  Otherwise if you don’t subscribe to
@@ -171,7 +168,7 @@ couple of times, but eventually got a response.
 ## Step 9: responding to feedback
 
 Update your file, `git commit <changed files> --amend` to update your latest
-commit, `git format-patch --subject-prefix="Patch v2" HEAD~`, edit the patch
+commit, `git format-patch -v2 HEAD~`, edit the patch
 file to put the changes below the dash below the signed off lines
 ([example](https://patchwork.kernel.org/patch/9720097/)), rerun checkpatch,
 rerun get_maintainer if the files you modified changed since V1.  Next, you
@@ -184,15 +181,10 @@ themselves).  Finally, we send the patch:
 
 ```sh
 $ git send-email \
---cc nick.desaulniers@gmail.com \
+--cc-cmd='./scripts/get_maintainer.pl --norolestats 0001-my.patch' \
 --cc person@a.com \
---cc person@b.com \
---cc person@c.com \
---cc person@d.com \
---cc x86@kernel.org \
---cc linux-kernel@vger.kernel.org \
 --in-reply-to 2017datesandletters@somehostname \
-0001-x86-build-don-t-add-maccumulate-outgoing-args-w-o-co.patch
+0001-my.patch
 ```
 
 We make sure to add anyone who may have commented on the patch from the mailing
@@ -214,3 +206,6 @@ first patch acknowledged and even merged is
 radio silence has the opposite effect.
 
 Happy hacking!
+
+(Thanks to Reddit user /u/EliteTK for pointing out that `-v2` was more concise
+than `--subject-prefix="Patch vX"`).
