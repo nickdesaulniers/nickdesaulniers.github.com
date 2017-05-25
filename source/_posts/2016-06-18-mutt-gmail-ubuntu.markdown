@@ -43,19 +43,16 @@ set from = "<gmail username>@gmail.com"
 set use_from = yes
 set envelope_from = yes
 
-set smtp_url = "smtps://<gmail username>@gmail.com@smtp.gmail.com:465/"
-set smtp_pass = "<gmail password>"
 set imap_user = "<gmail username>@gmail.com"
 set imap_pass = "<gmail password>"
 set folder = "imaps://imap.gmail.com:993"
 set spoolfile = "+INBOX"
+set record = "+[Gmail]/Sent Mail"
 set ssl_force_tls = yes
 
 # G to get mail
 bind index G imap-fetch-mail
 set editor = "vim"
-unset record
-set move = no
 set charset = "utf-8"
 ```
 
