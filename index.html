@@ -1690,27 +1690,21 @@ know again, I figure I’d post my steps here.</p>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">set </span><span class="nv">realname</span> <span class="o">=</span> <span class="s2">&quot;&lt;first and last name&gt;&quot;</span>
 </span><span class='line'><span class="nb">set </span><span class="nv">from</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail username&gt;@gmail.com&quot;</span>
 </span><span class='line'><span class="nb">set </span><span class="nv">use_from</span> <span class="o">=</span> yes
 </span><span class='line'><span class="nb">set </span><span class="nv">envelope_from</span> <span class="o">=</span> yes
 </span><span class='line'>
-</span><span class='line'><span class="nb">set </span><span class="nv">smtp_url</span> <span class="o">=</span> <span class="s2">&quot;smtps://&lt;gmail username&gt;@gmail.com@smtp.gmail.com:465/&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">smtp_pass</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail password&gt;&quot;</span>
 </span><span class='line'><span class="nb">set </span><span class="nv">imap_user</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail username&gt;@gmail.com&quot;</span>
 </span><span class='line'><span class="nb">set </span><span class="nv">imap_pass</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail password&gt;&quot;</span>
 </span><span class='line'><span class="nb">set </span><span class="nv">folder</span> <span class="o">=</span> <span class="s2">&quot;imaps://imap.gmail.com:993&quot;</span>
 </span><span class='line'><span class="nb">set </span><span class="nv">spoolfile</span> <span class="o">=</span> <span class="s2">&quot;+INBOX&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">record</span> <span class="o">=</span> <span class="s2">&quot;+[Gmail]/Sent Mail&quot;</span>
 </span><span class='line'><span class="nb">set </span><span class="nv">ssl_force_tls</span> <span class="o">=</span> yes
 </span><span class='line'>
 </span><span class='line'><span class="c"># G to get mail</span>
 </span><span class='line'><span class="nb">bind </span>index G imap-fetch-mail
 </span><span class='line'><span class="nb">set </span><span class="nv">editor</span> <span class="o">=</span> <span class="s2">&quot;vim&quot;</span>
-</span><span class='line'><span class="nb">unset </span>record
-</span><span class='line'><span class="nb">set </span><span class="nv">move</span> <span class="o">=</span> no
 </span><span class='line'><span class="nb">set </span><span class="nv">charset</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span>
 </span></code></pre></td></tr></table></div></figure>
 

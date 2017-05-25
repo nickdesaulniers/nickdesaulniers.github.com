@@ -4,7 +4,7 @@
   <title><![CDATA[Category: ubuntu | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/ubuntu/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-21T00:42:00-07:00</updated>
+  <updated>2017-05-24T18:59:46-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -55,20 +55,17 @@ set from = &ldquo;<gmail username>@gmail.com&rdquo;
 set use_from = yes
 set envelope_from = yes</p>
 
-<p>set smtp_url = &ldquo;smtps://<gmail username>@gmail.com@smtp.gmail.com:465/&rdquo;
-set smtp_pass = &ldquo;<gmail password>&rdquo;
-set imap_user = &ldquo;<gmail username>@gmail.com&rdquo;
+<p>set imap_user = &ldquo;<gmail username>@gmail.com&rdquo;
 set imap_pass = &ldquo;<gmail password>&rdquo;
 set folder = &ldquo;imaps://imap.gmail.com:993&rdquo;
 set spoolfile = &ldquo;+INBOX&rdquo;
+set record = &ldquo;+[Gmail]/Sent Mail&rdquo;
 set ssl_force_tls = yes</p>
 
 <h1>G to get mail</h1>
 
 <p>bind index G imap-fetch-mail
 set editor = &ldquo;vim&rdquo;
-unset record
-set move = no
 set charset = &ldquo;utf-8&rdquo;
 ```</p>
 
