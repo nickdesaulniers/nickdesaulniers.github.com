@@ -4,7 +4,7 @@
   <title><![CDATA[Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-25T21:24:06-07:00</updated>
+  <updated>2017-05-25T22:26:48-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -242,6 +242,35 @@ themselves).  Finally, we send the patch:</p>
 <p>We make sure to add anyone who may have commented on the patch from the mailing
 list to keep them in the loop.  Rinse and repeat 2 through 9 as desired until
 patch is signed off/acked or rejected.</p>
+
+<p>I&rsquo;ve added this handy shell function to my <code>~/.zshrc</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="k">function </span>kpatch <span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>  <span class="nv">patch</span><span class="o">=</span><span class="nv">$1</span>
+</span><span class='line'>  <span class="nb">shift</span>
+</span><span class='line'><span class="nb">  </span>git send-email <span class="se">\</span>
+</span><span class='line'>    --cc-cmd<span class="o">=</span><span class="s2">&quot;./scripts/get_maintainer.pl --norolestats $patch&quot;</span> <span class="se">\</span>
+</span><span class='line'>    <span class="nv">$@</span> <span class="nv">$patch</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That I can then invoke like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>kpatch 0001-Input-mousedev-fix-implicit-conversion-warning.patch --cc anyone@else.com
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>where <code>anyone@else.com</code> is anyone I want to add in additon to what
+<code>get_maintainer</code> sugguests.</p>
 
 <p>Finding out when your patch gets merged is a little tricky; each subsystem
 maintainer seems to do things differently.  My first patch, I didn’t know it

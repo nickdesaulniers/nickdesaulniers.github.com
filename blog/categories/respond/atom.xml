@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Respond | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/respond/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-25T21:24:06-07:00</updated>
+  <updated>2017-05-25T22:26:48-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -213,6 +213,30 @@ $ git send-email \
 <p>We make sure to add anyone who may have commented on the patch from the mailing
 list to keep them in the loop.  Rinse and repeat 2 through 9 as desired until
 patch is signed off/acked or rejected.</p>
+
+<p>I&rsquo;ve added this handy shell function to my <code>~/.zshrc</code>:</p>
+
+<p>```sh
+function kpatch () {
+  patch=$1
+  shift
+  git send-email \</p>
+
+<pre><code>--cc-cmd="./scripts/get_maintainer.pl --norolestats $patch" \
+$@ $patch
+</code></pre>
+
+<p>}
+```</p>
+
+<p>That I can then invoke like:</p>
+
+<p><code>sh
+kpatch 0001-Input-mousedev-fix-implicit-conversion-warning.patch --cc anyone@else.com
+</code></p>
+
+<p>where <code>anyone@else.com</code> is anyone I want to add in additon to what
+<code>get_maintainer</code> sugguests.</p>
 
 <p>Finding out when your patch gets merged is a little tricky; each subsystem
 maintainer seems to do things differently.  My first patch, I didn’t know it
