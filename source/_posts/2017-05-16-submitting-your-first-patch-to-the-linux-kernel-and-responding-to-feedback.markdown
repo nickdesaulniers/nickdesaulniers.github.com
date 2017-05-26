@@ -192,6 +192,27 @@ We make sure to add anyone who may have commented on the patch from the mailing
 list to keep them in the loop.  Rinse and repeat 2 through 9 as desired until
 patch is signed off/acked or rejected.
 
+I've added this handy shell function to my `~/.zshrc`:
+
+```sh
+function kpatch () {
+  patch=$1
+  shift
+  git send-email \
+    --cc-cmd="./scripts/get_maintainer.pl --norolestats $patch" \
+    $@ $patch
+}
+```
+
+That I can then invoke like:
+
+```sh
+kpatch 0001-Input-mousedev-fix-implicit-conversion-warning.patch --cc anyone@else.com
+```
+
+where `anyone@else.com` is anyone I want to add in additon to what
+`get_maintainer` sugguests.
+
 Finding out when your patch gets merged is a little tricky; each subsystem
 maintainer seems to do things differently.  My first patch, I didn’t know it
 went in until a bot at Google notified me.  The maintainers for the second and
