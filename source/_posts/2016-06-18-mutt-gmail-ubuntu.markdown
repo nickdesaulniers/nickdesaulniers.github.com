@@ -54,9 +54,8 @@ set ssl_force_tls = yes
 # G to get mail
 bind index G imap-fetch-mail
 set editor = "vim"
-unset record
-set move = no
 set charset = "utf-8"
+set record = ''
 ```
 
 I’m sure there’s better/more config options.  Feel free to go wild, this is by
