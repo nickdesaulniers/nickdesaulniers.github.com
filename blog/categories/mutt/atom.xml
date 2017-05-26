@@ -4,7 +4,7 @@
   <title><![CDATA[Category: mutt | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/mutt/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-24T18:59:46-07:00</updated>
+  <updated>2017-05-25T21:24:06-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -55,11 +55,12 @@ set from = &ldquo;<gmail username>@gmail.com&rdquo;
 set use_from = yes
 set envelope_from = yes</p>
 
-<p>set imap_user = &ldquo;<gmail username>@gmail.com&rdquo;
+<p>set smtp_url = &ldquo;smtps://<gmail username>@gmail.com@smtp.gmail.com:465/&rdquo;
+set smtp_pass = &ldquo;<gmail password>&rdquo;
+set imap_user = &ldquo;<gmail username>@gmail.com&rdquo;
 set imap_pass = &ldquo;<gmail password>&rdquo;
 set folder = &ldquo;imaps://imap.gmail.com:993&rdquo;
 set spoolfile = &ldquo;+INBOX&rdquo;
-set record = &ldquo;+[Gmail]/Sent Mail&rdquo;
 set ssl_force_tls = yes</p>
 
 <h1>G to get mail</h1>
@@ -67,6 +68,7 @@ set ssl_force_tls = yes</p>
 <p>bind index G imap-fetch-mail
 set editor = &ldquo;vim&rdquo;
 set charset = &ldquo;utf-8&rdquo;
+set record = &lsquo;&rsquo;
 ```</p>
 
 <p>I’m sure there’s better/more config options.  Feel free to go wild, this is by
