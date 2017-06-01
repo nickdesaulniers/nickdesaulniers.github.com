@@ -18,7 +18,7 @@ database, which is a json based file that for each translation unit records
 2. The top level directory of the source.
 3. The exact arguments passed to the compiler.
 
-The exact arguments are necessary because `-D` and `-I` flags are necessary to
+The exact arguments are required because `-D` and `-I` flags are necessary to
 reproduce the exact Abstract Syntax Tree (AST) used to compile your code. Given
 a compilation database, it's trivial to parse and recreate a build.  For the
 kernel's KBuild, it's a lot like encoding the output of `make V=1`.
