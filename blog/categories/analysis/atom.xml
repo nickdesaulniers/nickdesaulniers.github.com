@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: analysis | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/analysis/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2017-05-31T21:25:26-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Running Clang-Tidy on the Linux Kernel]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/"/>
+    <updated>2017-05-31T20:25:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel</id>
+    <content type="html"><![CDATA[<p><a href="http://clang.llvm.org/extra/clang-tidy/">Clang-Tidy</a> is a linter from the LLVM
+ecosystem.  I wanted to try to run it on the Linux kernel to see what kind of
+bugs it would find.  The false positive rate seems pretty high (a persistent
+bane to static analysis), but some patching in both the tooling and the source
+can likely help bring this rate down.</p>
+
+<p>The most straightforward way to invoke Clang-Tidy is with a compilation
+database, which is a json based file that for each translation unit records</p>
+
+<ol>
+<li>The source file of the translation unit.</li>
+<li>The top level directory of the source.</li>
+<li>The exact arguments passed to the compiler.</li>
+</ol>
+
+
+<p>The exact arguments are necessary because <code>-D</code> and <code>-I</code> flags are necessary to
+reproduce the exact Abstract Syntax Tree (AST) used to compile your code. Given
+a compilation database, it&rsquo;s trivial to parse and recreate a build.  For the
+kernel&rsquo;s KBuild, it&rsquo;s a lot like encoding the output of <code>make V=1</code>.</p>
+
+<p>In order to generate a compilation database, we can use an awesome tool called
+<a href="https://github.com/rizsotto/Bear">BEAR</a>. BEAR will
+<a href="https://github.com/rizsotto/Bear/blob/6b07f5044f30a3070d1dc39801bcdd94395d673e/libear/ear.c#L21">hook</a>
+calls to
+<a href="https://linux.die.net/man/3/exec">exec</a>
+and family, then write out the compilation database (compile_commands.json).</p>
+
+<p>With BEAR installed, we can invoke the kernel&rsquo;s build with <code>bear make -j</code>. When
+we&rsquo;re done:</p>
+
+<p>```sh
+➜  linux git:(nick) ✗ du -h compile_commands.json
+11M compile_commands.json
+➜  linux git:(nick) ✗ wc -l compile_commands.json
+330296 compile_commands.json
+➜  linux git:(nick) ✗ head -n 26 compile_commands.json
+[</p>
+
+<pre><code>{
+    "arguments": [
+        "cc",
+        "-c",
+        "-Wp,-MD,arch/x86/boot/tools/.build.d",
+        "-Wall",
+        "-Wmissing-prototypes",
+        "-Wstrict-prototypes",
+        "-O2",
+        "-fomit-frame-pointer",
+        "-std=gnu89",
+        "-Wno-unused-value",
+        "-Wno-unused-parameter",
+        "-Wno-missing-field-initializers",
+        "-I./tools/include",
+        "-include",
+        "include/generated/autoconf.h",
+        "-D__EXPORTED_HEADERS__",
+        "-o",
+        "arch/x86/boot/tools/build",
+        "arch/x86/boot/tools/build.c"
+    ],
+    "directory": "/home/nick/linux",
+    "file": "arch/x86/boot/tools/build.c"
+},
+</code></pre>
+
+<p>```</p>
+
+<p>Now with Clang-Tidy (probably worthwhile to build from source, but it&rsquo;s also
+available off <code>apt</code>), we want to grab
+<a href="https://github.com/llvm-mirror/clang-tools-extra/blob/master/clang-tidy/tool/run-clang-tidy.py">this helper script, run-clang-tidy.py</a>
+to help analyze all this code.</p>
+
+<p><code>sh
+curl -O https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py
+</code></p>
+
+<p>Then we can run it from the same directory as compile_commands.json:</p>
+
+<p>```sh
+python run-clang-tidy.py \
+  -clang-tidy-binary /usr/bin/clang-tidy-4.0 \</p>
+
+<blockquote><p>clang_tidy_output.txt
+```</p></blockquote>
+
+<p>This took about 1hr12min on my box. Let&rsquo;s see what the damage is:</p>
+
+<p>```sh
+➜  linux git:(nick) ✗ cat clang_tidy_output.txt \
+  | grep warning: | grep -oE &lsquo;[^ ]+$&rsquo; | sort | uniq -c</p>
+
+<pre><code> 76 [clang-analyzer-core.CallAndMessage]
+ 15 [clang-analyzer-core.DivideZero]
+  1 [clang-analyzer-core.NonNullParamChecker]
+316 [clang-analyzer-core.NullDereference]
+ 90 [clang-analyzer-core.UndefinedBinaryOperatorResult]
+  1 [clang-analyzer-core.uninitialized.ArraySubscript]
+</code></pre>
+
+<p>   1410 [clang-analyzer-core.uninitialized.Assign]</p>
+
+<pre><code> 10 [clang-analyzer-core.uninitialized.Branch]
+  5 [clang-analyzer-core.uninitialized.UndefReturn]
+ 11 [clang-analyzer-cplusplus.NewDeleteLeaks]
+694 [clang-analyzer-deadcode.DeadStores]
+342 [clang-analyzer-security.insecureAPI.strcpy]
+  2 [clang-analyzer-unix.API]
+ 11 [clang-analyzer-unix.Malloc]
+  4 [clang-diagnostic-address-of-packed-member]
+  2 [clang-diagnostic-duplicate-decl-specifier]
+ 98 [clang-diagnostic-implicit-int]
+</code></pre>
+
+<p>```</p>
+
+<p>Looking through the output, there&rsquo;s seems to be almost nothing but false
+positives, but who knows, maybe there&rsquo;s an actual bug or two in there.  Likely
+possible patches to LLVM, its checkers, or the Linux kernel could lower the
+false positive ratio.</p>
+
+<p>If you&rsquo;re interested in seeing the kinds of warnings/outputs, I&rsquo;ve uploaded my
+results run on a 4.12-rc3 based kernel that may or may not have been compiled
+with Clang to
+<a href="https://github.com/nickdesaulniers/linux/blob/clang_tidy/clang_tidy_output.txt.v2">my clang_tidy branch of the kernel on GitHub</a>.
+As in my sorted output, I find it handy to <code>grep</code> for <code>warning:</code>. Maybe you can
+find yourself a good first bug to
+<a href="//blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/">contribute a fix to the kernel</a>?</p>
+
+<p>There&rsquo;s likely also
+<a href="http://clang.llvm.org/extra/clang-tidy/checks/list.html">some checks that make sense to disable or enable</a>.
+Clang-Tidy also allows you to
+<a href="http://clang.llvm.org/extra/clang-tidy/#writing-a-clang-tidy-check">write and use your own checkers</a>.
+Who knows, someone may just end up writing static
+analyses tailored to the Linux kernel.</p>
+]]></content>
+  </entry>
+  
+</feed>
