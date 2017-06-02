@@ -120,7 +120,7 @@ with Clang to
 [my clang_tidy branch of the kernel on GitHub](https://github.com/nickdesaulniers/linux/blob/clang_tidy/clang_tidy_output.txt.v2).
 As in my sorted output, I find it handy to `grep` for `warning:`. Maybe you can
 find yourself a good first bug to
-[contribute a fix to the kernel](//blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/)?
+[contribute a fix to the kernel](blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/)?
 
 There's likely also
 [some checks that make sense to disable or enable](http://clang.llvm.org/extra/clang-tidy/checks/list.html).
