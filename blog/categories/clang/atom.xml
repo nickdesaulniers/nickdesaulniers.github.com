@@ -4,7 +4,7 @@
   <title><![CDATA[Category: clang | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/clang/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-05-31T21:59:49-07:00</updated>
+  <updated>2017-06-01T18:58:13-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -145,7 +145,7 @@ with Clang to
 <a href="https://github.com/nickdesaulniers/linux/blob/clang_tidy/clang_tidy_output.txt.v2">my clang_tidy branch of the kernel on GitHub</a>.
 As in my sorted output, I find it handy to <code>grep</code> for <code>warning:</code>. Maybe you can
 find yourself a good first bug to
-<a href="//blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/">contribute a fix to the kernel</a>?</p>
+<a href="blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/">contribute a fix to the kernel</a>?</p>
 
 <p>There&rsquo;s likely also
 <a href="http://clang.llvm.org/extra/clang-tidy/checks/list.html">some checks that make sense to disable or enable</a>.
