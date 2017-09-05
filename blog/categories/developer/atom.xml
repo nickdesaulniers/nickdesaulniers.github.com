@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Developer | Nick Desaulniers]]></title>
+  <title><![CDATA[Category: developer | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/developer/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-06-01T18:58:13-07:00</updated>
+  <updated>2017-09-05T00:34:49-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -14,106 +14,49 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Write a Test Case]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/"/>
-    <updated>2014-03-01T13:22:00-08:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case</id>
-    <content type="html"><![CDATA[<p>Your application just broke, oh no!  It couldn&rsquo;t have been <em>your</em> code, right?</p>
+    <title type="html"><![CDATA[GCC vs LLVM Q3 2017: Active Developer Counts]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/"/>
+    <updated>2017-09-05T00:20:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts</id>
+    <content type="html"><![CDATA[<p>A blog post from a few years ago that really stuck with me was Martin Olsson’s
+<a href="https://mo.github.io/2015/11/04/browser-engines-active-developers-and-commit-rates.html">Browser Engines 2015: Commit Rates and Active Developer Counts</a>,
+where he shows information about the number of authors and commits to popular
+web browsers.  The graphs and analysis had interesting takeaways like showing
+the obvious split in blink and webkit, and relative number of contributors of
+the projects.  Martin had data comparing gcc to llvm from Q4 2015, but I wanted
+to see what the data looked like now in Q3 2017 and wanted to share my
+findings; simply rerunning the numbers.  Luckily Martin
+<a href="https://github.com/mo/git-source-metrics">open sourced</a>
+the scripts he used for measurements so they could be rerun.</p>
 
-<p>I&rsquo;ve always had trouble spotting mistakes in my own work such as spelling,
-grammar, mathematical, or even in programming.  With spelling or grammar,
-office applications quickly pick up on my mistakes and underline them for me,
-but most of my mistakes come from my own hubris.  I&rsquo;m confident in what I do,
-and that gets me in trouble when I make little mistakes.  I&rsquo;m confident that I
-solved this problem correctly and didn&rsquo;t make any small mistakes.  As a kid
-competing in timed math competitions, I quickly learned that reviewing your
-work cost time, so it was important to recognize where common mistakes would
-crop up on certain problems and spend slightly extra time the first time
-through those problem areas, rather than double checking the work in its
-entirety, unless I had the time to spare.  Measure twice, cut once.</p>
+<p>Commit count and active authors in the previous 60 days is a rough estimate for
+project health; the scripts don’t/can’t account for unique authors (same author
+using different git commit info) and commit frequency is meaningless for
+comparing developers that commit early and commit often, but let’s take a look.
+Active contributors over 60 days cuts out folks who do commit to either code
+bases, just not as often.  Lies, damn lies, and statistics, right? Or torture
+the data enough, and it will confess anything&hellip;</p>
 
-<p>The same is true for programming.  Writing test cases is time consuming, and if
-time is money, then it could be said that writing tests is costly.  There&rsquo;s
-probably a logical fallacy in there.  In general, we hope that the time-cost of
-writing test
-cases will be recuperated by the time-cost of bugs caught, though it&rsquo;s not easy
-to measure the time-cost of averted bugs.  I&rsquo;m all for test cases.  I think
-that
-<a href="http://sqlite.org/testing.html#coverage">SQLite having 100% branch coverage</a>
-is incredible, truly an lofty
-achievement.  People get bogged down in arguments over type systems where
-testing is more of a must for languages without a compiler to catch certain
-bugs.</p>
+<p>Note that LLVM is split into a few repositories (llvm the common base, clang
+the C/C++ frontend, libc++ the C++ runtime, compiler-rt the
+sanitizers/built-ins/profiler lib, lld the linker, clang-tools-extra the
+utility belt, lldb the debugger (there are more, these are the most active LLVM
+projects)).  Later, I refer to LLVM as the grouping of these repos.</p>
 
-<p>Ok, so going back to your code, something is wrong.  But we&rsquo;re confident it
-couldn&rsquo;t be <em>our</em> code.  Maybe it&rsquo;s one of those open source modules I&rsquo;m using
-not being tested enough, or that pesky browser implementation, or this damned
-OS.  It couldn&rsquo;t be <em>my</em> code.</p>
+<p>There’s a lot of caveats with this data.  I suspect that the separate LLVM
+repo’s have a lot of overlap and have fewer active contributors when looked at
+in aggregate.  That is to say you can’t simply add them else you’d be double
+counting a bunch.  Also, the comparison is not quite fair since the overlap in
+front-end-language and back-end-target support in these two massive projects
+does not overlap in a lot of places.</p>
 
-<p><strong>Prove it.</strong></p>
+<p><img class="center" src="/images/gcc_clang_authors.jpg"></p>
 
-<p>I see bug reports all the time where people say your X breaks my Y, but when
-asked to provide Y they can&rsquo;t for whatever software licensing reason.  The bug
-resolver (person who is enabled to fix said bug in X), doesn&rsquo;t know at this
-point whether the bug reporter (developer of Y) did their homework; the bug is
-unconfirmed.  Both reporter and resolver are suspicious of each others' code.
-<em>I</em> don&rsquo;t make silly mistakes, right?</p>
-
-<p><img class="center" src="/images/dude.jpg"></p>
-
-<p>So it&rsquo;s up to the resolver to work out a test case.  Being able to reproduce
-said issue is the first goal to resolving a bug.  Just like scientific
-statements aren&rsquo;t taken as fact until reproducible, so too will this bug be
-merely conjecture at this point.  It kills me when the bug resolver closes an
-issue because it <em>works for me</em>.  Nothing boils my blood more; I took the time
-to try and help you and wasn&rsquo;t rewarded on some level so I feel that I wasted
-my time.  But from where you stand the resolver is not correct, so again I
-say&hellip;</p>
-
-<p><strong>Prove it.</strong></p>
-
-<p>I think that it&rsquo;s super hard to get meaningful feedback from users.  It&rsquo;s hard
-for them to express why they&rsquo;re frustrated.  We as software developers don&rsquo;t
-always point them in the right direction.  As users can have wide ranges of
-technical capabilities, sometimes we as more technical oriented people have to
-do a little hand holding.  For instance, from Firefox, how many hops does it
-take to get from the application&rsquo;s menus to their open bug tracker,
-<a href="https://bugzilla.mozilla.org/">bugzilla</a>?
-Where can I report an issue?  How do I report an issue?
-Do I annoy the hell out of the user until they rate my app?
-Users might be complaining on Twitter, but that&rsquo;s sure as hell not where
-devlopers are looking for bug reports.
-Enabling the user to provide feedback could be
-viewed as a double edged sword.  Can I make meaningful conclusions from the
-torrent of feedback I&rsquo;m now getting?  Did I structure my form in such a way to
-ask the right questions?  Should we make our issue tracker public?  Should we
-make security issues that could harm users, if more widely understood, public?
-Public to fellow employees, even?  What did you expect to happen, and is that
-what actually happened?  This rabbit hole goes deep.</p>
-
-<p>The other day, I was writing a patch for a large application that was developed
-by someone else and that I still don&rsquo;t fully comprehend in its entirety. My
-patch should have worked, why wasn&rsquo;t it working?  Probably something in this
-person&rsquo;s code right?  Sure enough, I wrote a simple test case to eliminate
-everything but the control variables, and it turns out <em>I was wrong</em>.</p>
-
-<p>It&rsquo;s hard to get users to
-do more than the bare minimum to report an issue, even at all, but to prevent
-the issue from being ignored or closed because it works for the developer in
-their environment, take the time to report it correctly the first time.
-As someone who understands technology more than the average person, take the
-time to write a cut down test case that
-exposes the issue. The developer who looks at the issue will be grateful;
-instead of wasting their time with something that may not even be a bug, you&rsquo;ve
-just done something that would have to be done anyways if it is indeed a bug.
-You might find that a reduced code size shows that it&rsquo;s in
-fact not an issue with someone else&rsquo;s code, but in fact a simple mistake you
-made somewhere in your monolithic application.  Or it might be exactly the
-evidence you need to get someone&rsquo;s attention to fix said problem.  That test
-case might even be included in the latest test suite.  Either way, you have now
-proved beyond a reasonable doubt that the issue does not lie in your fault.</p>
-
-<p><strong>Write a Test Case for Your Next Bug Report or Issue.</strong></p>
+<p>LLVM’s 60 day active contributors are ~3x-5x times GCC’s and growing, while
+GCC’s 100-count hasn’t changed much since ‘04.  It’s safe to say GCC is not
+dying; it’s going steady and chugging away as it has been, but it seems LLVM
+has been very strong in attracting active contributors.  Either way, I’m
+thankful to have not one, but two high quality open source C/C++ compilers.</p>
 ]]></content>
   </entry>
   

@@ -133,8 +133,14 @@
         <lastmod>2017-06-01T18:55:31-07:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/
+        </loc>
+        <lastmod>2017-09-05T00:32:58-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://nickdesaulniers.github.io/blog/archives/</loc>
-        <lastmod>2017-06-01T18:55:31-07:00</lastmod>
+        <lastmod>2017-09-05T00:32:58-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/publications/</loc>
@@ -150,7 +156,7 @@
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/</loc>
-        <lastmod>2017-06-01T18:55:31-07:00</lastmod>
+        <lastmod>2017-09-05T00:32:58-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/about/</loc>
