@@ -7,10 +7,18 @@ footer: true
 ---
 ## 2017
 
+### Compiling Android Userspace and Linux Kernel with LLVM
+[2017 US LLVM Developers' Meeting](https://llvm.org/devmtg/2017-10/) - San Jose, CA - October 18-19
+
+[abstract](https://llvm.org/devmtg/2017-10/#talk21)
+
 ### Clang Built Kernels
 [Linux Plumbers Conference](https://www.linuxplumbersconf.org/2017/ocw/proposals/4799) - Los Angeles, CA - September 13-15
 
 [slides](https://www.linuxplumbersconf.org/2017/ocw//system/presentations/4799/original/LPC%202017-%20Clang%20built%20kernels.pdf)
+
+### Kernel + Clang
+Android Boot Camp - Mountain View, CA - February 2
 
 ##2016
 
