@@ -119,7 +119,7 @@ and disk performance. Also, it's not the most common workflow to do clean
 builds, but we do this for Linux kernel builds for Android/Pixel at work, and
 this helps me significantly for local development.
 
-Now, if you really need that date string in there, you *theoritically* could
+Now, if you really need that date string in there, you *theoretically* could
 put some garbage value in there (for the cache) long enough to save enough
 space for a date string, then patch your vmlinux binary after the fact.  I
 *don't* recommend that, but I would imagine that might look something like:
