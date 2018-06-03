@@ -4,7 +4,7 @@
   <title><![CDATA[Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-11-04T15:09:18-07:00</updated>
+  <updated>2018-06-02T18:11:54-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -12,6 +12,207 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Speeding up Linux kernel builds with ccache]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/"/>
+    <updated>2018-06-02T16:39:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache</id>
+    <content type="html"><![CDATA[<p><a href="https://ccache.samba.org/">ccache</a>, the compiler cache, is a fantastic way to
+speed up build times for C and C++ code that
+<a href="https://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/">I previously recommended</a>.
+Recently, I was playing around with trying to get it to speed up my Linux
+kernel builds, but wasn&rsquo;t seeing any benefit. Usually when this happens with
+ccache, there&rsquo;s something non-deterministic about the builds that prevents
+cache hits.</p>
+
+<p>Turns out
+<a href="https://lists.samba.org/archive/ccache/2014q1/001172.html">someone asked this exact question on the ccache mailing list back in 2014</a>,
+and a teammate from my Android days supposed a timestamp was the culprit. That,
+and
+<a href="https://lwn.net/Articles/437864/">this LKML post from the KBUILD maintainer in 2011 about determinism</a>
+helped me find
+<a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=87c94bfb8ad354fb43d2caf870d7ca0b3f98dab3">commit 87c94bfb8ad35 (&ldquo;kbuild: override build timestamp &amp; version&rdquo;)</a> that introduced manually overriding part of the version string that
+contains the build timestamp that can be seen from:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat /proc/version
+</span><span class='line'>Linux version 4.15.0-13-generic <span class="o">(</span>buildd@lgw01-amd64-028<span class="o">)</span>
+</span><span class='line'><span class="o">(</span>gcc version 5.4.0 20160609 <span class="o">(</span>Ubuntu 5.4.0-6ubuntu1~16.04.9<span class="o">))</span>
+</span><span class='line'><span class="c">#14~16.04.1-Ubuntu SMP</span>
+</span><span class='line'>Sat Mar 17 03:04:59 UTC 2018
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With ccache, we can check the cache hit/miss stats with <code>-s</code>, clear the cache
+with <code>-C</code>, and clear the stats with <code>-z</code>. We can tell ccache explicitly which
+compiler to fall back to as its first argument (not strictly necessary). For
+KBUILD, we can swap our compiler by using <code>CC=</code> arg.</p>
+
+<p>Let&rsquo;s see what happens to
+our build time for subsequent builds with a hot cache:</p>
+
+<h3>No Cache</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>make clean
+</span><span class='line'><span class="nv">$ </span><span class="nb">time </span>make -j4
+</span><span class='line'>...
+</span><span class='line'>make -j4  2008.93s user 231.69s system 346% cpu 10:47.07 total
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Cold Cache</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ccache -Cz
+</span><span class='line'>Cleared cache
+</span><span class='line'>Statistics cleared
+</span><span class='line'><span class="nv">$ </span>ccache -s
+</span><span class='line'>cache directory                     /home/nick/.ccache
+</span><span class='line'>primary config                      /home/nick/.ccache/ccache.conf
+</span><span class='line'>secondary config      <span class="o">(</span><span class="nb">readonly</span><span class="o">)</span>    /etc/ccache.conf
+</span><span class='line'>cache hit <span class="o">(</span>direct<span class="o">)</span>                     0
+</span><span class='line'>cache hit <span class="o">(</span>preprocessed<span class="o">)</span>               0
+</span><span class='line'>cache miss                             0
+</span><span class='line'>cache hit rate                      0.00 %
+</span><span class='line'>cleanups performed                     0
+</span><span class='line'>files in cache                         0
+</span><span class='line'>cache size                           0.0 kB
+</span><span class='line'>max cache size                       5.0 GB
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>make clean
+</span><span class='line'><span class="nv">$ </span><span class="nb">time </span><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4
+</span><span class='line'>...
+</span><span class='line'><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4  2426.79s user 312.08s system 372% cpu 12:15.22 total
+</span><span class='line'><span class="nv">$ </span>ccache -s
+</span><span class='line'>cache directory                     /home/nick/.ccache
+</span><span class='line'>primary config                      /home/nick/.ccache/ccache.conf
+</span><span class='line'>secondary config      <span class="o">(</span><span class="nb">readonly</span><span class="o">)</span>    /etc/ccache.conf
+</span><span class='line'>cache hit <span class="o">(</span>direct<span class="o">)</span>                     0
+</span><span class='line'>cache hit <span class="o">(</span>preprocessed<span class="o">)</span>               0
+</span><span class='line'>cache miss                          3242
+</span><span class='line'>called <span class="k">for </span>link                        6
+</span><span class='line'>called <span class="k">for </span>preprocessing             538
+</span><span class='line'>unsupported <span class="nb">source </span>language           66
+</span><span class='line'>no input file                        108
+</span><span class='line'>files in cache                      9720
+</span><span class='line'>cache size                         432.6 MB
+</span><span class='line'>max cache size                       5.0 GB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Hot Cache</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ccache -z
+</span><span class='line'>Statistics cleared
+</span><span class='line'><span class="nv">$ </span>make clean
+</span><span class='line'><span class="nv">$ </span><span class="nb">time </span><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4
+</span><span class='line'>...
+</span><span class='line'><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4  151.85s user 132.98s system 288% cpu 1:38.90 total
+</span><span class='line'><span class="nv">$ </span>ccache -s
+</span><span class='line'>cache directory                     /home/nick/.ccache
+</span><span class='line'>primary config                      /home/nick/.ccache/ccache.conf
+</span><span class='line'>secondary config      <span class="o">(</span><span class="nb">readonly</span><span class="o">)</span>    /etc/ccache.conf
+</span><span class='line'>cache hit <span class="o">(</span>direct<span class="o">)</span>                  3232
+</span><span class='line'>cache hit <span class="o">(</span>preprocessed<span class="o">)</span>               7
+</span><span class='line'>cache miss                             3
+</span><span class='line'>called <span class="k">for </span>link                        6
+</span><span class='line'>called <span class="k">for </span>preprocessing             538
+</span><span class='line'>unsupported <span class="nb">source </span>language           66
+</span><span class='line'>no input file                        108
+</span><span class='line'>files in cache                      9734
+</span><span class='line'>cache size                         432.8 MB
+</span><span class='line'>max cache size                       5.0 GB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The initial cold cache build will be slower than not using ccache at all, but
+it&rsquo;s a one time cost that&rsquo;s not significant relative to the savings.  No
+caching took 647.07s, initial cold cache build took 735.22s (13.62% slower),
+and subsequent hot cache builds took 98.9s (6.54x faster). YMMV based on CPU
+and disk performance. Also, it&rsquo;s not the most common workflow to do clean
+builds, but we do this for Linux kernel builds for Android/Pixel at work, and
+this helps me significantly for local development.</p>
+
+<p>Now, if you really need that date string in there, you <em>theoritically</em> could
+put some garbage value in there (for the cache) long enough to save enough
+space for a date string, then patch your vmlinux binary after the fact.  I
+<em>don&rsquo;t</em> recommend that, but I would imagine that might look something like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;y%0.s&quot;</span> <span class="k">$(</span>seq 1 <span class="k">$(</span>date | wc -c<span class="k">)))</span>
+</span><span class='line'><span class="nv">$ </span>make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> vmlinux
+</span><span class='line'><span class="nv">$ </span>sed -i <span class="s2">&quot;s/$(KBUILD_BUILD_TIMESTAMP)/$(date)/g&quot;</span> vmlinux
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Deterministic builds make build caching easier, but I&rsquo;m not sure that build
+timestamp strings and build determinism are reconcileable.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[GCC vs LLVM Q3 2017: Active Developer Counts]]></title>
@@ -6624,302 +6825,6 @@ starting point and ready to rock and roll.  If you&rsquo;d like to help out, for
 node module?  This
 tutorial was definitely not meant to be an authoritarian guide.  I look forward
 to your comments on your experiences!</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Designated initialization with compound literals in C]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/"/>
-    <updated>2013-07-25T16:48:00-07:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c</id>
-    <content type="html"><![CDATA[<p>Just a quick post on something I just discovered and found neat (I always find
-obscure C syntax interesting).  I was trying to figure out how to use a C
-designated initializer, where a member was a pointer to another designated
-initializer.  At this point, you need a compound literal.  Just a quick
-background on C initialization:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// verbosely create an array with a known size</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">3</span><span class="p">];</span>
-</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-</span><span class='line'><span class="c1">// =&gt; [1, 2, 3]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// concisely create an array with a known size</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// creates an array with unspecified values initialized to 0</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3, 0]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// truncates declaration</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// based on number of initializers</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Let&rsquo;s look at how we might have initialized a struct in C89.  In C89, you are
-required to declare local variables at the top of a block.  A previous
-initialization of a point struct might have looked like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="p">{</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="k">struct</span> <span class="n">point</span> <span class="n">a</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">a</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">a</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Just as we can define array literals in C using the initializer list syntax, we
-can use the same concise syntax for initializing structs!</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// point a is located at (2, 3)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Well, this can be bad.  Where would point a be located if say a fellow team
-mate came along and modified the definition of the point struct to:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="p">{</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">;</span> <span class="c1">// used to be `int x, y;`</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Suddenly point a points to (3, 2), not (2, 3).  It&rsquo;s better if you use
-designated initializers to declare the values for members of your struct.  It&rsquo;s
-up to the compiler to decide on the order of initialization, but it wont mess
-up where the data is intended to go.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// point b is located at (2, 3)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So now we have designated initializers, cool.  What about if we want to use the
-same syntax to reassign point b?</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span>
-</span><span class='line'><span class="c1">//    ^</span>
-</span><span class='line'><span class="c1">// error: expected expression</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>While you are being explicit about the shape of the struct that you are trying
-to assign to b, the compiler cannot figure out that you&rsquo;re trying to assign a
-point struct to another point struct.  A C cast would probably help here and
-that&rsquo;s what the concept of compound literals are.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// works!</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Notice: I just combined a compound literal with a designated initializer.  A
-compound literal on its own would look like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// works!</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>To recap we can define points like so:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span><span class="p">;</span>
-</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// C89 (too verbose)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">};</span> <span class="c1">// initializer list (struct member order specific)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">c</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// designated initializer (non struct member order specific)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">8</span> <span class="p">};</span> <span class="c1">// compound literal (cast + designated initialization)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>My favorite part of compound literals is that you can define values inline of
-an argument list.  Say you have a function prototype like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">distance</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">,</span> <span class="k">struct</span> <span class="n">point</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// instead of calling it like this</span>
-</span><span class='line'><span class="c1">// (creating temp objects just to pass in)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">};</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span>
-</span><span class='line'><span class="n">distance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// we can use compound literals</span>
-</span><span class='line'><span class="n">distance</span><span class="p">((</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">},</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">});</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So compound literals help with reassignment of structs, and not storing
-temporary variables just to pass as function arguments.  What happens though
-when one of your members is a pointer?  C strings are easy because they already
-have a literal value:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="p">{</span>
-</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">value</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">struct</span> <span class="n">node</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// just using designated initialization</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">hello</span> <span class="n">world</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>But what happens if we want to initialize node.next?  We could do:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">foo</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Again, we have to define b before assigning it to a.next.  That&rsquo;s worthwhile if
-you need to reference b later in that scope, but sometimes you don&rsquo;t (just like
-how compound literals can help with function arguments)!  But that&rsquo;s where I
-was stumped.  How do you nest designated initializers when the a member is a
-pointer to another designated initializer?  A first naïve attempt was:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">c</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">bar</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">baz</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'><span class="c1">//  ^</span>
-</span><span class='line'><span class="c1">// error: designator in initializer for scalar type &#39;struct node *&#39;</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>WTF?  Well, if you go back to the example with nodes a and b, we don&rsquo;t assign
-the value of b to a.next, we assign it a pointer to b.  So how can we use
-designated initializers to define, say, the first two nodes of a linked list?
-Compound literals.  Remember, a compound literal is essentially a designated
-initialization + cast.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">d</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">qux</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="o">&amp;</span><span class="p">((</span><span class="k">struct</span> <span class="n">node</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">fred</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
-</span><span class='line'>  <span class="p">})</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And that works, but why?  d.next is assigned an address of a
-compound literal.  Granted, you probably don&rsquo;t want to be declaring your entire
-linked list like this, as nesting gets out of control fast.  I really like this
-style because it reminds me of JavaScript&rsquo;s syntax for declaring object
-literals.  It would look nicer if all of your nested structs were values and
-not references though; then you could just use designated initializers and
-wouldn&rsquo;t need compound literals or address of operators.</p>
-
-<p>What&rsquo;s your favorite or most interesting part of C syntax?</p>
-
-<p>Acknowledgements:</p>
-
-<ul>
-<li><a href="http://louisstowasser.com/">Louis Stowasser</a></li>
-<li><a href="http://fredericiana.com/">Frederic Wenzel</a></li>
-<li><a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a></li>
-</ul>
-
 ]]></content>
   </entry>
   

@@ -9,9 +9,8 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="If you&#8217;ve done nothing wrong, then you&#8217;ve got nothing to hide. Wrong. Nothing ever justifies giving up your
-human rights
-, especially to &hellip;">
+  <meta name="description" content="Just a quick post on something I just discovered and found neat (I always find
+obscure C syntax interesting). I was trying to figure out how to use a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -82,6 +81,331 @@ human rights
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/25/designated-initialization-with-pointers-in-c/">Designated Initialization With Compound Literals in C</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-25T16:48:00-07:00" pubdate data-updated="true">Jul 25<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/07/25/designated-initialization-with-pointers-in-c/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Just a quick post on something I just discovered and found neat (I always find
+obscure C syntax interesting).  I was trying to figure out how to use a C
+designated initializer, where a member was a pointer to another designated
+initializer.  At this point, you need a compound literal.  Just a quick
+background on C initialization:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// verbosely create an array with a known size</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+</span><span class='line'><span class="c1">// =&gt; [1, 2, 3]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// concisely create an array with a known size</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// creates an array with unspecified values initialized to 0</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3, 0]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// truncates declaration</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1]</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// based on number of initializers</span>
+</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s look at how we might have initialized a struct in C89.  In C89, you are
+required to declare local variables at the top of a block.  A previous
+initialization of a point struct might have looked like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="k">struct</span> <span class="n">point</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">a</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">a</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Just as we can define array literals in C using the initializer list syntax, we
+can use the same concise syntax for initializing structs!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// point a is located at (2, 3)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Well, this can be bad.  Where would point a be located if say a fellow team
+mate came along and modified the definition of the point struct to:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">;</span> <span class="c1">// used to be `int x, y;`</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Suddenly point a points to (3, 2), not (2, 3).  It&rsquo;s better if you use
+designated initializers to declare the values for members of your struct.  It&rsquo;s
+up to the compiler to decide on the order of initialization, but it wont mess
+up where the data is intended to go.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// point b is located at (2, 3)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So now we have designated initializers, cool.  What about if we want to use the
+same syntax to reassign point b?</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span>
+</span><span class='line'><span class="c1">//    ^</span>
+</span><span class='line'><span class="c1">// error: expected expression</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>While you are being explicit about the shape of the struct that you are trying
+to assign to b, the compiler cannot figure out that you&rsquo;re trying to assign a
+point struct to another point struct.  A C cast would probably help here and
+that&rsquo;s what the concept of compound literals are.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// works!</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Notice: I just combined a compound literal with a designated initializer.  A
+compound literal on its own would look like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// works!</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To recap we can define points like so:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span><span class="p">;</span>
+</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// C89 (too verbose)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">};</span> <span class="c1">// initializer list (struct member order specific)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">c</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// designated initializer (non struct member order specific)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">8</span> <span class="p">};</span> <span class="c1">// compound literal (cast + designated initialization)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>My favorite part of compound literals is that you can define values inline of
+an argument list.  Say you have a function prototype like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">distance</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">,</span> <span class="k">struct</span> <span class="n">point</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// instead of calling it like this</span>
+</span><span class='line'><span class="c1">// (creating temp objects just to pass in)</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">};</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span>
+</span><span class='line'><span class="n">distance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// we can use compound literals</span>
+</span><span class='line'><span class="n">distance</span><span class="p">((</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">},</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So compound literals help with reassignment of structs, and not storing
+temporary variables just to pass as function arguments.  What happens though
+when one of your members is a pointer?  C strings are easy because they already
+have a literal value:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">value</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">struct</span> <span class="n">node</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// just using designated initialization</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">hello</span> <span class="n">world</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But what happens if we want to initialize node.next?  We could do:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">foo</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Again, we have to define b before assigning it to a.next.  That&rsquo;s worthwhile if
+you need to reference b later in that scope, but sometimes you don&rsquo;t (just like
+how compound literals can help with function arguments)!  But that&rsquo;s where I
+was stumped.  How do you nest designated initializers when the a member is a
+pointer to another designated initializer?  A first naïve attempt was:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">c</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">bar</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">baz</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'><span class="c1">//  ^</span>
+</span><span class='line'><span class="c1">// error: designator in initializer for scalar type &#39;struct node *&#39;</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>WTF?  Well, if you go back to the example with nodes a and b, we don&rsquo;t assign
+the value of b to a.next, we assign it a pointer to b.  So how can we use
+designated initializers to define, say, the first two nodes of a linked list?
+Compound literals.  Remember, a compound literal is essentially a designated
+initialization + cast.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">d</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">qux</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="o">&amp;</span><span class="p">((</span><span class="k">struct</span> <span class="n">node</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">fred</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>    <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
+</span><span class='line'>  <span class="p">})</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And that works, but why?  d.next is assigned an address of a
+compound literal.  Granted, you probably don&rsquo;t want to be declaring your entire
+linked list like this, as nesting gets out of control fast.  I really like this
+style because it reminds me of JavaScript&rsquo;s syntax for declaring object
+literals.  It would look nicer if all of your nested structs were values and
+not references though; then you could just use designated initializers and
+wouldn&rsquo;t need compound literals or address of operators.</p>
+
+<p>What&rsquo;s your favorite or most interesting part of C syntax?</p>
+
+<p>Acknowledgements:</p>
+
+<ul>
+<li><a href="http://louisstowasser.com/">Louis Stowasser</a></li>
+<li><a href="http://fredericiana.com/">Frederic Wenzel</a></li>
+<li><a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2314,6 +2638,10 @@ me of Ruby&rsquo;s block lambda syntax, I&rsquo;ll take it!</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/">Speeding Up Linux Kernel Builds With Ccache</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/">GCC vs LLVM Q3 2017: Active Developer Counts</a>
       </li>
     
@@ -2327,10 +2655,6 @@ me of Ruby&rsquo;s block lambda syntax, I&rsquo;ll take it!</p>
     
       <li class="post">
         <a href="/blog/2016/11/20/static-and-dynamic-libraries/">Static and Dynamic Libraries</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>
       </li>
     
   </ul>
@@ -2375,7 +2699,7 @@ me of Ruby&rsquo;s block lambda syntax, I&rsquo;ll take it!</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2017 - Nick Desaulniers -
+  Copyright &copy; 2018 - Nick Desaulniers -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

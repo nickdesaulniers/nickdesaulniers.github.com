@@ -9,9 +9,10 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="A blog post from a few years ago that really stuck with me was Martin Olsson’s
-Browser Engines 2015: Commit Rates and Active Developer Counts,
-where &hellip;">
+  <meta name="description" content="ccache, the compiler cache, is a fantastic way to
+speed up build times for C and C++ code that
+I previously recommended.
+Recently, I was playing &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -82,6 +83,236 @@ where &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/">Speeding Up Linux Kernel Builds With Ccache</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-06-02T16:39:00-07:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2018</time>
+        
+         | <a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://ccache.samba.org/">ccache</a>, the compiler cache, is a fantastic way to
+speed up build times for C and C++ code that
+<a href="https://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/">I previously recommended</a>.
+Recently, I was playing around with trying to get it to speed up my Linux
+kernel builds, but wasn&rsquo;t seeing any benefit. Usually when this happens with
+ccache, there&rsquo;s something non-deterministic about the builds that prevents
+cache hits.</p>
+
+<p>Turns out
+<a href="https://lists.samba.org/archive/ccache/2014q1/001172.html">someone asked this exact question on the ccache mailing list back in 2014</a>,
+and a teammate from my Android days supposed a timestamp was the culprit. That,
+and
+<a href="https://lwn.net/Articles/437864/">this LKML post from the KBUILD maintainer in 2011 about determinism</a>
+helped me find
+<a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=87c94bfb8ad354fb43d2caf870d7ca0b3f98dab3">commit 87c94bfb8ad35 (&ldquo;kbuild: override build timestamp &amp; version&rdquo;)</a> that introduced manually overriding part of the version string that
+contains the build timestamp that can be seen from:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat /proc/version
+</span><span class='line'>Linux version 4.15.0-13-generic <span class="o">(</span>buildd@lgw01-amd64-028<span class="o">)</span>
+</span><span class='line'><span class="o">(</span>gcc version 5.4.0 20160609 <span class="o">(</span>Ubuntu 5.4.0-6ubuntu1~16.04.9<span class="o">))</span>
+</span><span class='line'><span class="c">#14~16.04.1-Ubuntu SMP</span>
+</span><span class='line'>Sat Mar 17 03:04:59 UTC 2018
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With ccache, we can check the cache hit/miss stats with <code>-s</code>, clear the cache
+with <code>-C</code>, and clear the stats with <code>-z</code>. We can tell ccache explicitly which
+compiler to fall back to as its first argument (not strictly necessary). For
+KBUILD, we can swap our compiler by using <code>CC=</code> arg.</p>
+
+<p>Let&rsquo;s see what happens to
+our build time for subsequent builds with a hot cache:</p>
+
+<h3>No Cache</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>make clean
+</span><span class='line'><span class="nv">$ </span><span class="nb">time </span>make -j4
+</span><span class='line'>...
+</span><span class='line'>make -j4  2008.93s user 231.69s system 346% cpu 10:47.07 total
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Cold Cache</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ccache -Cz
+</span><span class='line'>Cleared cache
+</span><span class='line'>Statistics cleared
+</span><span class='line'><span class="nv">$ </span>ccache -s
+</span><span class='line'>cache directory                     /home/nick/.ccache
+</span><span class='line'>primary config                      /home/nick/.ccache/ccache.conf
+</span><span class='line'>secondary config      <span class="o">(</span><span class="nb">readonly</span><span class="o">)</span>    /etc/ccache.conf
+</span><span class='line'>cache hit <span class="o">(</span>direct<span class="o">)</span>                     0
+</span><span class='line'>cache hit <span class="o">(</span>preprocessed<span class="o">)</span>               0
+</span><span class='line'>cache miss                             0
+</span><span class='line'>cache hit rate                      0.00 %
+</span><span class='line'>cleanups performed                     0
+</span><span class='line'>files in cache                         0
+</span><span class='line'>cache size                           0.0 kB
+</span><span class='line'>max cache size                       5.0 GB
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>make clean
+</span><span class='line'><span class="nv">$ </span><span class="nb">time </span><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4
+</span><span class='line'>...
+</span><span class='line'><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4  2426.79s user 312.08s system 372% cpu 12:15.22 total
+</span><span class='line'><span class="nv">$ </span>ccache -s
+</span><span class='line'>cache directory                     /home/nick/.ccache
+</span><span class='line'>primary config                      /home/nick/.ccache/ccache.conf
+</span><span class='line'>secondary config      <span class="o">(</span><span class="nb">readonly</span><span class="o">)</span>    /etc/ccache.conf
+</span><span class='line'>cache hit <span class="o">(</span>direct<span class="o">)</span>                     0
+</span><span class='line'>cache hit <span class="o">(</span>preprocessed<span class="o">)</span>               0
+</span><span class='line'>cache miss                          3242
+</span><span class='line'>called <span class="k">for </span>link                        6
+</span><span class='line'>called <span class="k">for </span>preprocessing             538
+</span><span class='line'>unsupported <span class="nb">source </span>language           66
+</span><span class='line'>no input file                        108
+</span><span class='line'>files in cache                      9720
+</span><span class='line'>cache size                         432.6 MB
+</span><span class='line'>max cache size                       5.0 GB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Hot Cache</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ccache -z
+</span><span class='line'>Statistics cleared
+</span><span class='line'><span class="nv">$ </span>make clean
+</span><span class='line'><span class="nv">$ </span><span class="nb">time </span><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4
+</span><span class='line'>...
+</span><span class='line'><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4  151.85s user 132.98s system 288% cpu 1:38.90 total
+</span><span class='line'><span class="nv">$ </span>ccache -s
+</span><span class='line'>cache directory                     /home/nick/.ccache
+</span><span class='line'>primary config                      /home/nick/.ccache/ccache.conf
+</span><span class='line'>secondary config      <span class="o">(</span><span class="nb">readonly</span><span class="o">)</span>    /etc/ccache.conf
+</span><span class='line'>cache hit <span class="o">(</span>direct<span class="o">)</span>                  3232
+</span><span class='line'>cache hit <span class="o">(</span>preprocessed<span class="o">)</span>               7
+</span><span class='line'>cache miss                             3
+</span><span class='line'>called <span class="k">for </span>link                        6
+</span><span class='line'>called <span class="k">for </span>preprocessing             538
+</span><span class='line'>unsupported <span class="nb">source </span>language           66
+</span><span class='line'>no input file                        108
+</span><span class='line'>files in cache                      9734
+</span><span class='line'>cache size                         432.8 MB
+</span><span class='line'>max cache size                       5.0 GB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The initial cold cache build will be slower than not using ccache at all, but
+it&rsquo;s a one time cost that&rsquo;s not significant relative to the savings.  No
+caching took 647.07s, initial cold cache build took 735.22s (13.62% slower),
+and subsequent hot cache builds took 98.9s (6.54x faster). YMMV based on CPU
+and disk performance. Also, it&rsquo;s not the most common workflow to do clean
+builds, but we do this for Linux kernel builds for Android/Pixel at work, and
+this helps me significantly for local development.</p>
+
+<p>Now, if you really need that date string in there, you <em>theoritically</em> could
+put some garbage value in there (for the cache) long enough to save enough
+space for a date string, then patch your vmlinux binary after the fact.  I
+<em>don&rsquo;t</em> recommend that, but I would imagine that might look something like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;y%0.s&quot;</span> <span class="k">$(</span>seq 1 <span class="k">$(</span>date | wc -c<span class="k">)))</span>
+</span><span class='line'><span class="nv">$ </span>make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> vmlinux
+</span><span class='line'><span class="nv">$ </span>sed -i <span class="s2">&quot;s/$(KBUILD_BUILD_TIMESTAMP)/$(date)/g&quot;</span> vmlinux
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Deterministic builds make build caching easier, but I&rsquo;m not sure that build
+timestamp strings and build determinism are reconcileable.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2453,413 +2684,6 @@ up post.</em></p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/">Intro to Debugging X86-64 Assembly</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-01-20T20:04:00-08:00" pubdate data-updated="true">Jan 20<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I&rsquo;m hacking on an assembly project, and wanted to document some of the tricks I
-was using for figuring out what was going on.  This post might seem a little
-basic for folks who spend all day heads down in gdb or who do this stuff
-professionally, but I just wanted to share a quick intro to some tools that
-others may find useful.
-(<a href="https://pchiusano.github.io/2014-10-11/defensive-writing.html">oh god, I&rsquo;m doing it</a>)</p>
-
-<p>If your coming from gdb to lldb, there&rsquo;s a few differences in commands.  LLDB
-has
-<a href="http://lldb.llvm.org/lldb-gdb.html">great documentation</a>
-on some of the differences. Everything in this post about LLDB is pretty much
-there.</p>
-
-<p>The bread and butter commands when working with gdb or lldb are:</p>
-
-<ul>
-<li>r (run the program)</li>
-<li>s (step in)</li>
-<li>n (step over)</li>
-<li>finish (step out)</li>
-<li>c (continue)</li>
-<li>q (quit the program)</li>
-</ul>
-
-
-<p>You can hit enter if you want to run the last command again, which is really
-useful if you want to keep stepping over statements repeatedly.</p>
-
-<p>I&rsquo;ve been using LLDB on OSX.  Let&rsquo;s say I want to debug a program I can build,
-but is crashing or something:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo lldb ./asmttpd web_root
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Setting a breakpoint on jump to label:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> b sys_write
-</span><span class='line'>Breakpoint 3: <span class="nv">where</span> <span class="o">=</span> asmttpd<span class="sb">`</span>sys_write, <span class="nv">address</span> <span class="o">=</span> 0x00000000000029ae
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Running the program until breakpoint hit:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> r
-</span><span class='line'>Process 32236 launched: <span class="s1">&#39;./asmttpd&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>
-</span><span class='line'>Process 32236 stopped
-</span><span class='line'>* thread <span class="c">#1: tid = 0xe69b9, 0x00000000000029ae asmttpd`sys_write, queue = &#39;com.apple.main-thread&#39;, stop reason = breakpoint 3.1</span>
-</span><span class='line'>    frame <span class="c">#0: 0x00000000000029ae asmttpd`sys_write</span>
-</span><span class='line'>asmttpd<span class="sb">`</span>sys_write:
-</span><span class='line'>-&gt;  0x29ae &lt;+0&gt;: pushq  %rdi
-</span><span class='line'>    0x29af &lt;+1&gt;: pushq  %rsi
-</span><span class='line'>    0x29b0 &lt;+2&gt;: pushq  %rdx
-</span><span class='line'>    0x29b1 &lt;+3&gt;: pushq  %r10
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Seeing more of the current stack frame:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> d
-</span><span class='line'>asmttpd<span class="sb">`</span>sys_write:
-</span><span class='line'>-&gt;  0x29ae &lt;+0&gt;:  pushq  %rdi
-</span><span class='line'>    0x29af &lt;+1&gt;:  pushq  %rsi
-</span><span class='line'>    0x29b0 &lt;+2&gt;:  pushq  %rdx
-</span><span class='line'>    0x29b1 &lt;+3&gt;:  pushq  %r10
-</span><span class='line'>    0x29b3 &lt;+5&gt;:  pushq  %r8
-</span><span class='line'>    0x29b5 &lt;+7&gt;:  pushq  %r9
-</span><span class='line'>    0x29b7 &lt;+9&gt;:  pushq  %rbx
-</span><span class='line'>    0x29b8 &lt;+10&gt;: pushq  %rcx
-</span><span class='line'>    0x29b9 &lt;+11&gt;: movq   %rsi, %rdx
-</span><span class='line'>    0x29bc &lt;+14&gt;: movq   %rdi, %rsi
-</span><span class='line'>    0x29bf &lt;+17&gt;: movq   <span class="nv">$0x1</span>, %rdi
-</span><span class='line'>    0x29c6 &lt;+24&gt;: movq   <span class="nv">$0x2000004</span>, %rax
-</span><span class='line'>    0x29cd &lt;+31&gt;: syscall
-</span><span class='line'>    0x29cf &lt;+33&gt;: popq   %rcx
-</span><span class='line'>    0x29d0 &lt;+34&gt;: popq   %rbx
-</span><span class='line'>    0x29d1 &lt;+35&gt;: popq   %r9
-</span><span class='line'>    0x29d3 &lt;+37&gt;: popq   %r8
-</span><span class='line'>    0x29 &lt;+39&gt;: popq   %r10
-</span><span class='line'>    0x29d7 &lt;+41&gt;: popq   %rdx
-</span><span class='line'>    0x29d8 &lt;+42&gt;: popq   %rsi
-</span><span class='line'>    0x29d9 &lt;+43&gt;: popq   %rdi
-</span><span class='line'>    0x29da &lt;+44&gt;: retq
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Getting a back trace (call stack):</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> bt
-</span><span class='line'>* thread <span class="c">#1: tid = 0xe69b9, 0x00000000000029ae asmttpd`sys_write, queue = &#39;com.apple.main-thread&#39;, stop reason = breakpoint 3.1</span>
-</span><span class='line'>  * frame <span class="c">#0: 0x00000000000029ae asmttpd`sys_write</span>
-</span><span class='line'>    frame <span class="c">#1: 0x00000000000021b6 asmttpd`print_line + 16</span>
-</span><span class='line'>    frame <span class="c">#2: 0x0000000000002ab3 asmttpd`start + 35</span>
-</span><span class='line'>    frame <span class="c">#3: 0x00007fff9900c5ad libdyld.dylib`start + 1</span>
-</span><span class='line'>    frame <span class="c">#4: 0x00007fff9900c5ad libdyld.dylib`start + 1</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>peeking at the upper stack frame:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> up
-</span><span class='line'>frame <span class="c">#1: 0x00000000000021b6 asmttpd`print_line + 16</span>
-</span><span class='line'>asmttpd<span class="sb">`</span>print_line:
-</span><span class='line'>    0x21b6 &lt;+16&gt;: movabsq <span class="nv">$0x30cb</span>, %rdi
-</span><span class='line'>    0x21c0 &lt;+26&gt;: movq   <span class="nv">$0x1</span>, %rsi
-</span><span class='line'>    0x21c7 &lt;+33&gt;: callq  0x29ae                    ; sys_write
-</span><span class='line'>    0x21cc &lt;+38&gt;: popq   %rcx
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>back down to the breakpoint-halted stack frame:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> down
-</span><span class='line'>frame <span class="c">#0: 0x00000000000029ae asmttpd`sys_write</span>
-</span><span class='line'>asmttpd<span class="sb">`</span>sys_write:
-</span><span class='line'>-&gt;  0x29ae &lt;+0&gt;: pushq  %rdi
-</span><span class='line'>    0x29af &lt;+1&gt;: pushq  %rsi
-</span><span class='line'>    0x29b0 &lt;+2&gt;: pushq  %rdx
-</span><span class='line'>    0x29b1 &lt;+3&gt;: pushq  %r10
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>dumping the values of registers:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> register <span class="nb">read</span>
-</span><span class='line'>General Purpose Registers:
-</span><span class='line'>       <span class="nv">rax</span> <span class="o">=</span> 0x0000000000002a90  asmttpd<span class="sb">`</span>start
-</span><span class='line'>       <span class="nv">rbx</span> <span class="o">=</span> 0x0000000000000000
-</span><span class='line'>       <span class="nv">rcx</span> <span class="o">=</span> 0x00007fff5fbffaf8
-</span><span class='line'>       <span class="nv">rdx</span> <span class="o">=</span> 0x00007fff5fbffa40
-</span><span class='line'>       <span class="nv">rdi</span> <span class="o">=</span> 0x00000000000030cc  start_text
-</span><span class='line'>       <span class="nv">rsi</span> <span class="o">=</span> 0x000000000000000f
-</span><span class='line'>       <span class="nv">rbp</span> <span class="o">=</span> 0x00007fff5fbffa18
-</span><span class='line'>       <span class="nv">rsp</span> <span class="o">=</span> 0x00007fff5fbff9b8
-</span><span class='line'>        <span class="nv">r8</span> <span class="o">=</span> 0x0000000000000000
-</span><span class='line'>        <span class="nv">r9</span> <span class="o">=</span> 0x00007fff7b1670c8  atexit_mutex + 24
-</span><span class='line'>       <span class="nv">r10</span> <span class="o">=</span> 0x00000000ffffffff
-</span><span class='line'>       <span class="nv">r11</span> <span class="o">=</span> 0xffffffff00000000
-</span><span class='line'>       <span class="nv">r12</span> <span class="o">=</span> 0x0000000000000000
-</span><span class='line'>       <span class="nv">r13</span> <span class="o">=</span> 0x0000000000000000
-</span><span class='line'>       <span class="nv">r14</span> <span class="o">=</span> 0x0000000000000000
-</span><span class='line'>       <span class="nv">r15</span> <span class="o">=</span> 0x0000000000000000
-</span><span class='line'>       <span class="nv">rip</span> <span class="o">=</span> 0x00000000000029ae  asmttpd<span class="sb">`</span>sys_write
-</span><span class='line'>    <span class="nv">rflags</span> <span class="o">=</span> 0x0000000000000246
-</span><span class='line'>        <span class="nv">cs</span> <span class="o">=</span> 0x000000000000002b
-</span><span class='line'>        <span class="nv">fs</span> <span class="o">=</span> 0x0000000000000000
-</span><span class='line'>        <span class="nv">gs</span> <span class="o">=</span> 0x0000000000000000
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>read just one register:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> register <span class="nb">read </span>rdi
-</span><span class='line'>     <span class="nv">rdi</span> <span class="o">=</span> 0x00000000000030cc  start_text
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When you&rsquo;re trying to figure out what system calls are made by some C code,
-using dtruss is very helpful.  dtruss is available on OSX and seems to be some
-kind of wrapper around DTrace.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat sleep.c
-</span><span class='line'><span class="c">#include &lt;time.h&gt;</span>
-</span><span class='line'>int main <span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>  struct timespec <span class="nv">rqtp</span> <span class="o">=</span> <span class="o">{</span>
-</span><span class='line'>    2,
-</span><span class='line'>    0
-</span><span class='line'>  <span class="o">}</span>;
-</span><span class='line'>
-</span><span class='line'>  nanosleep<span class="o">(</span>&amp;rqtp, NULL<span class="o">)</span>;
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="nv">$ </span>clang sleep.c
-</span><span class='line'>
-</span><span class='line'><span class="nv">$ </span>sudo dtruss ./a.out
-</span><span class='line'>...all kinds of fun stuff
-</span><span class='line'>__semwait_signal<span class="o">(</span>0xB03, 0x0, 0x1<span class="o">)</span>    <span class="o">=</span> -1 Err#60
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>If you compile with <code>-g</code> to emit debug symbols, you can use lldb&rsquo;s disassemble
-command to get the equivalent assembly:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang sleep.c -g
-</span><span class='line'><span class="nv">$ </span>lldb a.out
-</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> target create <span class="s2">&quot;a.out&quot;</span>
-</span><span class='line'>Current executable <span class="nb">set </span>to <span class="s1">&#39;a.out&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>.
-</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> b main
-</span><span class='line'>Breakpoint 1: <span class="nv">where</span> <span class="o">=</span> a.out<span class="sb">`</span>main + 16 at sleep.c:3, <span class="nv">address</span> <span class="o">=</span> 0x0000000100000f40
-</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> r
-</span><span class='line'>Process 33213 launched: <span class="s1">&#39;/Users/Nicholas/code/assembly/asmttpd/a.out&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>
-</span><span class='line'>Process 33213 stopped
-</span><span class='line'>* thread <span class="c">#1: tid = 0xeca04, 0x0000000100000f40 a.out`main + 16 at sleep.c:3, queue = &#39;com.apple.main-thread&#39;, stop reason = breakpoint 1.1</span>
-</span><span class='line'>    frame <span class="c">#0: 0x0000000100000f40 a.out`main + 16 at sleep.c:3</span>
-</span><span class='line'>   1    <span class="c">#include &lt;time.h&gt;</span>
-</span><span class='line'>   2    int main <span class="o">()</span> <span class="o">{</span>
-</span><span class='line'>-&gt; 3      struct timespec <span class="nv">rqtp</span> <span class="o">=</span> <span class="o">{</span>
-</span><span class='line'>   4        2,
-</span><span class='line'>   5        0
-</span><span class='line'>   6      <span class="o">}</span>;
-</span><span class='line'>   7
-</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> disassemble
-</span><span class='line'>a.out<span class="sb">`</span>main:
-</span><span class='line'>    0x100000f30 &lt;+0&gt;:  pushq  %rbp
-</span><span class='line'>    0x100000f31 &lt;+1&gt;:  movq   %rsp, %rbp
-</span><span class='line'>    0x100000f34 &lt;+4&gt;:  subq   <span class="nv">$0x20</span>, %rsp
-</span><span class='line'>    0x100000f38 &lt;+8&gt;:  leaq   -0x10<span class="o">(</span>%rbp<span class="o">)</span>, %rdi
-</span><span class='line'>    0x100000f3c &lt;+12&gt;: xorl   %eax, %eax
-</span><span class='line'>    0x100000f3e &lt;+14&gt;: movl   %eax, %esi
-</span><span class='line'>-&gt;  0x100000f40 &lt;+16&gt;: movq   0x49<span class="o">(</span>%rip<span class="o">)</span>, %rcx
-</span><span class='line'>    0x100000f47 &lt;+23&gt;: movq   %rcx, -0x10<span class="o">(</span>%rbp<span class="o">)</span>
-</span><span class='line'>    0x100000f4b &lt;+27&gt;: movq   0x46<span class="o">(</span>%rip<span class="o">)</span>, %rcx
-</span><span class='line'>    0x100000f52 &lt;+34&gt;: movq   %rcx, -0x8<span class="o">(</span>%rbp<span class="o">)</span>
-</span><span class='line'>    0x100000f56 &lt;+38&gt;: callq  0x100000f68               ; symbol stub <span class="k">for</span>: nanosleep
-</span><span class='line'>    0x100000f5b &lt;+43&gt;: xorl   %edx, %edx
-</span><span class='line'>    0x100000f5d &lt;+45&gt;: movl   %eax, -0x14<span class="o">(</span>%rbp<span class="o">)</span>
-</span><span class='line'>    0x100000f60 &lt;+48&gt;: movl   %edx, %eax
-</span><span class='line'>    0x100000f62 &lt;+50&gt;: addq   <span class="nv">$0x20</span>, %rsp
-</span><span class='line'>    0x100000f66 &lt;+54&gt;: popq   %rbp
-</span><span class='line'>    0x100000f67 &lt;+55&gt;: retq
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Anyways, I&rsquo;ve been learning some interesting things about OSX that I&rsquo;ll be
-sharing soon. If you&rsquo;d like to learn more about x86-64 assembly programming,
-you should read my other posts about
-<a href="/blog/2014/04/18/lets-write-some-x86-64/">writing x86-64</a>
-and a toy
-<a href="/blog/2015/05/25/interpreter-compiler-jit/">JIT for Brainfuck</a>
-(<a href="https://www.reddit.com/r/programming/comments/377ov9/interpreter_compiler_jit/crkkrz4">the creator of Brainfuck liked it</a>).</p>
-
-<p>I should also do a post on
-<a href="http://rr-project.org/">Mozilla&rsquo;s rr</a>,
-because it can do amazing things like step backwards.  Another day&hellip;</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2875,6 +2699,10 @@ because it can do amazing things like step backwards.  Another day&hellip;</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/">Speeding Up Linux Kernel Builds With Ccache</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/">GCC vs LLVM Q3 2017: Active Developer Counts</a>
       </li>
     
@@ -2888,10 +2716,6 @@ because it can do amazing things like step backwards.  Another day&hellip;</p>
     
       <li class="post">
         <a href="/blog/2016/11/20/static-and-dynamic-libraries/">Static and Dynamic Libraries</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>
       </li>
     
   </ul>
@@ -2936,7 +2760,7 @@ because it can do amazing things like step backwards.  Another day&hellip;</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2017 - Nick Desaulniers -
+  Copyright &copy; 2018 - Nick Desaulniers -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

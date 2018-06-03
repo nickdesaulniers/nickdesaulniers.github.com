@@ -9,8 +9,8 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="I was recently lucky enough to get to attend my first SIGGRAPH conference this
-year. While I didn&rsquo;t attend any talks, I did spend some time in &hellip;">
+  <meta name="description" content="I&rsquo;m hacking on an assembly project, and wanted to document some of the tricks I
+was using for figuring out what was going on. This post might &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +81,413 @@ year. While I didn&rsquo;t attend any talks, I did spend some time in &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/">Intro to Debugging X86-64 Assembly</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-20T20:04:00-08:00" pubdate data-updated="true">Jan 20<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I&rsquo;m hacking on an assembly project, and wanted to document some of the tricks I
+was using for figuring out what was going on.  This post might seem a little
+basic for folks who spend all day heads down in gdb or who do this stuff
+professionally, but I just wanted to share a quick intro to some tools that
+others may find useful.
+(<a href="https://pchiusano.github.io/2014-10-11/defensive-writing.html">oh god, I&rsquo;m doing it</a>)</p>
+
+<p>If your coming from gdb to lldb, there&rsquo;s a few differences in commands.  LLDB
+has
+<a href="http://lldb.llvm.org/lldb-gdb.html">great documentation</a>
+on some of the differences. Everything in this post about LLDB is pretty much
+there.</p>
+
+<p>The bread and butter commands when working with gdb or lldb are:</p>
+
+<ul>
+<li>r (run the program)</li>
+<li>s (step in)</li>
+<li>n (step over)</li>
+<li>finish (step out)</li>
+<li>c (continue)</li>
+<li>q (quit the program)</li>
+</ul>
+
+
+<p>You can hit enter if you want to run the last command again, which is really
+useful if you want to keep stepping over statements repeatedly.</p>
+
+<p>I&rsquo;ve been using LLDB on OSX.  Let&rsquo;s say I want to debug a program I can build,
+but is crashing or something:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo lldb ./asmttpd web_root
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Setting a breakpoint on jump to label:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> b sys_write
+</span><span class='line'>Breakpoint 3: <span class="nv">where</span> <span class="o">=</span> asmttpd<span class="sb">`</span>sys_write, <span class="nv">address</span> <span class="o">=</span> 0x00000000000029ae
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Running the program until breakpoint hit:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> r
+</span><span class='line'>Process 32236 launched: <span class="s1">&#39;./asmttpd&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>
+</span><span class='line'>Process 32236 stopped
+</span><span class='line'>* thread <span class="c">#1: tid = 0xe69b9, 0x00000000000029ae asmttpd`sys_write, queue = &#39;com.apple.main-thread&#39;, stop reason = breakpoint 3.1</span>
+</span><span class='line'>    frame <span class="c">#0: 0x00000000000029ae asmttpd`sys_write</span>
+</span><span class='line'>asmttpd<span class="sb">`</span>sys_write:
+</span><span class='line'>-&gt;  0x29ae &lt;+0&gt;: pushq  %rdi
+</span><span class='line'>    0x29af &lt;+1&gt;: pushq  %rsi
+</span><span class='line'>    0x29b0 &lt;+2&gt;: pushq  %rdx
+</span><span class='line'>    0x29b1 &lt;+3&gt;: pushq  %r10
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Seeing more of the current stack frame:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> d
+</span><span class='line'>asmttpd<span class="sb">`</span>sys_write:
+</span><span class='line'>-&gt;  0x29ae &lt;+0&gt;:  pushq  %rdi
+</span><span class='line'>    0x29af &lt;+1&gt;:  pushq  %rsi
+</span><span class='line'>    0x29b0 &lt;+2&gt;:  pushq  %rdx
+</span><span class='line'>    0x29b1 &lt;+3&gt;:  pushq  %r10
+</span><span class='line'>    0x29b3 &lt;+5&gt;:  pushq  %r8
+</span><span class='line'>    0x29b5 &lt;+7&gt;:  pushq  %r9
+</span><span class='line'>    0x29b7 &lt;+9&gt;:  pushq  %rbx
+</span><span class='line'>    0x29b8 &lt;+10&gt;: pushq  %rcx
+</span><span class='line'>    0x29b9 &lt;+11&gt;: movq   %rsi, %rdx
+</span><span class='line'>    0x29bc &lt;+14&gt;: movq   %rdi, %rsi
+</span><span class='line'>    0x29bf &lt;+17&gt;: movq   <span class="nv">$0x1</span>, %rdi
+</span><span class='line'>    0x29c6 &lt;+24&gt;: movq   <span class="nv">$0x2000004</span>, %rax
+</span><span class='line'>    0x29cd &lt;+31&gt;: syscall
+</span><span class='line'>    0x29cf &lt;+33&gt;: popq   %rcx
+</span><span class='line'>    0x29d0 &lt;+34&gt;: popq   %rbx
+</span><span class='line'>    0x29d1 &lt;+35&gt;: popq   %r9
+</span><span class='line'>    0x29d3 &lt;+37&gt;: popq   %r8
+</span><span class='line'>    0x29 &lt;+39&gt;: popq   %r10
+</span><span class='line'>    0x29d7 &lt;+41&gt;: popq   %rdx
+</span><span class='line'>    0x29d8 &lt;+42&gt;: popq   %rsi
+</span><span class='line'>    0x29d9 &lt;+43&gt;: popq   %rdi
+</span><span class='line'>    0x29da &lt;+44&gt;: retq
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Getting a back trace (call stack):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> bt
+</span><span class='line'>* thread <span class="c">#1: tid = 0xe69b9, 0x00000000000029ae asmttpd`sys_write, queue = &#39;com.apple.main-thread&#39;, stop reason = breakpoint 3.1</span>
+</span><span class='line'>  * frame <span class="c">#0: 0x00000000000029ae asmttpd`sys_write</span>
+</span><span class='line'>    frame <span class="c">#1: 0x00000000000021b6 asmttpd`print_line + 16</span>
+</span><span class='line'>    frame <span class="c">#2: 0x0000000000002ab3 asmttpd`start + 35</span>
+</span><span class='line'>    frame <span class="c">#3: 0x00007fff9900c5ad libdyld.dylib`start + 1</span>
+</span><span class='line'>    frame <span class="c">#4: 0x00007fff9900c5ad libdyld.dylib`start + 1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>peeking at the upper stack frame:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> up
+</span><span class='line'>frame <span class="c">#1: 0x00000000000021b6 asmttpd`print_line + 16</span>
+</span><span class='line'>asmttpd<span class="sb">`</span>print_line:
+</span><span class='line'>    0x21b6 &lt;+16&gt;: movabsq <span class="nv">$0x30cb</span>, %rdi
+</span><span class='line'>    0x21c0 &lt;+26&gt;: movq   <span class="nv">$0x1</span>, %rsi
+</span><span class='line'>    0x21c7 &lt;+33&gt;: callq  0x29ae                    ; sys_write
+</span><span class='line'>    0x21cc &lt;+38&gt;: popq   %rcx
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>back down to the breakpoint-halted stack frame:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> down
+</span><span class='line'>frame <span class="c">#0: 0x00000000000029ae asmttpd`sys_write</span>
+</span><span class='line'>asmttpd<span class="sb">`</span>sys_write:
+</span><span class='line'>-&gt;  0x29ae &lt;+0&gt;: pushq  %rdi
+</span><span class='line'>    0x29af &lt;+1&gt;: pushq  %rsi
+</span><span class='line'>    0x29b0 &lt;+2&gt;: pushq  %rdx
+</span><span class='line'>    0x29b1 &lt;+3&gt;: pushq  %r10
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>dumping the values of registers:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> register <span class="nb">read</span>
+</span><span class='line'>General Purpose Registers:
+</span><span class='line'>       <span class="nv">rax</span> <span class="o">=</span> 0x0000000000002a90  asmttpd<span class="sb">`</span>start
+</span><span class='line'>       <span class="nv">rbx</span> <span class="o">=</span> 0x0000000000000000
+</span><span class='line'>       <span class="nv">rcx</span> <span class="o">=</span> 0x00007fff5fbffaf8
+</span><span class='line'>       <span class="nv">rdx</span> <span class="o">=</span> 0x00007fff5fbffa40
+</span><span class='line'>       <span class="nv">rdi</span> <span class="o">=</span> 0x00000000000030cc  start_text
+</span><span class='line'>       <span class="nv">rsi</span> <span class="o">=</span> 0x000000000000000f
+</span><span class='line'>       <span class="nv">rbp</span> <span class="o">=</span> 0x00007fff5fbffa18
+</span><span class='line'>       <span class="nv">rsp</span> <span class="o">=</span> 0x00007fff5fbff9b8
+</span><span class='line'>        <span class="nv">r8</span> <span class="o">=</span> 0x0000000000000000
+</span><span class='line'>        <span class="nv">r9</span> <span class="o">=</span> 0x00007fff7b1670c8  atexit_mutex + 24
+</span><span class='line'>       <span class="nv">r10</span> <span class="o">=</span> 0x00000000ffffffff
+</span><span class='line'>       <span class="nv">r11</span> <span class="o">=</span> 0xffffffff00000000
+</span><span class='line'>       <span class="nv">r12</span> <span class="o">=</span> 0x0000000000000000
+</span><span class='line'>       <span class="nv">r13</span> <span class="o">=</span> 0x0000000000000000
+</span><span class='line'>       <span class="nv">r14</span> <span class="o">=</span> 0x0000000000000000
+</span><span class='line'>       <span class="nv">r15</span> <span class="o">=</span> 0x0000000000000000
+</span><span class='line'>       <span class="nv">rip</span> <span class="o">=</span> 0x00000000000029ae  asmttpd<span class="sb">`</span>sys_write
+</span><span class='line'>    <span class="nv">rflags</span> <span class="o">=</span> 0x0000000000000246
+</span><span class='line'>        <span class="nv">cs</span> <span class="o">=</span> 0x000000000000002b
+</span><span class='line'>        <span class="nv">fs</span> <span class="o">=</span> 0x0000000000000000
+</span><span class='line'>        <span class="nv">gs</span> <span class="o">=</span> 0x0000000000000000
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>read just one register:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>lldb<span class="o">)</span> register <span class="nb">read </span>rdi
+</span><span class='line'>     <span class="nv">rdi</span> <span class="o">=</span> 0x00000000000030cc  start_text
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When you&rsquo;re trying to figure out what system calls are made by some C code,
+using dtruss is very helpful.  dtruss is available on OSX and seems to be some
+kind of wrapper around DTrace.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat sleep.c
+</span><span class='line'><span class="c">#include &lt;time.h&gt;</span>
+</span><span class='line'>int main <span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>  struct timespec <span class="nv">rqtp</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>    2,
+</span><span class='line'>    0
+</span><span class='line'>  <span class="o">}</span>;
+</span><span class='line'>
+</span><span class='line'>  nanosleep<span class="o">(</span>&amp;rqtp, NULL<span class="o">)</span>;
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>clang sleep.c
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>sudo dtruss ./a.out
+</span><span class='line'>...all kinds of fun stuff
+</span><span class='line'>__semwait_signal<span class="o">(</span>0xB03, 0x0, 0x1<span class="o">)</span>    <span class="o">=</span> -1 Err#60
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you compile with <code>-g</code> to emit debug symbols, you can use lldb&rsquo;s disassemble
+command to get the equivalent assembly:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>clang sleep.c -g
+</span><span class='line'><span class="nv">$ </span>lldb a.out
+</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> target create <span class="s2">&quot;a.out&quot;</span>
+</span><span class='line'>Current executable <span class="nb">set </span>to <span class="s1">&#39;a.out&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>.
+</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> b main
+</span><span class='line'>Breakpoint 1: <span class="nv">where</span> <span class="o">=</span> a.out<span class="sb">`</span>main + 16 at sleep.c:3, <span class="nv">address</span> <span class="o">=</span> 0x0000000100000f40
+</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> r
+</span><span class='line'>Process 33213 launched: <span class="s1">&#39;/Users/Nicholas/code/assembly/asmttpd/a.out&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>
+</span><span class='line'>Process 33213 stopped
+</span><span class='line'>* thread <span class="c">#1: tid = 0xeca04, 0x0000000100000f40 a.out`main + 16 at sleep.c:3, queue = &#39;com.apple.main-thread&#39;, stop reason = breakpoint 1.1</span>
+</span><span class='line'>    frame <span class="c">#0: 0x0000000100000f40 a.out`main + 16 at sleep.c:3</span>
+</span><span class='line'>   1    <span class="c">#include &lt;time.h&gt;</span>
+</span><span class='line'>   2    int main <span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>-&gt; 3      struct timespec <span class="nv">rqtp</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>   4        2,
+</span><span class='line'>   5        0
+</span><span class='line'>   6      <span class="o">}</span>;
+</span><span class='line'>   7
+</span><span class='line'><span class="o">(</span>lldb<span class="o">)</span> disassemble
+</span><span class='line'>a.out<span class="sb">`</span>main:
+</span><span class='line'>    0x100000f30 &lt;+0&gt;:  pushq  %rbp
+</span><span class='line'>    0x100000f31 &lt;+1&gt;:  movq   %rsp, %rbp
+</span><span class='line'>    0x100000f34 &lt;+4&gt;:  subq   <span class="nv">$0x20</span>, %rsp
+</span><span class='line'>    0x100000f38 &lt;+8&gt;:  leaq   -0x10<span class="o">(</span>%rbp<span class="o">)</span>, %rdi
+</span><span class='line'>    0x100000f3c &lt;+12&gt;: xorl   %eax, %eax
+</span><span class='line'>    0x100000f3e &lt;+14&gt;: movl   %eax, %esi
+</span><span class='line'>-&gt;  0x100000f40 &lt;+16&gt;: movq   0x49<span class="o">(</span>%rip<span class="o">)</span>, %rcx
+</span><span class='line'>    0x100000f47 &lt;+23&gt;: movq   %rcx, -0x10<span class="o">(</span>%rbp<span class="o">)</span>
+</span><span class='line'>    0x100000f4b &lt;+27&gt;: movq   0x46<span class="o">(</span>%rip<span class="o">)</span>, %rcx
+</span><span class='line'>    0x100000f52 &lt;+34&gt;: movq   %rcx, -0x8<span class="o">(</span>%rbp<span class="o">)</span>
+</span><span class='line'>    0x100000f56 &lt;+38&gt;: callq  0x100000f68               ; symbol stub <span class="k">for</span>: nanosleep
+</span><span class='line'>    0x100000f5b &lt;+43&gt;: xorl   %edx, %edx
+</span><span class='line'>    0x100000f5d &lt;+45&gt;: movl   %eax, -0x14<span class="o">(</span>%rbp<span class="o">)</span>
+</span><span class='line'>    0x100000f60 &lt;+48&gt;: movl   %edx, %eax
+</span><span class='line'>    0x100000f62 &lt;+50&gt;: addq   <span class="nv">$0x20</span>, %rsp
+</span><span class='line'>    0x100000f66 &lt;+54&gt;: popq   %rbp
+</span><span class='line'>    0x100000f67 &lt;+55&gt;: retq
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Anyways, I&rsquo;ve been learning some interesting things about OSX that I&rsquo;ll be
+sharing soon. If you&rsquo;d like to learn more about x86-64 assembly programming,
+you should read my other posts about
+<a href="/blog/2014/04/18/lets-write-some-x86-64/">writing x86-64</a>
+and a toy
+<a href="/blog/2015/05/25/interpreter-compiler-jit/">JIT for Brainfuck</a>
+(<a href="https://www.reddit.com/r/programming/comments/377ov9/interpreter_compiler_jit/crkkrz4">the creator of Brainfuck liked it</a>).</p>
+
+<p>I should also do a post on
+<a href="http://rr-project.org/">Mozilla&rsquo;s rr</a>,
+because it can do amazing things like step backwards.  Another day&hellip;</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -4470,331 +4877,6 @@ to your comments on your experiences!</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/07/25/designated-initialization-with-pointers-in-c/">Designated Initialization With Compound Literals in C</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-07-25T16:48:00-07:00" pubdate data-updated="true">Jul 25<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/07/25/designated-initialization-with-pointers-in-c/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Just a quick post on something I just discovered and found neat (I always find
-obscure C syntax interesting).  I was trying to figure out how to use a C
-designated initializer, where a member was a pointer to another designated
-initializer.  At this point, you need a compound literal.  Just a quick
-background on C initialization:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// verbosely create an array with a known size</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">3</span><span class="p">];</span>
-</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-</span><span class='line'><span class="n">arr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-</span><span class='line'><span class="c1">// =&gt; [1, 2, 3]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// concisely create an array with a known size</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// creates an array with unspecified values initialized to 0</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3, 0]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// truncates declaration</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// based on number of initializers</span>
-</span><span class='line'><span class="kt">int</span> <span class="n">arr</span> <span class="p">[]</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span> <span class="c1">// =&gt; [1, 2, 3]</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Let&rsquo;s look at how we might have initialized a struct in C89.  In C89, you are
-required to declare local variables at the top of a block.  A previous
-initialization of a point struct might have looked like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="p">{</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="k">struct</span> <span class="n">point</span> <span class="n">a</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">a</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">a</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Just as we can define array literals in C using the initializer list syntax, we
-can use the same concise syntax for initializing structs!</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// point a is located at (2, 3)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Well, this can be bad.  Where would point a be located if say a fellow team
-mate came along and modified the definition of the point struct to:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="p">{</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">;</span> <span class="c1">// used to be `int x, y;`</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Suddenly point a points to (3, 2), not (2, 3).  It&rsquo;s better if you use
-designated initializers to declare the values for members of your struct.  It&rsquo;s
-up to the compiler to decide on the order of initialization, but it wont mess
-up where the data is intended to go.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// point b is located at (2, 3)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So now we have designated initializers, cool.  What about if we want to use the
-same syntax to reassign point b?</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span>
-</span><span class='line'><span class="c1">//    ^</span>
-</span><span class='line'><span class="c1">// error: expected expression</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>While you are being explicit about the shape of the struct that you are trying
-to assign to b, the compiler cannot figure out that you&rsquo;re trying to assign a
-point struct to another point struct.  A C cast would probably help here and
-that&rsquo;s what the concept of compound literals are.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// works!</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Notice: I just combined a compound literal with a designated initializer.  A
-compound literal on its own would look like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// works!</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>To recap we can define points like so:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span><span class="p">;</span>
-</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// C89 (too verbose)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">};</span> <span class="c1">// initializer list (struct member order specific)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">c</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span> <span class="c1">// designated initializer (non struct member order specific)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">8</span> <span class="p">};</span> <span class="c1">// compound literal (cast + designated initialization)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>My favorite part of compound literals is that you can define values inline of
-an argument list.  Say you have a function prototype like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">distance</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">,</span> <span class="k">struct</span> <span class="n">point</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// instead of calling it like this</span>
-</span><span class='line'><span class="c1">// (creating temp objects just to pass in)</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">};</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">point</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">};</span>
-</span><span class='line'><span class="n">distance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// we can use compound literals</span>
-</span><span class='line'><span class="n">distance</span><span class="p">((</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">},</span> <span class="p">(</span><span class="k">struct</span> <span class="n">point</span><span class="p">)</span> <span class="p">{</span> <span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">});</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So compound literals help with reassignment of structs, and not storing
-temporary variables just to pass as function arguments.  What happens though
-when one of your members is a pointer?  C strings are easy because they already
-have a literal value:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="p">{</span>
-</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">value</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">struct</span> <span class="n">node</span> <span class="o">*</span><span class="n">next</span><span class="p">;</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// just using designated initialization</span>
-</span><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">a</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">hello</span> <span class="n">world</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>But what happens if we want to initialize node.next?  We could do:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">b</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">foo</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="n">a</span><span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Again, we have to define b before assigning it to a.next.  That&rsquo;s worthwhile if
-you need to reference b later in that scope, but sometimes you don&rsquo;t (just like
-how compound literals can help with function arguments)!  But that&rsquo;s where I
-was stumped.  How do you nest designated initializers when the a member is a
-pointer to another designated initializer?  A first naïve attempt was:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">c</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">bar</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">baz</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'><span class="c1">//  ^</span>
-</span><span class='line'><span class="c1">// error: designator in initializer for scalar type &#39;struct node *&#39;</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>WTF?  Well, if you go back to the example with nodes a and b, we don&rsquo;t assign
-the value of b to a.next, we assign it a pointer to b.  So how can we use
-designated initializers to define, say, the first two nodes of a linked list?
-Compound literals.  Remember, a compound literal is essentially a designated
-initialization + cast.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">node</span> <span class="n">d</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">qux</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="o">&amp;</span><span class="p">((</span><span class="k">struct</span> <span class="n">node</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="err">“</span><span class="n">fred</span><span class="err">”</span><span class="p">,</span>
-</span><span class='line'>    <span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span>
-</span><span class='line'>  <span class="p">})</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And that works, but why?  d.next is assigned an address of a
-compound literal.  Granted, you probably don&rsquo;t want to be declaring your entire
-linked list like this, as nesting gets out of control fast.  I really like this
-style because it reminds me of JavaScript&rsquo;s syntax for declaring object
-literals.  It would look nicer if all of your nested structs were values and
-not references though; then you could just use designated initializers and
-wouldn&rsquo;t need compound literals or address of operators.</p>
-
-<p>What&rsquo;s your favorite or most interesting part of C syntax?</p>
-
-<p>Acknowledgements:</p>
-
-<ul>
-<li><a href="http://louisstowasser.com/">Louis Stowasser</a></li>
-<li><a href="http://fredericiana.com/">Frederic Wenzel</a></li>
-<li><a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -4812,6 +4894,10 @@ wouldn&rsquo;t need compound literals or address of operators.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/">Speeding Up Linux Kernel Builds With Ccache</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/">GCC vs LLVM Q3 2017: Active Developer Counts</a>
       </li>
     
@@ -4825,10 +4911,6 @@ wouldn&rsquo;t need compound literals or address of operators.</p>
     
       <li class="post">
         <a href="/blog/2016/11/20/static-and-dynamic-libraries/">Static and Dynamic Libraries</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>
       </li>
     
   </ul>
@@ -4873,7 +4955,7 @@ wouldn&rsquo;t need compound literals or address of operators.</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2017 - Nick Desaulniers -
+  Copyright &copy; 2018 - Nick Desaulniers -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

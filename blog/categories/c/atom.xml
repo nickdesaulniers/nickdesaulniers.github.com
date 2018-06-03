@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: C | Nick Desaulniers]]></title>
+  <title><![CDATA[Category: C, | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/c/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2017-11-04T15:09:18-07:00</updated>
+  <updated>2018-06-02T18:11:54-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -14,1339 +14,139 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Static and Dynamic Libraries]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/"/>
-    <updated>2016-11-20T23:55:00-08:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries</id>
-    <content type="html"><![CDATA[<p>This is the second post in a series on memory segmentation.  It covers working
-with static and dynamic libraries in Linux and OSX.  Make sure to check out the
-<a href="/blog/2016/08/13/object-files-and-symbols/">first on object files and symbols</a>.</p>
-
-<p>Let’s say we wanted to reuse some of the code from our previous project in our
-next one.  We could continue to copy around object files, but let’s say we have
-a bunch and it’s hard to keep track of all of them.  Let’s combine multiple
-object files into an archive or static library.  Similar to a more conventional
-zip file or &ldquo;compressed archive,&rdquo; our static library will be an uncompressed
-archive.</p>
-
-<p>We can use the <code>ar</code> command to create and manipulate a static archive.</p>
-
-<p><code>sh
-$ clang -c x.c y.c
-$ ar -rv libhello.a x.o y.o
-</code></p>
-
-<p>The <code>-r</code> flag will create the archive named <code>libhello.a</code> and add the files
-<code>x.o</code> and <code>y.o</code> to its index.  I like to add the <code>-v</code> flag for verbose output.
-Then we can use the familiar <code>nm</code> tool I introduced in the
-<a href="/blog/2016/08/13/object-files-and-symbols/">previous post</a>
-to examine the content of the archives and their symbols.</p>
-
-<p>```sh
-$ file libhello.a
-libhello.a: current ar archive random library
-$ nm libhello.a
-libhello.a(x.o):</p>
-
-<pre><code>             U _puts
-</code></pre>
-
-<p>0000000000000000 T _x</p>
-
-<p>libhello.a(y.o):</p>
-
-<pre><code>             U _puts
-</code></pre>
-
-<p>0000000000000000 T _y
-```</p>
-
-<p>Some other useful flags for <code>ar</code> are <code>-d</code> to delete an object file, ex. <code>ar -d
-libhello.a y.o</code> and <code>-u</code> to update existing members of the archive when their
-source and object files are updated.  Not only can we run <code>nm</code> on our archive,
-<code>otool</code> and <code>objdump</code> both work.</p>
-
-<p>Now that we have our static library, we can statically link it to our program
-and see the resulting symbols.  The <code>.a</code> suffix is typical on both OSX and
-Linux for archive files.</p>
-
-<p>```sh
-$ clang main.o libhello.a
-$ nm a.out
-0000000100000f30 T _main</p>
-
-<pre><code>             U _puts
-</code></pre>
-
-<p>0000000100000f50 T <em>x
-0000000100000f70 T </em>y
-```</p>
-
-<p>Our compiler understands how to index into archive files and pull out the
-functions it needs to combine into the final executable.  If we use a static
-library to statically link all functions required, we can have one binary with
-no dependencies.  This can make deployment of binaries simple, but also greatly
-increase their size.  Upgrading large binaries incrementally becomes more
-costly in terms of space.</p>
-
-<p>While static libraries allowed us to reuse source code, static linkage does not
-allow us to reuse memory for executable code between different processes.  I
-really want to put off talking about memory benefits until the next post, but
-know that the solution to this problem lies in &ldquo;dynamic libraries.&rdquo;</p>
-
-<p>While having a single binary file keeps things simple, it can really hamper
-memory sharing and incremental relinking.  For example, if you have multiple
-executables that are all built with the same static library, unless your OS is
-really smart about copy-on-write page sharing, then you’re likely loading
-multiple copies of the same exact code into memory! What a waste!  Also, when
-you want to rebuild or update your binary, you spend time performing relocation
-again and again with static libraries.  What if we could set aside object files
-that we could share amongst multiple instances of the same or even different
-processes, and perform relocation at runtime?</p>
-
-<p>The solution is known as dynamic libraries.  If static libraries and static
-linkage were Atari controllers, dynamic libraries and dynamic linkage are Steel
-Battalion controllers.  We’ll show how to work with them in the rest of this
-post, but I’ll prove how memory is saved in a later post.</p>
-
-<p>Let’s say we want to created a shared version of libhello.  Dynamic libraries
-typically have different suffixes per OS since each OS has it’s preferred
-object file format.  On Linux the .so suffix is common, .dylib on OSX, and .dll
-on Windows.</p>
-
-<p>```sh
-$ clang -shared -fpic x.c y.c -o libhello.dylib
-$ file libhello.dylib
-libhello.dylib: Mach-O 64-bit dynamically linked shared library x86_64
-$ nm libhello.dylib</p>
-
-<pre><code>             U _puts
-</code></pre>
-
-<p>0000000000000f50 T <em>x
-0000000000000f70 T </em>y
-```</p>
-
-<p>The <code>-shared</code> flag tells the linker to create a special file called a shared
-library.  The <code>-fpic</code> option converts absolute addresses to relative addresses,
-which allows for different processes to load the library at different virtual
-addresses and share memory.</p>
-
-<p>Now that we have our shared library, let’s dynamically link it into our
-executable.</p>
-
-<p><code>sh
-$ clang main.c libhello.dylib
-$ ./a.out
-x
-y
-</code></p>
-
-<p>The dynamic linker essential produces an incomplete binary.  You can verify
-with <code>nm</code>.  At runtime, we’ll delay start up to perform some memory mapping
-early on in the process start (performed by the dynamic linker) and pay slight
-costs for trampolining into position independent code.</p>
-
-<p>Let’s say we want to know what dynamic libraries a binary is using.  You can
-either query the executable (most executable object file formats contain a
-header the dynamic linker will parse and pull in libs) or observe the
-executable while running it.  Because each major OS has its own object file
-format, they each have their own tools for these two checks.  Note that
-statically linked libraries won’t show up here, since their object code has
-already been linked in and thus we’re not able to differentiate between object
-code that came from our first party code vs third party static libraries.</p>
-
-<p>On OSX, we can use <code>otool -L &lt;bin&gt;</code> to check which .dylibs will get pulled in.</p>
-
-<p>```sh
-$ otool -L a.out
-a.out:</p>
-
-<pre><code>       libhello.dylib (compatibility version 0.0.0, current version 0.0.0)
-       /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1226.10.1)
-</code></pre>
-
-<p>```</p>
-
-<p>So we can see that <code>a.out</code> depends on <code>libhello.dylib</code> (and expects to find it
-in the same directory as <code>a.out</code>).  It also depends on shared library called
-libSystem.B.dylib.  If you run <code>otool -L</code> on libSystem itself, you’ll see it
-depends on a bunch of other libraries including a C runtime, malloc
-implementation, pthreads implementation, and more.  Let’s say you want to find
-the final resting place of where a symbol is defined, without digging with <code>nm</code>
-and <code>otool</code>, you can fire up your trusty debugger and ask it.</p>
-
-<p>```sh
-$ lldb a.out
-&hellip;
-(lldb) image lookup -r -s puts
-&hellip;</p>
-
-<pre><code>    Summary: libsystem_c.dylib`puts        Address: libsystem_c.dylib[0x0000000000085c30] (libsystem_c.dylib.__TEXT.__stubs + 3216)
-</code></pre>
-
-<p>```</p>
-
-<p>You’ll see a lot of output since <code>puts</code> is treated as a regex.  You’re looking
-for the Summary line that has an address and is <strong>not</strong> a symbol stub.  You can
-then check your work with <code>otool</code> and <code>nm</code>.</p>
-
-<p>If we want to observe the dynamic linker in action on OSX, we can use <code>dtruss</code>:</p>
-
-<p><code>sh
-$ sudo dtruss ./a.out
-...
-stat64("libhello.dylib\0", 0x7FFF50CEAC68, 0x1)         = 0 0
-open("libhello.dylib\0", 0x0, 0x0)              = 3 0
-...
-mmap(0x10EF27000, 0x1000, 0x5, 0x12, 0x3, 0x0)          = 0x10EF27000 0
-mmap(0x10EF28000, 0x1000, 0x3, 0x12, 0x3, 0x1000)               = 0x10EF28000 0
-mmap(0x10EF29000, 0xC0, 0x1, 0x12, 0x3, 0x2000)         = 0x10EF29000 0
-...
-close(0x3)              = 0 0
-...
-</code></p>
-
-<p>On Linux, we can simply use <code>ldd</code> or <code>readelf -d</code> to query an executable for a
-list of its dynamic libraries.</p>
-
-<p>```sh
-$ clang -shared -fpic x.c y.c -o libhello.so
-$ clang main.c libhello.so
-$ ldd a.out</p>
-
-<pre><code>       linux-vdso.so.1 =&gt;  (0x00007fff95d43000)
-       libhello.so =&gt; not found
-       libc.so.6 =&gt; /lib/x86_64-linux-gnu/libc.so.6 (0x00007fcc98c5f000)
-       /lib64/ld-linux-x86-64.so.2 (0x0000555993852000)
-</code></pre>
-
-<p>$ readelf -d a.out
-Dynamic section at offset 0xe18 contains 25 entries:
-  Tag        Type                         Name/Value
- 0x0000000000000001 (NEEDED)             Shared library: [libhello.so]
- 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
-&hellip;
-```</p>
-
-<p>We can then use <code>strace</code> to observe the dynamic linker in action on Linux:</p>
-
-<p><code>sh
-$ LD_LIBRARY_PATH=. strace ./a.out
-...
-open("./libhello.so", O_RDONLY|O_CLOEXEC) = 3
-...
-read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0&gt;\0\1\0\0\0\260\5\0\0\0\0\0\0"..., 832) = 832
-fstat(3, {st_mode=S_IFREG|0755, st_size=8216, ...}) = 0
-close(3)                                = 0
-...
-</code></p>
-
-<p>What’s this <code>LD_LIBRARY_PATH</code> thing?  That’s shell syntax for setting an
-environmental variable just for the duration of that command (as opposed to
-exporting it so it stays set for multiple commands).  As opposed to OSX’s
-dynamic linker, which was happy to look in the cwd for libhello.dylib, on Linux
-we must supply the cwd if the dynamic library we want to link in is not in the
-standard search path.</p>
-
-<p>But what is the standard search path?  Well, there’s another environmental
-variable we can set to see this, <code>LD_DEBUG</code>.  For example, on OSX:</p>
-
-<p>```sh
-$ LD_DEBUG=libs LD_LIBRARY_PATH=. ./a.out</p>
-
-<pre><code> 15828:        find library=libhello.so [0]; searching
- 15828:         search path=./tls/x86_64:./tls:./x86_64:.             (LD_LIBRARY_PATH)
- 15828:          trying file=./tls/x86_64/libhello.so
- 15828:          trying file=./tls/libhello.so
- 15828:          trying file=./x86_64/libhello.so
- 15828:          trying file=./libhello.so
- 15828:
- 15828:        find library=libc.so.6 [0]; searching
- 15828:         search path=./tls/x86_64:./tls:./x86_64:.             (LD_LIBRARY_PATH)
- 15828:          trying file=./tls/x86_64/libc.so.6
- 1earc:          trying file=./tls/libc.so.6
- 15828:          trying file=./x86_64/libc.so.6
- 15828:          trying file=./libc.so.6
- 15828:         search cache=/etc/ld.so.cache
- 15828:          trying file=/lib/x86_64-linux-gnu/libc.so.6
- 15828:        calling init: /lib/x86_64-linux-gnu/libc.so.6
- 15828:        calling init: ./libhello.so
- 15828:        initialize program: ./a.out
- 15828:        transferring control: ./a.out
-</code></pre>
-
-<p>x
-y</p>
-
-<pre><code> 15828:        calling fini: ./a.out [0]
- 15828:        calling fini: ./libhello.so [0]
-</code></pre>
-
-<p>```</p>
-
-<p><code>LD_DEBUG</code> is pretty useful.  Try:</p>
-
-<p>```sh
-$ LD_DEBUG=help ./a.out
-Valid options for the LD_DEBUG environment variable are:</p>
-
-<p>  libs        display library search paths
-  reloc       display relocation processing
-  files       display progress for input file
-  symbols     display symbol table processing
-  bindings    display information about symbol binding
-  versions    display version dependencies
-  scopes      display scope information
-  all         all previous options combined
-  statistics  display relocation statistics
-  unused      determined unused DSOs
-  help        display this help message and exit</p>
-
-<p>To direct the debugging output into a file instead of standard output
-a filename can be specified using the LD_DEBUG_OUTPUT environment variable.
-<code>``
-For some cool stuff, I recommend checking out</code>LD_DEBUG=symbols<code>and
-</code>LD_DEBUG=statistics`.</p>
-
-<p>Going back to <code>LD_LIBRARY_PATH</code>, usually libraries you create and want to reuse
-between projects go into /usr/local/lib and the headers into
-/usr/local/include.  I think of the convention as:</p>
-
-<p>```sh
-$ tree -L 2 /usr/
-/usr
-├── bin # system installed binaries like nm, gcc
-├── include # system installed headers like stdio.h
-├── lib # system installed libraries, both static and dynamic
-└── local</p>
-
-<pre><code>├── bin # user installed binaries like rustc
-├── include # user installed headers
-└── lib # user installed
-</code></pre>
-
-<p>```</p>
-
-<p>Unfortunately, it’s a loose convention that’s broken down over the years and
-things are scattered all over the place.  You can also run into dependency and
-versioning issues, that I don’t want to get into here, by placing libraries
-here instead of keeping them in-tree or out-of-tree of the source code of a
-project.  Just know when you see a library like <code>libc.so.6</code> that the numeric
-suffix is a major version number that follows semantic versioning.  For more
-information, you should read Michael Kerrisk’s excellent book <em>The Linux
-Programming Interface</em>.  This post is based on his chapter’s 41 &amp; 42 (but with
-more info on tooling and OSX).</p>
-
-<p>If we were to place our libhello.so into /usr/local/lib (on Linux you need to
-then run <code>sudo ldconfig</code>) and move x.h and y.h to /usr/local/include, then we
-could then compile with:</p>
-
-<p><code>sh
-$ clang main.c -lhello
-</code></p>
-
-<p>Note that rather than give a full path to our library, we can use the <code>-l</code> flag
-followed by the name of our library with the lib prefix and .so suffix removed.</p>
-
-<p>When working with shared libraries and external code, three flags I use pretty
-often:</p>
-
-<p><code>
-* -l&lt;libname to link, no lib prefix or file extension; ex: -lnanomsg to link libnanomsg.so&gt;
-* -L &lt;path to search for lib if in non standard directory&gt;
-* -I &lt;path to headers for that library, if in non standard directory&gt;
-</code></p>
-
-<p>For finding specific flags needed for compilation where dynamic linkage is
-required, a tool called <code>pkg-config</code> can be used for finding appropriate flags.
-I’ve had less than stellar experiences with the tool as it puts the onus on the
-library author to maintain the .pc files, and the user to have them installed
-in the right place that <code>pkg-config</code> looks.  When they do exist and are
-installed properly, the tool works well:</p>
-
-<p><code>sh
-$ sudo apt-get install libpng12-dev
-$ pkg-config --libs --cflags libpng12
--I/usr/include/libpng12  -lpng12
-$ clang program.c `!!`
-</code></p>
-
-<p>Using another neat environmental variable, we can hook into the dynamic linkage
-process and inject our own shared libraries to be linked instead of the
-expected libraries.  Let’s say libgood.so and libmalicous.so both define a
-symbol for a function (the same symbol name and function signature).  We can
-get a binary that links in libgood.so’s function to instead call
-libmalicous.so’s version:</p>
-
-<p><code>sh
-$ ./a.out
-hello from libgood
-$ LD_PRELOAD=./libmalicious.so ./a.out
-hello from libmalicious
-</code></p>
-
-<p>LD_PRELOAD is not available on OSX, instead you can use
-<code>DYLD_INSERT_LIBRARIES</code>, <code>DYLD_LIBRARY_PATH</code>, and recompile the original
-executable with <code>-flat_namespace</code>. Having to recompile the original executable
-is less than ideal for hooking an existing binary, but I could not hook libc
-as in the previous libmalicious example.  I would be interested to know if you
-can though!</p>
-
-<p>Manually invoking the dynamic linker from our code,
-<a href="https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs/">we can even man in the middle library calls (call our hooked function first, then invoke the original target)</a>.
-We’ll see more of this in the next post on using the dynamic linker.</p>
-
-<p>As you can guess, readjusting the search paths for dynamic libraries is a
-security concern as it let’s good and bad folks change the expected execution
-paths.  Guarding against the use of these env vars becomes a rabbit hole that
-gets pretty tricky to solve without the heavy handed use of statically linking
-dependencies.</p>
-
-<p>In the the previous post, I alluded to undefined symbols like <code>puts</code>.  <code>puts</code>
-is part of libc, which is probably the most shared dynamic library on most
-computing devices since most every program makes use of the C runtime.  (I
-think of a “runtime” as implicit code that runs in your program that you didn’t
-necessarily write yourself.  Usually a runtime is provided as a library that
-gets implicitly linked into your executable when you compile.)  You can
-statically link against libc with the <code>-static</code> flag, on Linux at least (OSX
-makes this difficult,
-<a href="https://developer.apple.com/library/content/qa/qa1118/_index.html">&ldquo;Apple does not support statically linked binaries on Mac OS X&rdquo;</a>).</p>
-
-<p>I’m not sure what the benefit would be to mixing static and dynamic linking,
-but after searching the search paths from LD_DEBUG=libs for shared versions of
-a library, if any static ones are found, they will get linked in.</p>
-
-<p>There’s also an interesting form of library called a &ldquo;virtual dynamic shared
-object&rdquo; on Linux.  I haven’t covered memory mapping yet, but know it exists, is
-usually hidden for libc, and that you can read more about it via <code>man 7 vdso</code>.</p>
-
-<p>One thing I find interesting and don’t quite understand how to recreate is that
-somehow glibc on Linux is also executable:</p>
-
-<p>```sh
-$ /lib/x86_64-linux-gnu/libc.so.6
-GNU C Library (Ubuntu GLIBC 2.24-3ubuntu1) stable release version 2.24, by Roland McGrath et al.
-Copyright &copy; 2016 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.
-There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.
-Compiled by GNU CC version 6.2.0 20161005.
-Available extensions:</p>
-
-<pre><code>crypt add-on version 2.1 by Michael Glad and others
-GNU Libidn by Simon Josefsson
-Native POSIX Threads Library by Ulrich Drepper et al
-BIND-8.2.3-T5B
-</code></pre>
-
-<p>libc ABIs: UNIQUE IFUNC
-For bug reporting instructions, please see:
-<a href="https://bugs.launchpad.net/ubuntu/+source/glibc/+bugs">https://bugs.launchpad.net/ubuntu/+source/glibc/+bugs</a>.
-```</p>
-
-<p>Also, note that linking against third party code has licensing implications (of
-course) of particular interest when it’s GPL or LGPL.
-<a href="http://stackoverflow.com/a/10179181/1027966">Here is a good overview</a>
-which I’d summarize as: code that <em>statically</em> links against LGPL code must
-also be LGPL, while any form of linkage against GPL code must be GPL’d.</p>
-
-<p>Ok, that was a lot. In the previous post, we covered
-<a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>.
-In this post we covered hacking around with static and dynamic linkage.  In the
-next post, I hope to talk about manually invoking the dynamic linker at
-runtime.</p>
-
-<ul>
-<li><a href="/blog/2016/08/13/object-files-and-symbols/">Part 1 &ndash; Object Files and Symbols</a></li>
-<li><a href="/blog/2016/11/20/static-and-dynamic-libraries/">Part 2 &ndash; Static and Dynamic Libraries</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Object Files and Symbols]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/"/>
-    <updated>2016-08-13T20:46:00-07:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols</id>
-    <content type="html"><![CDATA[<p>What was supposed to be one blog post about memory segmentation turned into
-what will be a series of posts.  As the first in the series, we cover the
-extreme basics of object files and symbols.  In follow up posts, I
-plan to talk about
-<a href="/blog/2016/11/20/static-and-dynamic-libraries/">static libraries, dynamic libraries,</a>
-dynamic linkage, memory segments, and finally memory usage accounting.  I also
-cover command line tools for working with these notions, both in Linux and OSX.</p>
-
-<p>A quick review of the compilation+execution pipeline (for terminology):</p>
-
-<ol>
-<li>Lexing produces tokens</li>
-<li>Parsing produces an abstract syntax tree</li>
-<li>Analysis produces a code flow graph</li>
-<li>Optimization produces a reduced code flow graph</li>
-<li>Code gen produces object code</li>
-<li>Linkage produces a complete executable</li>
-<li>Loader instructs the OS how to start running the executable</li>
-</ol>
-
-
-<p>This series will focus on part #6.</p>
-
-<p>Let&rsquo;s say you have some amazing C/C++ code,  but for separations of concerns,
-you want to start moving it out into separate source files.  Whereas previously
-in one file you had:</p>
-
-<p>```c
-// main.c</p>
-
-<h1>include &lt;stdio.h></h1>
-
-<p>void helper () {
-  puts(&ldquo;helper&rdquo;);
-}
-int main () {
-  helper();
-}
-```</p>
-
-<p>You now have two source files and maybe a header:</p>
-
-<p>```c
-// main.c</p>
-
-<h1>include &ldquo;helper.h&rdquo;</h1>
-
-<p>int main () {
-  helper();
-}</p>
-
-<p>// helper.h
-void helper();</p>
-
-<p>//helper.c</p>
-
-<h1>include &lt;stdio.h></h1>
-
-<h1>include &ldquo;helper.h&rdquo;</h1>
-
-<p>void helper () {
-  puts(&ldquo;helper&rdquo;);
-}
-```</p>
-
-<p>In the single source version, we would have compiled and linked that with
-<code>clang main.c</code> and had an executable file.  In the multiple source version, we
-first compile our source files to object files, then link them altogether.
-That can be done separately:</p>
-
-<p><code>sh
-$ clang -c helper.c     # produces helper.o
-$ clang -c main.c       # produces main.o
-$ clang main.o helper.o # produces a.out
-</code></p>
-
-<p>We can also do the compilation and linkage in one step:</p>
-
-<p><code>sh
-$ clang helper.c main.c # produces a.out
-</code></p>
-
-<p>Nothing special thus far; C/C++ 101.  In the first case of separate compilation
-and linkage steps, we were left with intermediate object files (.o).  What
-exactly are these?</p>
-
-<p><a href="https://en.wikipedia.org/wiki/Object_file">Object files</a>
-are almost full executables.  They contain machine code, but that code still
-requires a relocation step.  It also contains metadata about the addresses of
-its variables and functions (called symbols) in an associative data structure
-called a
-<a href="https://en.wikipedia.org/wiki/Symbol_table">symbol table</a>.
-The addresses may not be the final address of the symbol in the final
-executable. They also contain some information for the loader and probably some
-other stuff.</p>
-
-<p>Remember that if we fail to specify the helper object file, we&rsquo;ll get an
-undefined symbol error.</p>
-
-<p>```sh
-$ clang main.c
-Undefined symbols for architecture x86_64:
-  &ldquo;_helper&rdquo;, referenced from:</p>
-
-<pre><code>  _main in main-459dde.o
-</code></pre>
-
-<p>ld: symbol(s) not found for architecture x86_64
-clang: error: linker command failed with exit code 1 (use -v to see invocation)
-```</p>
-
-<p>The problem is main.o refers to some symbol called <code>helper</code>, but on it&rsquo;s own
-doesn&rsquo;t contain any more information about it.  Let&rsquo;s say we want to know what
-symbols an object file contains, or expects to find elsewhere.  Let&rsquo;s introduce
-our first tool, <code>nm</code>.  <code>nm</code> will print the name list or symbol table for a
-given object or executable file.  On OSX, these are prefixed with an
-underscore.</p>
-
-<p>```sh
-$ nm helper.o
-0000000000000000 T _helper</p>
-
-<pre><code>             U _puts
-</code></pre>
-
-<p>$ nm main.o</p>
-
-<pre><code>             U _helper
-</code></pre>
-
-<p>0000000000000000 T _main</p>
-
-<p>$ nm a.out
-&hellip;
-0000000100000f50 T <em>helper
-0000000100000f70 T </em>main</p>
-
-<pre><code>             U _puts
-</code></pre>
-
-<p>&hellip;
-```</p>
-
-<p>Let&rsquo;s dissect what&rsquo;s going on here.  The output (as understood by <code>man 1 nm</code>)
-is a space separated list of address, type, and symbol name.  We can see that
-the addresses are placeholders in object files, and final in executables.  The
-name should make sense; it&rsquo;s the name of the function or variable.  While I&rsquo;d
-love to get in depth on the various symbol types and talk about sections, I
-don&rsquo;t think I could do as great a job as Peter Van Der Linden in his book
-&ldquo;Expert C Programming: Deep C Secrets.&rdquo;</p>
-
-<p>For our case, we just care about whether the symbol in a given object file is
-defined or not.  The type U (undefined) means that this symbol is referenced or
-used in this object code/executable, but it&rsquo;s value wasn&rsquo;t defined here.
-When we compiled main.c alone and got the undefined symbol error, it should now
-make sense why we got the undefined symbol error for helper.  main.o contains
-a symbol for main, and references helper.  helper.o contains a symbol for
-helper, and references to puts.  The final executable contains symbols for main
-and helper and references to puts.</p>
-
-<p>You might be wondering where puts comes from then, and why didn&rsquo;t we get an
-undefined symbol error for puts like we did earlier for helper.  The answer is
-the C runtime.  libc is implicitly dynamically linked to all executables
-created by the C compiler.  We&rsquo;ll cover dynamic linkage in a later post in
-this series.</p>
-
-<p>When the linker performs relocation on the object files, combining them into a
-final executable, it goes through placeholders of addresses and fills them in.
-We did this manually in our post on
-<a href="/blog/2015/05/25/interpreter-compiler-jit/">JIT compilers</a>.</p>
-
-<p>While <code>nm</code> gave us a look into our symbol table, two other tools I use
-frequently are <code>objdump</code> on Linux and <code>otool</code> on OSX.  Both of these provide
-disassembled assembly instructions and their addresses.  Note how the symbols
-for functions get translated into labels of the disassembled functions, and
-that their address points to the first instruction in that label.  Since I&rsquo;ve
-shown <code>objdump</code>
-<a href="/blog/2013/04/03/basic-jit/">numerous times</a>
-in
-<a href="/blog/2014/04/18/lets-write-some-x86-64/">previous posts</a>,
-here&rsquo;s <code>otool</code>.</p>
-
-<p><code>sh
-$ otool -tV helper.o
-helper.o:
-(__TEXT,__text) section
-_helper:
-0000000000000000    pushq    %rbp
-0000000000000001    movq    %rsp, %rbp
-0000000000000004    subq    $0x10, %rsp
-0000000000000008    leaq    0xe(%rip), %rdi         ## literal pool for: "helper"
-000000000000000f    callq    _puts
-0000000000000014    movl    %eax, -0x4(%rbp)
-0000000000000017    addq    $0x10, %rsp
-000000000000001b    popq    %rbp
-000000000000001c    retq
-$ otool -tV main.o
-main.o:
-(__TEXT,__text) section
-_main:
-0000000000000000    pushq    %rbp
-0000000000000001    movq    %rsp, %rbp
-0000000000000004    movb    $0x0, %al
-0000000000000006    callq    _helper
-000000000000000b    xorl    %eax, %eax
-000000000000000d    popq    %rbp
-000000000000000e    retq
-$ otool -tV a.out
-a.out:
-(__TEXT,__text) section
-_helper:
-0000000100000f50    pushq    %rbp
-0000000100000f51    movq    %rsp, %rbp
-0000000100000f54    subq    $0x10, %rsp
-0000000100000f58    leaq    0x43(%rip), %rdi        ## literal pool for: "helper"
-0000000100000f5f    callq    0x100000f80             ## symbol stub for: _puts
-0000000100000f64    movl    %eax, -0x4(%rbp)
-0000000100000f67    addq    $0x10, %rsp
-0000000100000f6b    popq    %rbp
-0000000100000f6c    retq
-0000000100000f6d    nop
-0000000100000f6e    nop
-0000000100000f6f    nop
-_main:
-0000000100000f70    pushq    %rbp
-0000000100000f71    movq    %rsp, %rbp
-0000000100000f74    movb    $0x0, %al
-0000000100000f76    callq    _helper
-0000000100000f7b    xorl    %eax, %eax
-0000000100000f7d    popq    %rbp
-0000000100000f7e    retq
-</code></p>
-
-<p><code>readelf -s &lt;object file&gt;</code> will give us a list of symbols on Linux.
-<a href="https://en.wikipedia.org/wiki/Executable_and_Linkable_Format">ELF</a>
-is the file format used by the loader on Linux, while OSX uses
-<a href="https://en.wikipedia.org/wiki/Mach-O">Mach-O</a>.
-Thus <code>readelf</code> and <code>otool</code>, respectively.</p>
-
-<p>Also note that for static linkage, symbols need to be unique*, as they refer to
-memory locations to either read/write to in the case of variables or locations
-to jump to in the case of functions.</p>
-
-<p>```sh
-$ cat double_define.c
-void a () {}
-void a () {}
-int main () {}
-$ clang double_define.c
-double_define.c:2:6: error: redefinition of &lsquo;a&rsquo;
-void a () {}</p>
-
-<pre><code> ^
-</code></pre>
-
-<p>double_define.c:1:6: note: previous definition is here
-void a () {}</p>
-
-<pre><code> ^
-</code></pre>
-
-<p>1 error generated.
-```</p>
-
-<p>*: there&rsquo;s a notion of weak symbols, and some special things for dynamic
-libraries we&rsquo;ll see in a follow up post.</p>
-
-<p>Languages like C++ that support function overloading (functions with the same
-name but different arguments, return types, namespaces, or class) must mangle
-their function names to make them unique.</p>
-
-<p>Code like:
-```c++
-namespace util {
-  class Widget {</p>
-
-<pre><code>public:
-  void doSomething (bool save);
-  void doSomething (int n);
-</code></pre>
-
-<p>  };
-}
-<code>
-Will produce symbols like:
-</code>sh
-$ clang class.cpp -std=c++11
-$ nm a.out
-0000000100000f70 T <strong>ZN4util6Widget11doSomethingEb
-0000000100000f60 T </strong>ZN4util6Widget11doSomethingEi
-&hellip;
-<code>
-Note: GNU `nm` on Linux distros will have a `--demangle` option:
-</code>sh
-$ nm &mdash;demangle a.out
-&hellip;
-00000000004006d0 T util::Widget::doSomething(bool)
-00000000004006a0 T util::Widget::doSomething(int)
-&hellip;
-<code>
-On OSX, we can pipe `nm` into `c++filt`:
-</code>sh
-$ nm a.out | c++filt
-0000000100000f70 T util::Widget::doSomething(bool)
-0000000100000f60 T util::Widget::doSomething(int)
-&hellip;
-<code>``
-Finally, if you don't have an object file, but instead a backtrace that needs
-demangling, you can either invoke</code>c++filt` manually or use
-<a href="http://demangler.com/">demangler.com</a>.</p>
-
-<p>Rust also mangles its function names.  For FFI or interface with C functions,
-other languages usually have to look for or expose symbols in a manner suited
-to C, the lowest common denominator.
-<a href="http://en.cppreference.com/w/cpp/language/language_linkage">C++</a>
-has <code>extern "C"</code> blocks and
-<a href="https://doc.rust-lang.org/book/ffi.html">Rust</a>
-has <code>extern</code> blocks.</p>
-
-<p>We can use <code>strip</code> to remove symbols from a binary.  This can slim down a
-binary at the cost of making stack traces unreadable.  If you&rsquo;re following
-along at home, try comparing the output from your disassembler and <code>nm</code> before
-and after running <code>strip</code> on the executable.  Luckily, you can&rsquo;t strip the
-symbols out of object files, otherwise they&rsquo;d be useless as you&rsquo;d no longer be
-able to link them.</p>
-
-<p>If we compile with the <code>-g</code> flag, we can create a different kind of symbol;
-<a href="https://en.wikipedia.org/wiki/Debug_symbol">debug symbols</a>.
-Depending on your compiler+host OS, you&rsquo;ll get another file you can run through
-<code>nm</code> to see an entry per symbol.  You&rsquo;ll get more info by using <code>dwarfdump</code> on
-this file.  Debug symbols will retain source information such as filename and
-line number for all symbols.</p>
-
-<p>This post should have been a simple refresher of some of the basics of working
-with C code. Finding symbols to be placed into a final executable and
-relocating addresses are the main job of the linker, and will be the main theme
-of the posts in this series. Keep your eyes out for more in this series on
-memory segmentation.</p>
-
-<ul>
-<li><a href="/blog/2016/08/13/object-files-and-symbols/">Part 1 &ndash; Object Files and Symbols</a></li>
-<li><a href="/blog/2016/11/20/static-and-dynamic-libraries/">Part 2 &ndash; Static and Dynamic Libraries</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Cross Compiling C/C++ for Android]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2016/07/01/android-cli/"/>
-    <updated>2016-07-01T22:42:00-07:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2016/07/01/android-cli</id>
-    <content type="html"><![CDATA[<p>Let’s say you want to build a hello world command line application in C or C++
-and run it on your Android phone.  How would you go about it?  It’s not super
-practical; apps visible and distributable to end users must use the framework
-(AFAIK), but for folks looking to get into developing on ARM it’s likely they
-have an ARM device in their pocket.</p>
-
-<p>This post is for folks who typically invoke their compiler from the command
-line, either explicitly, from build scripts, or other forms of automation.</p>
-
-<p>At
-<a href="https://twitter.com/LostOracle/status/697859368226697218">work</a>,
-when working on Android, we typically checkout the entire Android source code
-(<a href="https://twitter.com/LostOracle/status/702569487531249664">which is huge</a>),
-use <code>lunch</code> to configure a ton of environmental variables, then use Makefiles
-with lots of includes and special vars.  We don’t want to spend the time and
-disk space checking out the Android source code just to have a working cross
-compiler.  Luckily, the Android tools team has an excellent utility to grab a
-prebuilt cross compiler.</p>
-
-<p>This assumes you’re building from a Linux host.  Android is a distribution of
-Linux, which is much easier to target from a Linux host.  At home, I’ll usually
-develop on my OSX machine, ssh’d into my headless Linux box. (iTerm2 and tmux
-both have exclusive features, but I currently prefer iTerm2.)</p>
-
-<p>The first thing we want to do is fetch the
-<a href="https://developer.android.com/ndk/downloads/index.html">Android NDK</a>.
-Not the SDK, the NDK.</p>
-
-<p><code>sh
-➜  ~ curl -O \
-  http://dl.google.com/android/repository/android-ndk-r12b-linux-x86_64.zip
-➜  ~ unzip android-ndk-r12b-linux-x86_64.zip
-</code></p>
-
-<p>It would be helpful to install adb and fastboot, too.  This might be different
-for your distro’s package manager.  Better yet may be to just build from
-source.</p>
-
-<p><code>sh
-➜  ~ sudo apt-get install android-tools-adb android-tools-fastboot
-</code></p>
-
-<p>Now for you Android device that you want to target, you’ll want to know the
-ISA.  Let’s say I want to target my Nexus 6P, which has an ARMv8-A ISA (the
-first 64b ARM ISA).</p>
-
-<p><code>sh
-➜  ~ ./android-ndk-r12b/build/tools/make_standalone_toolchain.py --arch arm64 \
-  --install-dir ~/arm
-</code></p>
-
-<p>This will create a nice standalone bundle in <code>~/arm</code>.  It will contain our
-cross compiler, linker, headers, libs, and
-<a href="https://twitter.com/LostOracle/status/749297676223598592">sysroot (crt.o and friends)</a>.
-Most Android devices are ARMv7-A, so you’d use <code>--arch arm</code>.  See the other
-supported architectures for cross compiling under
-<a href="https://developer.android.com/ndk/guides/standalone_toolchain.html#itc">table 4</a>.</p>
-
-<p>You might also want to change your install-dir and possible add it to your
-<code>$PATH</code>, or set <code>$CC</code> and <code>$CXX</code>.</p>
-
-<p>Now we can compile <code>hello_world.c</code>.</p>
-
-<p>```sh
-➜  ~ cat hello_world.c</p>
-
-<h1>include &lt;stdio.h></h1>
-
-<p>int main () {
-  puts(&ldquo;hello world&rdquo;);
-}</p>
-
-<p>➜  ~ ~/arm/bin/clang -pie hello_world.c
-➜  ~ file a.out
-a.out: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically
-linked, interpreter /system/bin/linker64,
-BuildID[sha1]=ecc46648cf2c873253b3b522c0d14b91cf17c70f, not stripped
-```</p>
-
-<p><a href="http://stackoverflow.com/a/30547603">Since Android Lollipop</a>,
-Android has required that executables be linked as
-position independent (<code>-pie</code>) to help provide
-<a href="https://en.wikipedia.org/wiki/Address_space_layout_randomization#Android">ASLR</a>.</p>
-
-<p><code>&lt;install-dir&gt;/bin/</code> also has shell scripts with more full featured names like
-<code>aarch64-linux-android-clang</code> if you prefer to have clearer named executables
-in your $PATH.</p>
-
-<p>Connect your phone, enable remote debugging, and accept the prompt for remote
-debugging.</p>
-
-<p><code>sh
-➜  ~ adb push a.out /data/local/tmp/.
-➜  ~ adb shell "./data/local/tmp/a.out"
-hello world
-</code></p>
-
-<p>We’ll use this toolchain in a follow post to start writing some ARMv8-A
-assembly.  Stay tuned.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Data Models and Word Size]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/"/>
-    <updated>2016-05-30T12:54:00-07:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size</id>
-    <content type="html"><![CDATA[<p><em>This post is a follow up to
-<a href="/blog/2016/05/15/whats-in-a-word/">my previous blog post about word size</a>.</em></p>
-
-<p>Three C/C++ programmers walk into a bar.  One argues that sizeof(void*) is
-equivalent to sizeof(long), one argues that sizeof(void*) is equivalent to
-sizeof(int), and the third argues it’s sizeof(long long).  Simultaneously,
-they’re all right, but they’re also all wrong (and need a lesson about portable
-C code).  What the hell is going on?</p>
-
-<p>One of the first few programs a programmer might write after hello world is
-something like this:</p>
-
-<p>```c</p>
-
-<h1>include &lt;stdio.h></h1>
-
-<p>int main () {
-  printf(&ldquo;sizeof(int): %zu\n&rdquo;, sizeof(int));
-  printf(&ldquo;sizeof(long): %zu\n&rdquo;, sizeof(long));
-  printf(&ldquo;sizeof(long long): %zu\n&rdquo;, sizeof(long long));
-  printf(&ldquo;sizeof(void<em>): %zu\n&rdquo;, sizeof(void</em>));
-}
-```</p>
-
-<p><em>Note the use of the %zu format specifier, a C99 addition that isn’t portable to
-older compilers!  (This post is more about considerations when porting older
-code to newer machines, not about porting newer code to run on older machines.
-Not having a standards compliant C compiler makes writing more portable C code
-even trickier, and is a subject for another blog post).</em></p>
-
-<p>When I run that code on my x86-64 OSX machine, I get the following output:</p>
-
-<p><code>sh
-sizeof(int): 4
-sizeof(long): 8
-sizeof(long long): 8
-sizeof(void*): 8
-</code></p>
-
-<p>So it looks like I would be the first programmer in the story in the first
-paragraph, since on my machine, it looks like sizeof(long) == sizeof(void*).
-Also note how sizeof(long long) is equivalent as well.</p>
-
-<p>But what would happen if I compiled my code on a 32 bit machine?  Luckily, my
-processor has backwards compatibility with 32b binaries, so I can cross compile
-it locally and still run it. Ex:</p>
-
-<p><code>sh
-➜  clang sizeof.c -Wall -Wextra -Wpedantic
-➜  file a.out
-a.out: Mach-O 64-bit executable x86_64
-➜  clang sizeof.c -Wall -Wextra -Wpedantic -m32
-➜  file a.out
-a.out: Mach-O executable i386
-➜  ./a.out
-sizeof(int): 4
-sizeof(long): 4
-sizeof(long long): 8
-sizeof(void*): 4
-</code></p>
-
-<p>Huh, suddenly sizeof(void*) == sizeof(int) == sizeof(long)!  This seems
-to be the case of the second programmer from the story.</p>
-
-<p>Both programmer 1 and programmer 2 might agree that the size of a pointer is
-equivalent to their machine’s respective
-<a href="/blog/2016/05/15/whats-in-a-word/">word size</a>,
-but that too would be an incorrect assumption for portable C/C++ code!</p>
-
-<p>Programmer 3 goes through the hellscape that is installing a working compiler
-for Windows and building a 64b command line application (to be fair, installing
-command line tools for OSX is worse; installing a compiler for most OS’ leaves
-much to be desired).  When they run that program, they see:</p>
-
-<p><code>
-sizeof(int): 4
-sizeof(long): 4
-sizeof(long long): 8
-sizeof(void*): 8
-</code></p>
-
-<p>This is yet a third case (the third programmer from the story).  In this case,
-only sizeof(long long) is equivalent to sizeof(void*).</p>
-
-<h3>Data Models</h3>
-
-<p>What these programmers are seeing is known as data models.  Programmer 1 one on
-a 64b x86-64 OSX machine had an LP64 data model where longs (L), (larger long
-longs,) and pointers (P) are 64b, but ints were 32b.  Programmer 2 on a 32b x86
-OSX machine had an ILP32 data model where ints (I), longs (L), and pointers (P)
-were 32b, but long longs were 64b.  Programmer 3 on a 64b x86-64 Windows
-machine had a LLP64 data model, where only long longs (LL) and pointers (P)
-were 64b, ints and longs being 32b.</p>
-
-<table>
-<thead>
-<tr>
-<th><strong>Data model</strong> </th>
-<th> <strong>sizeof(int)</strong> </th>
-<th> <strong>sizeof(long)</strong> </th>
-<th> <strong>sizeof(long long)</strong> </th>
-<th> <strong>sizeof(void*)</strong> </th>
-<th> <strong>example</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>ILP32 </td>
-<td> 32b </td>
-<td> 32b </td>
-<td> 64b </td>
-<td> 32b </td>
-<td> Win32, i386 OSX &amp; Linux</td>
-</tr>
-<tr>
-<td>LP64 </td>
-<td> 32b </td>
-<td> 64b </td>
-<td> 64b </td>
-<td> 64b </td>
-<td> x86-64 OSX &amp; Linux</td>
-</tr>
-<tr>
-<td>LLP64 </td>
-<td> 32b </td>
-<td> 32b </td>
-<td> 64b </td>
-<td> 64b </td>
-<td> Win64</td>
-</tr>
-</tbody>
-</table>
-
-
-<p>There are older data models such as LP32 (Windows 3.1, Macintosh, where ints
-are 16b), and more exotic ones like ILP64, and SILP64.  Knowing the data model
-thus is important for portable C/C++ code.</p>
-
-<h3>Historical Perspective</h3>
-
-<p>Running out of address space is and will continue to be tradition in computing.
-Applications become bigger as computer power and memory gets cheaper.
-Companies want to sell chips that have larger word sizes to address more
-memory, but early adopters don’t want to buy a computer where there favorite
-application hasn’t been compiled and thus doesn’t exist on yet.  <strong>Someone from
-the back shouts <em>virtual machines</em> then ducks as a chair is thrown.</strong></p>
-
-<p><a href="http://www.unix.org/version2/whatsnew/lp64_wp.html">This document</a>
-highlights some reasons why LP64 is preferred to ILP64: ILP64
-made portable C code that only needed 32b of precision harder to maintain (on
-ILP64 an int was 64b, but a short was 16b!).  It mentions how for data
-structures that did not contain pointers, their size would be the same on LLP64
-as ILP32, which is the direction Microsoft went.  LLP64 was essentially the
-ILP32 model with 64b pointers.</p>
-
-<p><em>Linux also supports an ABI called
-<a href="https://en.wikipedia.org/wiki/X32_ABI">x32</a>
-which can use x86-64 ISA improvements but uses 32b pointers to reduce the size
-of data structures that would otherwise have 64b pointers.</em></p>
-
-<p>For a great historical perspective on the evolution of word size and data
-models, as well as the &ldquo;toil and trouble&rdquo; caused,
-<a href="https://queue.acm.org/detail.cfm?id=1165766">this paper</a>
-was an excellent reference.  It describes Microsoft finally abandoning support
-for 16b data models in Windows XP 64.  It mentions that the industry was pretty
-split between LP64, LLP64, and ILP64 as porting code from the good old days of
-ILP32 would break in different ways.  That the use of long was more prevalent
-in Windows applications vs the use of int in unix applications.  It also makes
-the key point that a lot of programmers from the ILP32 era made assumptions
-that sizeof(int) == sizeof(long) == sizeof(void*) which would not hold true
-for the LP64/LLP64 era.</p>
-
-<p>One important point the paper makes makes that’s easily missed is that typedef
-wasn’t added to C until 1977 when hardware manufactures still couldn’t agree on
-how many bits were in a char (CHAR_BITS) and some machines were using 24b
-addressing schemes.  stdint.h and inttypes.h did not exist yet.</p>
-
-<p><a href="/blog/2016/05/15/whats-in-a-word/">This article</a>
-talks about two main categories of effects of switching from ILP32 to LP64 and
-has excellent examples of problematic code.  That section near the end is worth
-the read alone and makes excellent points to look for during code review.</p>
-
-<h3>Conclusion</h3>
-
-<p>Word size or ISA doesn’t tell you anything about sizeof(int), sizeof(long), or
-sizeof(long long).  We also saw that one machine can support multiple different
-data models (when I compiled and ran the same code with the -m32 flag).</p>
-
-<p>The C standard tells you minimum guaranteed sizes for these types, but the data
-model (part of the ABI, external to but abiding by the C standard) is what
-tells you about the specifics sizes of standard integers and pointers.</p>
-
-<h3>Further Reading</h3>
-
-<ul>
-<li><a href="http://www.unix.org/version2/whatsnew/lp64_wp.html">64-Bit Programming Models: Why LP64?</a></li>
-<li><a href="https://queue.acm.org/detail.cfm?id=1165766">The Long Road to 64 Bits</a></li>
-<li><a href="http://www.unix.org/whitepapers/64bit.html">The UNIX System &mdash; 64bit and Data Size Neutrality</a></li>
-<li><a href="https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models">64-bit data models</a></li>
-<li><a href="https://docs.oracle.com/cd/E19620-01/805-3024/lp64-1/index.html">C Language Data Type Models: LP64 and ILP32</a></li>
-<li><a href="https://blogs.oracle.com/nike/entry/ilp64_lp64_llp64">ILP64, LP64, LLP64</a></li>
-<li><a href="https://en.wikipedia.org/wiki/X32_ABI">x32 ABI</a></li>
-<li><a href="http://stackoverflow.com/a/9162072">difference between stdint.h and inttypes.h</a></li>
-<li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384083%28v=vs.85%29.aspx">Abstract Data Models</a></li>
-<li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384264%28v=vs.85%29.aspx">The New Data Types</a></li>
-<li><a href="http://stackoverflow.com/a/13413892">Is there any reason not to use fixed width integer types (e.g. uint8_t)?</a></li>
-<li><a href="https://blogs.msdn.microsoft.com/oldnewthing/20050131-00/?p=36563/">Why did the Win64 team choose the LLP64 model?</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Additional C/C++ Tooling]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/"/>
-    <updated>2015-07-23T21:10:00-07:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling</id>
-    <content type="html"><![CDATA[<p><a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C by Ben Klemens</a>
-was a great read. It had a section with an
-intro to autotools, git, and gdb.
-There are a few other useful tools that came to mind that I&rsquo;ve used when
-working with C and C++ codebases. These tools are a great way to start
-contributing to
-<a href="https://github.com/nickdesaulniers/What-Open-Source-Means-To-Me#what-open-source-means-to-me">Open Source</a>
-C &amp; C++ codebases; running these tools on
-the code or adding them to the codebases.  A lot of these favor command line,
-open source utilities. See how many you are familiar with!</p>
-
-<h2>Build Tools</h2>
-
-<h3>CMake</h3>
-
-<p>The first tool I&rsquo;d like to take a look at is
-<a href="http://www.cmake.org/overview/">CMake</a>.  CMake is yet another build tool; I
-realize how contentious it is to even discuss one of the many.  From my
-experience working with
-<a href="https://kripken.github.io/emscripten-site/docs/introducing_emscripten/about_emscripten.html">Emscripten</a>,
-we recommend the use of CMake for people
-writing portable C/C++ programs.  CMake is able to emit Makefiles for unixes,
-project files for Xcode on OSX, and project files for Visual Studio on Windows.
-There are also a few other &ldquo;generators&rdquo; that you can use.</p>
-
-<p>I&rsquo;ve been really impressed with CMake&rsquo;s modules for
-<a href="http://www.cmake.org/cmake/help/v3.0/command/find_package.html">finding dependencies</a>
+    <title type="html"><![CDATA[Speeding up Linux kernel builds with ccache]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/"/>
+    <updated>2018-06-02T16:39:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache</id>
+    <content type="html"><![CDATA[<p><a href="https://ccache.samba.org/">ccache</a>, the compiler cache, is a fantastic way to
+speed up build times for C and C++ code that
+<a href="https://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/">I previously recommended</a>.
+Recently, I was playing around with trying to get it to speed up my Linux
+kernel builds, but wasn&rsquo;t seeing any benefit. Usually when this happens with
+ccache, there&rsquo;s something non-deterministic about the builds that prevents
+cache hits.</p>
+
+<p>Turns out
+<a href="https://lists.samba.org/archive/ccache/2014q1/001172.html">someone asked this exact question on the ccache mailing list back in 2014</a>,
+and a teammate from my Android days supposed a timestamp was the culprit. That,
 and
-<a href="http://www.cmake.org/cmake/help/v3.0/module/ExternalProject.html">another for fetching and building external dependencies</a>.
-I think
-<a href="https://www.youtube.com/watch?v=nshzjMDD79w">C++ needs a package manager badly</a>,
-and I think CMake would be a solid foundation for one.</p>
+<a href="https://lwn.net/Articles/437864/">this LKML post from the KBUILD maintainer in 2011 about determinism</a>
+helped me find
+<a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=87c94bfb8ad354fb43d2caf870d7ca0b3f98dab3">commit 87c94bfb8ad35 (&ldquo;kbuild: override build timestamp &amp; version&rdquo;)</a> that introduced manually overriding part of the version string that
+contains the build timestamp that can be seen from:</p>
 
-<p>The syntax isn&rsquo;t the greatest, but when I wanted to try to build one of my C++
-projects on Windows which I know nothing about developing on, I was able to
-install CMake and Visual Studio and get my project building.  If you can build
-your code on one platform, it will usually build on the others.</p>
+<p>```sh
+$ cat /proc/version
+Linux version 4.15.0-13-generic (buildd@lgw01-amd64-028)
+(gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.9))</p>
 
-<p>If you&rsquo;re not worried about writing cross platform C/C++, maybe CMake is not
-worth the effort, but I find it useful.  I wrestle with the syntax sometimes,
-but documentation is not bad and it&rsquo;s something you deal with early on in the
-development of a project and hopefully never have to touch again (how I wish
-that were true).</p>
+<h1>14~16.04.1-Ubuntu SMP</h1>
 
-<h2>Code Formatters</h2>
+<p>Sat Mar 17 03:04:59 UTC 2018
+```</p>
 
-<h3>ClangFormat</h3>
+<p>With ccache, we can check the cache hit/miss stats with <code>-s</code>, clear the cache
+with <code>-C</code>, and clear the stats with <code>-z</code>. We can tell ccache explicitly which
+compiler to fall back to as its first argument (not strictly necessary). For
+KBUILD, we can swap our compiler by using <code>CC=</code> arg.</p>
 
-<p>Another contentious point of concern amongst developers is code style.
-<a href="http://google-styleguide.googlecode.com/svn/trunk/cppguide.html">Big companies</a>
-with lots of C++ code have
-<a href="https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Coding_Style#CC_practices">documents</a>
-explaining their stylistic choices.  Don&rsquo;t waste another hour of your life
-arguing about something that really doesn&rsquo;t matter.
-<a href="http://clang.llvm.org/docs/ClangFormat.html">ClangFormat</a> will help you
-codify your style and format your code for you to match the style.  Simply
-write the code however you want, and run the formatter on it before commiting
-it.</p>
+<p>Let&rsquo;s see what happens to
+our build time for subsequent builds with a hot cache:</p>
 
-<p>It can also emit a .clang-format file that you can commit and clang-format will automatically look for that file and use the rules codified there.</p>
+<h3>No Cache</h3>
 
-<h2>Linters</h2>
-
-<h3>Flint / Flint++</h3>
-
-<p><a href="https://github.com/facebook/flint">Flint</a> is a C++ linter in use at Facebook.
-Since it moved from being
-implemented in C++ to D, I&rsquo;ve had issues building it.  I&rsquo;ve had better luck
-with a fork that&rsquo;s pure C++ without any of the third party dependencies Flint
-originally had, called
-<a href="https://github.com/L2Program/FlintPlusPlus">Flint++</a>.  While not quite full-on
-static analyzers, both can be used for finding potential issues in your code
-ahead of time. Linters can look at individual files in isolation; you don&rsquo;t
-have to wait for long recompiles like you would with a static analyzer.</p>
-
-<h2>Static Analyzers</h2>
-
-<h3>Scan-build</h3>
-
-<p><a href="http://clang-analyzer.llvm.org/scan-build.html">Scan-build</a> is a static
-analyzer for C and C++ code.  You build your code &ldquo;through&rdquo; it, then use the
-sibling tool scan-view to see the results.  Scan-view will emit and open an
-html file that shows a list of the errors it detected.  It will insert
-hyperlinks into the resulting document that step you through how certain
-conditions could lead to a null pointer dereference, for example.  You can also
-save and share those html files with others in the project. Static analyzers
-will help you catch bugs at compile time before you run the code.</p>
-
-<h2>Runtime Sanitizers</h2>
-
-<h3>ASan and UBSan</h3>
-
-<p>Clang&rsquo;s Address (ASan) and Undefined Behavior (UBSan) sanitizers are simply
-compiler flags that can be used to detect errors at runtime.  ASan and UBSan
-two of the more popular tools, but there are actually a ton and more being
-implemented.  See the list
-<a href="http://clang.llvm.org/docs/UsersManual.html#controlling-code-generation">here</a>.
-These sanitizers will catch bugs at runtime, so you&rsquo;ll have to run the code
-to notice any violations, at variable runtime performance costs per sanitizer.
-ASan and TSan (Thread Sanitizer) made it into gcc4.8 and UBSan is in gcc4.9.</p>
-
-<h2>Header Analysis</h2>
-
-<h3>Include What You Use</h3>
-
-<p><a href="https://github.com/include-what-you-use/include-what-you-use">Include What You Use</a>
-(IWYU) helps you find unused or unnecessary <code>#include</code> preprocessor directives.
-It should be obvious how this can help improve compile times. IWYU can also
-help cut down on recompiles by recommending forward declarations under certain
-conditions.
-I look forward to the C++ module proposal being adopted, but until then this
-tool can help you spot cruft that can be removed.</p>
-
-<h2>Rapid Recompiles</h2>
-
-<h3>ccache</h3>
-
-<p><a href="https://ccache.samba.org/">ccache</a> greatly improves recompile times by caching
-the results of parts of the compilation process.
-<a href="https://github.com/nickdesaulniers/dotfiles/blob/49984b3e82022e5ce82e778fc8ce990f8e1e554a/.mozconfig#L1">I use when building Firefox</a>,
-and it saves a great deal of time.</p>
-
-<h3>distcc</h3>
-
-<p><a href="https://github.com/distcc/distcc">distcc</a> is a distributed build system.
-<a href="http://blog.dholbert.org/">Some folks at Mozilla</a> speed up their Firefox builds with it.</p>
-
-<h2>Memory Leak Detectors</h2>
-
-<h3>Valgrind</h3>
-
-<p><a href="http://valgrind.org/info/about.html">Valgrind</a> has a
-<a href="http://valgrind.org/info/about.html">suite of tools</a>, my
-favorite being memcheck for finding memory leaks. Unfortunately, it doesn&rsquo;t
-seem to work on OSX since 10.10.
-<a href="https://code.google.com/p/address-sanitizer/wiki/ComparisonOfMemoryTools">This page</a>
-referring to ASan seems to indicate that it can do everything Valgrind&rsquo;s
-Memcheck can, at less of a runtime performance cost, but I&rsquo;m not sure how true
-this is exactly.</p>
-
-<h3>leaks</h3>
-
-<p>A much more primitive tool for finding leaks from the command line, BSD&rsquo;s have
-<code>leaks</code>.</p>
-
-<p><code>bash
-MallocStackLogging=1 ./a.out
-leaks a.out
+<p><code>sh
+$ make clean
+$ time make -j4
 ...
+make -j4  2008.93s user 231.69s system 346% cpu 10:47.07 total
 </code></p>
 
-<h2>Profilers</h2>
+<h3>Cold Cache</h3>
 
-<h3>Perf</h3>
+<p>```sh
+$ ccache -Cz
+Cleared cache
+Statistics cleared
+$ ccache -s
+cache directory                     /home/nick/.ccache
+primary config                      /home/nick/.ccache/ccache.conf
+secondary config      (readonly)    /etc/ccache.conf
+cache hit (direct)                     0
+cache hit (preprocessed)               0
+cache miss                             0
+cache hit rate                      0.00 %
+cleanups performed                     0
+files in cache                         0
+cache size                           0.0 kB
+max cache size                       5.0 GB</p>
 
-<p>Perf, and
-<a href="http://www.brendangregg.com/flamegraphs.html">Brendan Gregg&rsquo;s tools for emitting SVG flamegraphs</a>
-from the output
-are helpful for finding where time is spent in a program. In fact, there are
-numerous perfomance analysis tools that are Linux specific.  My recommendation
-is spend some time on <a href="http://www.brendangregg.com/linuxperf.html">Brendan Gregg&rsquo;s blog</a>.</p>
+<p>$ make clean
+$ time KBUILD_BUILD_TIMESTAMP=&lsquo;&rsquo; make CC=&ldquo;ccache gcc&rdquo; -j4
+&hellip;
+KBUILD_BUILD_TIMESTAMP=&lsquo;&rsquo; make CC=&ldquo;ccache gcc&rdquo; -j4  2426.79s user 312.08s system 372% cpu 12:15.22 total
+$ ccache -s
+cache directory                     /home/nick/.ccache
+primary config                      /home/nick/.ccache/ccache.conf
+secondary config      (readonly)    /etc/ccache.conf
+cache hit (direct)                     0
+cache hit (preprocessed)               0
+cache miss                          3242
+called for link                        6
+called for preprocessing             538
+unsupported source language           66
+no input file                        108
+files in cache                      9720
+cache size                         432.6 MB
+max cache size                       5.0 GB
+```</p>
 
-<h3>DTrace</h3>
+<h3>Hot Cache</h3>
 
-<p>OSX doesn&rsquo;t have the same tooling as Linux, but DTrace was ported to it.  I&rsquo;ve
-used it to find sampling profiles of my code before. Again,
-<a href="http://www.brendangregg.com/dtrace.html">Brendan Gregg&rsquo;s blog</a> is a good
-resource; there are some fantastic DTrace one liners.</p>
+<p><code>sh
+$ ccache -z
+Statistics cleared
+$ make clean
+$ time KBUILD_BUILD_TIMESTAMP='' make CC="ccache gcc" -j4
+...
+KBUILD_BUILD_TIMESTAMP='' make CC="ccache gcc" -j4  151.85s user 132.98s system 288% cpu 1:38.90 total
+$ ccache -s
+cache directory                     /home/nick/.ccache
+primary config                      /home/nick/.ccache/ccache.conf
+secondary config      (readonly)    /etc/ccache.conf
+cache hit (direct)                  3232
+cache hit (preprocessed)               7
+cache miss                             3
+called for link                        6
+called for preprocessing             538
+unsupported source language           66
+no input file                        108
+files in cache                      9734
+cache size                         432.8 MB
+max cache size                       5.0 GB
+</code></p>
 
-<h2>Debuggers</h2>
+<p>The initial cold cache build will be slower than not using ccache at all, but
+it&rsquo;s a one time cost that&rsquo;s not significant relative to the savings.  No
+caching took 647.07s, initial cold cache build took 735.22s (13.62% slower),
+and subsequent hot cache builds took 98.9s (6.54x faster). YMMV based on CPU
+and disk performance. Also, it&rsquo;s not the most common workflow to do clean
+builds, but we do this for Linux kernel builds for Android/Pixel at work, and
+this helps me significantly for local development.</p>
 
-<h3>lldb</h3>
+<p>Now, if you really need that date string in there, you <em>theoritically</em> could
+put some garbage value in there (for the cache) long enough to save enough
+space for a date string, then patch your vmlinux binary after the fact.  I
+<em>don&rsquo;t</em> recommend that, but I would imagine that might look something like:</p>
 
-<p>lldb is analogous to gdb.  I can&rsquo;t say I have enough experience with LLDB and GDB to note the difference between the two, but LLDB did show the relative statements forward and back from the current statement by default.  I&rsquo;m informed by my friends/mortal enemies using emacs that this is less of an issue when using emacs/gdb in combination.</p>
+<p><code>sh
+$ KBUILD_BUILD_TIMESTAMP=$(printf "y%0.s" $(seq 1 $(date | wc -c)))
+$ make CC="ccache gcc" vmlinux
+$ sed -i "s/$(KBUILD_BUILD_TIMESTAMP)/$(date)/g" vmlinux
+</code></p>
 
-<h2>Fuzzers</h2>
-
-<h3>American Fuzzy Lop</h3>
-
-<p><a href="http://lcamtuf.coredump.cx/afl/">American Fuzzy Lop</a> (AFL) is a neat program
-that performs fuzzing on programs
-that take inputs from files and repeatedly runs the program, modifies the
-input trying to get full code coverage, and tries to find crashes.  It&rsquo;s been
-getting lots of attention lately, and while I haven&rsquo;t used it myself yet, it
-seems like a very powerful tool. Mozilla employs the use of fuzzers on their
-JavaScript engine, for instance (not AFL, but
-<a href="http://www.squarefree.com/2007/08/02/introducing-jsfunfuzz/">one developed in house</a>).</p>
-
-<h2>Disassemblers</h2>
-
-<h3>gobjdump</h3>
-
-<p>If you really need to make sure the higher level code you&rsquo;re writing is getting
-translated into the assembly your expecting, <code>gobjdump -S</code> will intermix the
-emitted binary&rsquo;s disassembled assembly and the source code.  This was used
-extensively while developing <a href="/blog/2015/05/25/interpreter-compiler-jit/">my Brainfuck JIT</a>.</p>
-
-<h2>Conclusion</h2>
-
-<p>Hopefully you learned of some useful tools that you should know about when
-working with C or C++.  What did I miss?</p>
+<p>Deterministic builds make build caching easier, but I&rsquo;m not sure that build
+timestamp strings and build determinism are reconcileable.</p>
 ]]></content>
   </entry>
   

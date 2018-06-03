@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Speeding up Linux kernel builds with ccache - Nick Desaulniers</title>
+  <meta name="author" content="Nick Desaulniers">
+
+  
+  <meta name="description" content="ccache, the compiler cache, is a fantastic way to
+speed up build times for C and C++ code that
+I previously recommended.
+Recently, I was playing &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache">
+  <link href="/favicon.ico" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at https://google.com/webfonts -->
+<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36993986-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Nick Desaulniers</a></h1>
+  
+    <h2>The enemy's gate is down</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/about">About</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/">Blog</a></li>
+  <li><a href="/publications">Publications</a></li>
+  <li><a href="/talks">Talks</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Speeding Up Linux Kernel Builds With Ccache</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-06-02T16:39:00-07:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2018</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="https://ccache.samba.org/">ccache</a>, the compiler cache, is a fantastic way to
+speed up build times for C and C++ code that
+<a href="https://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/">I previously recommended</a>.
+Recently, I was playing around with trying to get it to speed up my Linux
+kernel builds, but wasn&rsquo;t seeing any benefit. Usually when this happens with
+ccache, there&rsquo;s something non-deterministic about the builds that prevents
+cache hits.</p>
+
+<p>Turns out
+<a href="https://lists.samba.org/archive/ccache/2014q1/001172.html">someone asked this exact question on the ccache mailing list back in 2014</a>,
+and a teammate from my Android days supposed a timestamp was the culprit. That,
+and
+<a href="https://lwn.net/Articles/437864/">this LKML post from the KBUILD maintainer in 2011 about determinism</a>
+helped me find
+<a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=87c94bfb8ad354fb43d2caf870d7ca0b3f98dab3">commit 87c94bfb8ad35 (&ldquo;kbuild: override build timestamp &amp; version&rdquo;)</a> that introduced manually overriding part of the version string that
+contains the build timestamp that can be seen from:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cat /proc/version
+</span><span class='line'>Linux version 4.15.0-13-generic <span class="o">(</span>buildd@lgw01-amd64-028<span class="o">)</span>
+</span><span class='line'><span class="o">(</span>gcc version 5.4.0 20160609 <span class="o">(</span>Ubuntu 5.4.0-6ubuntu1~16.04.9<span class="o">))</span>
+</span><span class='line'><span class="c">#14~16.04.1-Ubuntu SMP</span>
+</span><span class='line'>Sat Mar 17 03:04:59 UTC 2018
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With ccache, we can check the cache hit/miss stats with <code>-s</code>, clear the cache
+with <code>-C</code>, and clear the stats with <code>-z</code>. We can tell ccache explicitly which
+compiler to fall back to as its first argument (not strictly necessary). For
+KBUILD, we can swap our compiler by using <code>CC=</code> arg.</p>
+
+<p>Let&rsquo;s see what happens to
+our build time for subsequent builds with a hot cache:</p>
+
+<h3>No Cache</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>make clean
+</span><span class='line'><span class="nv">$ </span><span class="nb">time </span>make -j4
+</span><span class='line'>...
+</span><span class='line'>make -j4  2008.93s user 231.69s system 346% cpu 10:47.07 total
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Cold Cache</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ccache -Cz
+</span><span class='line'>Cleared cache
+</span><span class='line'>Statistics cleared
+</span><span class='line'><span class="nv">$ </span>ccache -s
+</span><span class='line'>cache directory                     /home/nick/.ccache
+</span><span class='line'>primary config                      /home/nick/.ccache/ccache.conf
+</span><span class='line'>secondary config      <span class="o">(</span><span class="nb">readonly</span><span class="o">)</span>    /etc/ccache.conf
+</span><span class='line'>cache hit <span class="o">(</span>direct<span class="o">)</span>                     0
+</span><span class='line'>cache hit <span class="o">(</span>preprocessed<span class="o">)</span>               0
+</span><span class='line'>cache miss                             0
+</span><span class='line'>cache hit rate                      0.00 %
+</span><span class='line'>cleanups performed                     0
+</span><span class='line'>files in cache                         0
+</span><span class='line'>cache size                           0.0 kB
+</span><span class='line'>max cache size                       5.0 GB
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>make clean
+</span><span class='line'><span class="nv">$ </span><span class="nb">time </span><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4
+</span><span class='line'>...
+</span><span class='line'><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4  2426.79s user 312.08s system 372% cpu 12:15.22 total
+</span><span class='line'><span class="nv">$ </span>ccache -s
+</span><span class='line'>cache directory                     /home/nick/.ccache
+</span><span class='line'>primary config                      /home/nick/.ccache/ccache.conf
+</span><span class='line'>secondary config      <span class="o">(</span><span class="nb">readonly</span><span class="o">)</span>    /etc/ccache.conf
+</span><span class='line'>cache hit <span class="o">(</span>direct<span class="o">)</span>                     0
+</span><span class='line'>cache hit <span class="o">(</span>preprocessed<span class="o">)</span>               0
+</span><span class='line'>cache miss                          3242
+</span><span class='line'>called <span class="k">for </span>link                        6
+</span><span class='line'>called <span class="k">for </span>preprocessing             538
+</span><span class='line'>unsupported <span class="nb">source </span>language           66
+</span><span class='line'>no input file                        108
+</span><span class='line'>files in cache                      9720
+</span><span class='line'>cache size                         432.6 MB
+</span><span class='line'>max cache size                       5.0 GB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Hot Cache</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>ccache -z
+</span><span class='line'>Statistics cleared
+</span><span class='line'><span class="nv">$ </span>make clean
+</span><span class='line'><span class="nv">$ </span><span class="nb">time </span><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4
+</span><span class='line'>...
+</span><span class='line'><span class="nv">KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="s1">&#39;&#39;</span> make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> -j4  151.85s user 132.98s system 288% cpu 1:38.90 total
+</span><span class='line'><span class="nv">$ </span>ccache -s
+</span><span class='line'>cache directory                     /home/nick/.ccache
+</span><span class='line'>primary config                      /home/nick/.ccache/ccache.conf
+</span><span class='line'>secondary config      <span class="o">(</span><span class="nb">readonly</span><span class="o">)</span>    /etc/ccache.conf
+</span><span class='line'>cache hit <span class="o">(</span>direct<span class="o">)</span>                  3232
+</span><span class='line'>cache hit <span class="o">(</span>preprocessed<span class="o">)</span>               7
+</span><span class='line'>cache miss                             3
+</span><span class='line'>called <span class="k">for </span>link                        6
+</span><span class='line'>called <span class="k">for </span>preprocessing             538
+</span><span class='line'>unsupported <span class="nb">source </span>language           66
+</span><span class='line'>no input file                        108
+</span><span class='line'>files in cache                      9734
+</span><span class='line'>cache size                         432.8 MB
+</span><span class='line'>max cache size                       5.0 GB
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The initial cold cache build will be slower than not using ccache at all, but
+it&rsquo;s a one time cost that&rsquo;s not significant relative to the savings.  No
+caching took 647.07s, initial cold cache build took 735.22s (13.62% slower),
+and subsequent hot cache builds took 98.9s (6.54x faster). YMMV based on CPU
+and disk performance. Also, it&rsquo;s not the most common workflow to do clean
+builds, but we do this for Linux kernel builds for Android/Pixel at work, and
+this helps me significantly for local development.</p>
+
+<p>Now, if you really need that date string in there, you <em>theoritically</em> could
+put some garbage value in there (for the cache) long enough to save enough
+space for a date string, then patch your vmlinux binary after the fact.  I
+<em>don&rsquo;t</em> recommend that, but I would imagine that might look something like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ KBUILD_BUILD_TIMESTAMP</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">&quot;y%0.s&quot;</span> <span class="k">$(</span>seq 1 <span class="k">$(</span>date | wc -c<span class="k">)))</span>
+</span><span class='line'><span class="nv">$ </span>make <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;ccache gcc&quot;</span> vmlinux
+</span><span class='line'><span class="nv">$ </span>sed -i <span class="s2">&quot;s/$(KBUILD_BUILD_TIMESTAMP)/$(date)/g&quot;</span> vmlinux
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Deterministic builds make build caching easier, but I&rsquo;m not sure that build
+timestamp strings and build determinism are reconcileable.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-06-02T16:39:00-07:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2018</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/c/'>C,</a>, <a class='category' href='/blog/categories/linux/'>Linux,</a>, <a class='category' href='/blog/categories/ccache/'>ccache,</a>, <a class='category' href='/blog/categories/compile/'>compile</a>, <a class='category' href='/blog/categories/kernel/'>kernel,</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/" data-via="" data-counturl="http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/" title="Previous Post: GCC vs LLVM Q3 2017: Active Developer Counts">&laquo; GCC vs LLVM Q3 2017: Active Developer Counts</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/">Speeding Up Linux Kernel Builds With Ccache</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/">GCC vs LLVM Q3 2017: Active Developer Counts</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/">Running Clang-Tidy on the Linux Kernel</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/">Submitting Your First Patch to the Linux Kernel and Responding to Feedback</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/20/static-and-dynamic-libraries/">Static and Dynamic Libraries</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'nickdesaulniers',
+            count: 20,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2018 - Nick Desaulniers -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'wangstabill';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/';
+        var disqus_url = 'http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
