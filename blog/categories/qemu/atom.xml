@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: QEMU | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/qemu/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2018-10-24T22:32:52-07:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Booting a Custom Linux Kernel in QEMU and Debugging it with GDB]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/"/>
+    <updated>2018-10-24T21:08:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb</id>
+    <content type="html"><![CDATA[<p>Typically, when we modify a program, we’d like to run it to verify our changes.
+Before booting a compiled Linux kernel image on actual hardware, it can save us
+time and potential headache to do a quick boot in a virtual machine like
+<a href="https://www.qemu.org/">QEMU</a>
+as a sanity check.  If your kernel boots in QEMU, it’s not a guarantee it will
+boot on metal, but it is a quick assurance that the kernel image is not
+completely busted.  Since I finally got this working, I figured I’d post the
+built up command line arguments (and error messages observed) for future
+travelers.  Also, QEMU has more flags than virtually any other binary I’ve ever
+seen (other than a google3 binary; shots fired), and simply getting it to print
+to the terminal is &frac34; the battle.  If I don’t write it down now, or lose my
+shell history, I’ll probably forget how to do this.</p>
+
+<p>TL;DR:
+```sh</p>
+
+<h1>one time setup</h1>
+
+<p>$ mkinitramfs -o ramdisk.img
+$ echo &ldquo;add-auto-load-safe-path path/to/linux/scripts/gdb/vmlinux-gdb.py&rdquo; >> ~/.gdbinit</p>
+
+<h1>one time kernel setup</h1>
+
+<p>$ cd linux
+$ ./scripts/config -e DEBUG_INFO -e GDB_SCRIPTS
+$ <make kernel image></p>
+
+<h1>each debug session run</h1>
+
+<p>$ qemu-system-x86_64 \
+  -kernel arch/x86_64/boot/bzImage \
+  -nographic \
+  -append &ldquo;console=ttyS0 nokaslr&rdquo; \
+  -initrd ramdisk.img \
+  -m 512 \
+  &mdash;enable-kvm \
+  -cpu host \
+  -s -S &amp;
+$ gdb vmlinux
+(gdb) target remote :1234
+(gdb) hbreak start_kernel
+(gdb) c
+(gdb) lx-dmesg
+```</p>
+
+<h2>Booting in QEMU</h2>
+
+<p>We’ll play stupid and see what errors we hit, and how to fix them.  First,
+let’s try just our new kernel:</p>
+
+<p><code>sh
+$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage
+</code></p>
+
+<p>A new window should open, and we should observe some dmesg output, a panic, and
+your fans might spin up.  I find this window relatively hard to see, so let’s
+get the output (and input) to a terminal:</p>
+
+<p><code>sh
+$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic
+</code></p>
+
+<p>This is missing an important flag, but it’s important to see what happens when
+we forget it.  It will seem that there’s no output, and QEMU isn’t responding
+to <code>ctrl+c</code>.  And my fans are spinning again.  Try <code>ctrl+a</code>, then <code>c</code>, to get a
+<code>(qemu)</code> prompt.  A simple <code>q</code> will exit.</p>
+
+<p>Next, We’re going to pass a kernel command line argument.  The kernel accepts
+command line args just like userspace binaries, though usually the bootloader
+sets these up.</p>
+
+<p><code>sh
+$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append "console=ttyS0"
+...
+[    1.144348] Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)
+[    1.144759] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.18.0-rc6 #10
+[    1.144949] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1ubuntu1 04/01/2014
+[    1.145269] Call Trace:
+[    1.146027]  dump_stack+0x5c/0x7b
+[    1.146162]  panic+0xe4/0x252
+[    1.146286]  mount_block_root+0x1f1/0x2d6
+[    1.146445]  prepare_namespace+0x13b/0x171
+[    1.146579]  kernel_init_freeable+0x227/0x254
+[    1.146721]  ? rest_init+0xb0/0xb0
+[    1.146826]  kernel_init+0xa/0x110
+[    1.146931]  ret_from_fork+0x35/0x40
+[    1.147412] Kernel Offset: 0x1c200000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
+[    1.147901] ---[ end Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0) ]---
+(qemu) q
+</code></p>
+
+<p>Well at least we’re no longer in the dark (remember, <code>ctrl+a</code>, <code>c</code>, <code>q</code> to
+exit).  Now we’re panicking because there’s no root filesystem, so there’s no
+<code>init</code> binary to run.  Now we could create a custom filesystem image with the
+bare bones (definitely a post for another day), but creating a ramdisk is the
+most straightforward way, IMO.  Ok, let’s create the ramdisk,
+then add it to QEMU’s parameters:</p>
+
+<p><code>sh
+$ mkinitramfs -o ramdisk.img
+$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append "console=ttyS0" -initrd ramdisk.img
+</code></p>
+
+<p>Unfortunately, we’ll (likely) hit the same panic and the panic doesn’t provide
+enough information, but the default maximum memory QEMU will use is too
+limited.  <code>-m 512</code> will give our virtual machine enough memory to boot and get
+a busybox based shell prompt:</p>
+
+<p><code>sh
+$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append "console=ttyS0" -initrd ramdisk.img -m 512
+...
+(initramfs) cat /proc/version
+Linux version 4.19.0-rc7+ (nick@nick-Blade-Stealth) (clang version 8.0.0 (https://git.llvm.org/git/clang.git/ 60c8c0cc0786c7f6b8dc5c1e3acd7ec98f0a7b6d) (https://git.llvm.org/git/llvm.git/ 64c3a57bec9dbe3762fa1d80055ba850d6658f5b)) #18 SMP Wed Oct 24 19:29:53 PDT 2018
+</code></p>
+
+<p>Enabling kvm seems to help with those fans spinning up:</p>
+
+<p><code>sh
+$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append "console=ttyS0" -initrd ramdisk.img -m 512 --enable-kvm
+</code></p>
+
+<p>Finally, we might be seeing a warning when we start QEMU:</p>
+
+<p><code>
+qemu-system-x86_64: warning: host doesn't support requested feature: CPUID.80000001H:ECX.svm [bit 2]
+</code></p>
+
+<p>Just need to add <code>-cpu host</code> to our invocation of QEMU.  It can be helpful when
+debugging to disable
+<a href="https://lwn.net/Articles/569635/">KASLR</a>
+via <code>nokaslr</code> in the appended kernel command line parameters, or via
+CONFIG_RANDOMIZE_BASE not being set in our kernel configs.</p>
+
+<p>We can add <code>-s</code> to start a gdbserver on port 1234, and <code>-S</code> to pause the kernel
+until we continue in gdb.</p>
+
+<h2>Attaching GDB to QEMU</h2>
+
+<p>Now that we can boot this kernel image in QEMU, let’s attach gdb to it.</p>
+
+<p><code>sh
+$ gdb vmlinux
+</code></p>
+
+<p>If you see this on your first run:
+<code>``
+warning: File "/home/nick/linux/scripts/gdb/vmlinux-gdb.py" auto-loading has been declined by your</code>auto-load safe-path' set to &ldquo;$debugdir:$datadir/auto-load&rdquo;.
+To enable execution of this file add</p>
+
+<pre><code>add-auto-load-safe-path /path/to/linux/scripts/gdb/vmlinux-gdb.py
+</code></pre>
+
+<p>line to your configuration file &ldquo;/home/<username>/.gdbinit&rdquo;.
+<code>
+Then you can do this one time fix in order to load the gdb scripts each run:
+</code>sh
+$ cd linux
+$ echo &ldquo;add-auto-load-safe-path <code>pwd</code>/scripts/gdb/vmlinux-gdb.py&rdquo; >> ~/.gdbinit
+```</p>
+
+<p>Now that QEMU is listening on port 1234 (via <code>-s</code>), let’s connect to it, and
+set a break point early on in the kernel’s initialization.  Note the the use of
+<code>hbreak</code> (I lost a lot of time just using <code>b start_kernel</code>, only for the
+kernel to continue booting past that function).</p>
+
+<p>```
+(gdb) target remote :1234
+Remote debugging using :1234
+0x000000000000fff0 in cpu_hw_events ()</p>
+
+<p>(gdb) hbreak start_kernel
+Hardware assisted breakpoint 2 at 0xffffffff82904a1d: file init/main.c, line 536.
+(gdb) c
+Continuing.</p>
+
+<p>Breakpoint 2, start_kernel () at init/main.c:536
+536     set_task_stack_end_magic(&amp;init_task);
+(gdb) bt</p>
+
+<h1>0  start_kernel () at init/main.c:536</h1>
+
+<h1>1  0xffffffff810000d4 in secondary_startup_64 () at arch/x86/kernel/head_64.S:243</h1>
+
+<h1>2  0x0000000000000000 in ?? ()</h1>
+
+<p>```</p>
+
+<p>We can start/resume the kernel with <code>c</code>, and pause it with <code>ctrl+c</code>.  The gdb
+scripts provided by the kernel via CONFIG_GDB_SCRIPTS can be viewed with
+<code>apropos lx</code>. <code>lx-dmesg</code> is incredibly handy for viewing the kernel dmesg
+buffer, particularly in the case of a kernel panic before the serial driver has
+been brought up (in which case there’s output from QEMU to stdout, which is
+just as much fun as debugging graphics code (ie. black screen)).</p>
+
+<p>```
+(gdb) apropos lx
+function lx_current &mdash; Return current task
+function lx_module &mdash; Find module by name and return the module variable
+function lx_per_cpu &mdash; Return per-cpu variable
+function lx_task_by_pid &mdash; Find Linux task by PID and return the task_struct variable
+function lx_thread_info &mdash; Calculate Linux thread_info from task variable
+function lx_thread_info_by_pid &mdash; Calculate Linux thread_info from task variable found by pid
+lx-cmdline &mdash;  Report the Linux Commandline used in the current kernel
+lx-cpus &mdash; List CPU status arrays
+lx-dmesg &mdash; Print Linux kernel log buffer
+lx-fdtdump &mdash; Output Flattened Device Tree header and dump FDT blob to the filename
+lx-iomem &mdash; Identify the IO memory resource locations defined by the kernel
+lx-ioports &mdash; Identify the IO port resource locations defined by the kernel
+lx-list-check &mdash; Verify a list consistency
+lx-lsmod &mdash; List currently loaded modules
+lx-mounts &mdash; Report the VFS mounts of the current process namespace
+lx-ps &mdash; Dump Linux tasks
+lx-symbols &mdash; (Re-)load symbols of Linux kernel and currently loaded modules
+lx-version &mdash;  Report the Linux Version of the current kernel</p>
+
+<p>(gdb) lx-version
+Linux version 4.19.0-rc7+ (nick@nick-Blade-Stealth) (clang version 8.0.0
+(<a href="https://git.llvm.org/git/clang.git/">https://git.llvm.org/git/clang.git/</a> 60c8c0cc0786c7f6b8dc5c1e3acd7ec98f0a7b6d)
+(<a href="https://git.llvm.org/git/llvm.git/">https://git.llvm.org/git/llvm.git/</a> 64c3a57bec9dbe3762fa1d80055ba850d6658f5b))</p>
+
+<h1>18 SMP Wed Oct 24 19:29:53 PDT 2018</h1>
+
+<p>```</p>
+
+<h2>Where to Go From Here</h2>
+
+<p>Maybe try cross compiling a kernel (you&rsquo;ll need a cross
+compiler/assembler/linker/debugger and likely a different <code>console=ttyXXX</code>
+kernel command line parameter), building your own root filesystem with
+<a href="https://buildroot.org/">buildroot</a>,
+or exploring the rest of QEMU&rsquo;s command line options.</p>
+]]></content>
+  </entry>
+  
+</feed>

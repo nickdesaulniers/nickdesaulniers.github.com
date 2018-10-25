@@ -9,10 +9,8 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="ccache, the compiler cache, is a fantastic way to
-speed up build times for C and C++ code that
-I previously recommended.
-Recently, I was playing &hellip;">
+  <meta name="description" content="Typically, when we modify a program, we’d like to run it to verify our changes.
+Before booting a compiled Linux kernel image on actual hardware, it &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -83,6 +81,363 @@ Recently, I was playing &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-10-24T21:08:00-07:00" pubdate data-updated="true">Oct 24<span>th</span>, 2018</time>
+        
+         | <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Typically, when we modify a program, we’d like to run it to verify our changes.
+Before booting a compiled Linux kernel image on actual hardware, it can save us
+time and potential headache to do a quick boot in a virtual machine like
+<a href="https://www.qemu.org/">QEMU</a>
+as a sanity check.  If your kernel boots in QEMU, it’s not a guarantee it will
+boot on metal, but it is a quick assurance that the kernel image is not
+completely busted.  Since I finally got this working, I figured I’d post the
+built up command line arguments (and error messages observed) for future
+travelers.  Also, QEMU has more flags than virtually any other binary I’ve ever
+seen (other than a google3 binary; shots fired), and simply getting it to print
+to the terminal is &frac34; the battle.  If I don’t write it down now, or lose my
+shell history, I’ll probably forget how to do this.</p>
+
+<p>TL;DR:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c"># one time setup</span>
+</span><span class='line'><span class="nv">$ </span>mkinitramfs -o ramdisk.img
+</span><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;add-auto-load-safe-path path/to/linux/scripts/gdb/vmlinux-gdb.py&quot;</span> &gt;&gt; ~/.gdbinit
+</span><span class='line'>
+</span><span class='line'><span class="c"># one time kernel setup</span>
+</span><span class='line'><span class="nv">$ </span><span class="nb">cd </span>linux
+</span><span class='line'><span class="nv">$ </span>./scripts/config -e DEBUG_INFO -e GDB_SCRIPTS
+</span><span class='line'><span class="nv">$ </span>&lt;make kernel image&gt;
+</span><span class='line'>
+</span><span class='line'><span class="c"># each debug session run</span>
+</span><span class='line'><span class="nv">$ </span>qemu-system-x86_64 <span class="se">\</span>
+</span><span class='line'>  -kernel arch/x86_64/boot/bzImage <span class="se">\</span>
+</span><span class='line'>  -nographic <span class="se">\</span>
+</span><span class='line'>  -append <span class="s2">&quot;console=ttyS0 nokaslr&quot;</span> <span class="se">\</span>
+</span><span class='line'>  -initrd ramdisk.img <span class="se">\</span>
+</span><span class='line'>  -m 512 <span class="se">\</span>
+</span><span class='line'>  --enable-kvm <span class="se">\</span>
+</span><span class='line'>  -cpu host <span class="se">\</span>
+</span><span class='line'>  -s -S &amp;
+</span><span class='line'><span class="nv">$ </span>gdb vmlinux
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> target remote :1234
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> hbreak start_kernel
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> c
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> lx-dmesg
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Booting in QEMU</h2>
+
+<p>We’ll play stupid and see what errors we hit, and how to fix them.  First,
+let’s try just our new kernel:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A new window should open, and we should observe some dmesg output, a panic, and
+your fans might spin up.  I find this window relatively hard to see, so let’s
+get the output (and input) to a terminal:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is missing an important flag, but it’s important to see what happens when
+we forget it.  It will seem that there’s no output, and QEMU isn’t responding
+to <code>ctrl+c</code>.  And my fans are spinning again.  Try <code>ctrl+a</code>, then <code>c</code>, to get a
+<code>(qemu)</code> prompt.  A simple <code>q</code> will exit.</p>
+
+<p>Next, We’re going to pass a kernel command line argument.  The kernel accepts
+command line args just like userspace binaries, though usually the bootloader
+sets these up.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span class="s2">&quot;console=ttyS0&quot;</span>
+</span><span class='line'>...
+</span><span class='line'><span class="o">[</span>    1.144348<span class="o">]</span> Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block<span class="o">(</span>0,0<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>    1.144759<span class="o">]</span> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.18.0-rc6 <span class="c">#10</span>
+</span><span class='line'><span class="o">[</span>    1.144949<span class="o">]</span> Hardware name: QEMU Standard PC <span class="o">(</span>i440FX + PIIX, 1996<span class="o">)</span>, BIOS 1.10.2-1ubuntu1 04/01/2014
+</span><span class='line'><span class="o">[</span>    1.145269<span class="o">]</span> Call Trace:
+</span><span class='line'><span class="o">[</span>    1.146027<span class="o">]</span>  dump_stack+0x5c/0x7b
+</span><span class='line'><span class="o">[</span>    1.146162<span class="o">]</span>  panic+0xe4/0x252
+</span><span class='line'><span class="o">[</span>    1.146286<span class="o">]</span>  mount_block_root+0x1f1/0x2d6
+</span><span class='line'><span class="o">[</span>    1.146445<span class="o">]</span>  prepare_namespace+0x13b/0x171
+</span><span class='line'><span class="o">[</span>    1.146579<span class="o">]</span>  kernel_init_freeable+0x227/0x254
+</span><span class='line'><span class="o">[</span>    1.146721<span class="o">]</span>  ? rest_init+0xb0/0xb0
+</span><span class='line'><span class="o">[</span>    1.146826<span class="o">]</span>  kernel_init+0xa/0x110
+</span><span class='line'><span class="o">[</span>    1.146931<span class="o">]</span>  ret_from_fork+0x35/0x40
+</span><span class='line'><span class="o">[</span>    1.147412<span class="o">]</span> Kernel Offset: 0x1c200000 from 0xffffffff81000000 <span class="o">(</span>relocation range: 0xffffffff80000000-0xffffffffbfffffff<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>    1.147901<span class="o">]</span> ---<span class="o">[</span> end Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block<span class="o">(</span>0,0<span class="o">)</span> <span class="o">]</span>---
+</span><span class='line'><span class="o">(</span>qemu<span class="o">)</span> q
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Well at least we’re no longer in the dark (remember, <code>ctrl+a</code>, <code>c</code>, <code>q</code> to
+exit).  Now we’re panicking because there’s no root filesystem, so there’s no
+<code>init</code> binary to run.  Now we could create a custom filesystem image with the
+bare bones (definitely a post for another day), but creating a ramdisk is the
+most straightforward way, IMO.  Ok, let’s create the ramdisk,
+then add it to QEMU’s parameters:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>mkinitramfs -o ramdisk.img
+</span><span class='line'><span class="nv">$ </span>qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span class="s2">&quot;console=ttyS0&quot;</span> -initrd ramdisk.img
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Unfortunately, we’ll (likely) hit the same panic and the panic doesn’t provide
+enough information, but the default maximum memory QEMU will use is too
+limited.  <code>-m 512</code> will give our virtual machine enough memory to boot and get
+a busybox based shell prompt:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span class="s2">&quot;console=ttyS0&quot;</span> -initrd ramdisk.img -m 512
+</span><span class='line'>...
+</span><span class='line'><span class="o">(</span>initramfs<span class="o">)</span> cat /proc/version
+</span><span class='line'>Linux version 4.19.0-rc7+ <span class="o">(</span>nick@nick-Blade-Stealth<span class="o">)</span> <span class="o">(</span>clang version 8.0.0 <span class="o">(</span>https://git.llvm.org/git/clang.git/ 60c8c0cc0786c7f6b8dc5c1e3acd7ec98f0a7b6d<span class="o">)</span> <span class="o">(</span>https://git.llvm.org/git/llvm.git/ 64c3a57bec9dbe3762fa1d80055ba850d6658f5b<span class="o">))</span> <span class="c">#18 SMP Wed Oct 24 19:29:53 PDT 2018</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Enabling kvm seems to help with those fans spinning up:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span class="s2">&quot;console=ttyS0&quot;</span> -initrd ramdisk.img -m 512 --enable-kvm
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Finally, we might be seeing a warning when we start QEMU:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>qemu-system-x86_64: warning: host doesn<span class="err">&#39;</span>t support requested feature: CPUID.80000001H:ECX.svm <span class="o">[</span>bit 2<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Just need to add <code>-cpu host</code> to our invocation of QEMU.  It can be helpful when
+debugging to disable
+<a href="https://lwn.net/Articles/569635/">KASLR</a>
+via <code>nokaslr</code> in the appended kernel command line parameters, or via
+CONFIG_RANDOMIZE_BASE not being set in our kernel configs.</p>
+
+<p>We can add <code>-s</code> to start a gdbserver on port 1234, and <code>-S</code> to pause the kernel
+until we continue in gdb.</p>
+
+<h2>Attaching GDB to QEMU</h2>
+
+<p>Now that we can boot this kernel image in QEMU, let’s attach gdb to it.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>gdb vmlinux
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you see this on your first run:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'>warning: File <span class="s2">&quot;/home/nick/linux/scripts/gdb/vmlinux-gdb.py&quot;</span> auto-loading has been declined by your <span class="sb">`</span>auto-load safe-path<span class="err">&#39;</span> <span class="nb">set </span>to <span class="s2">&quot;$debugdir:$datadir/auto-load&quot;</span>.
+</span><span class='line'>To <span class="nb">enable </span>execution of this file add
+</span><span class='line'>  add-auto-load-safe-path /path/to/linux/scripts/gdb/vmlinux-gdb.py
+</span><span class='line'>line to your configuration file <span class="s2">&quot;/home/&lt;username&gt;/.gdbinit&quot;</span>.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then you can do this one time fix in order to load the gdb scripts each run:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span><span class="nb">cd </span>linux
+</span><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;add-auto-load-safe-path `pwd`/scripts/gdb/vmlinux-gdb.py&quot;</span> &gt;&gt; ~/.gdbinit
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now that QEMU is listening on port 1234 (via <code>-s</code>), let’s connect to it, and
+set a break point early on in the kernel’s initialization.  Note the the use of
+<code>hbreak</code> (I lost a lot of time just using <code>b start_kernel</code>, only for the
+kernel to continue booting past that function).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>gdb<span class="o">)</span> target remote :1234
+</span><span class='line'>Remote debugging using :1234
+</span><span class='line'>0x000000000000fff0 in cpu_hw_events <span class="o">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> hbreak start_kernel
+</span><span class='line'>Hardware assisted breakpoint 2 at 0xffffffff82904a1d: file init/main.c, line 536.
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> c
+</span><span class='line'>Continuing.
+</span><span class='line'>
+</span><span class='line'>Breakpoint 2, start_kernel <span class="o">()</span> at init/main.c:536
+</span><span class='line'>536       set_task_stack_end_magic<span class="o">(</span>&amp;init_task<span class="o">)</span>;
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> bt
+</span><span class='line'><span class="c">#0  start_kernel () at init/main.c:536</span>
+</span><span class='line'><span class="c">#1  0xffffffff810000d4 in secondary_startup_64 () at arch/x86/kernel/head_64.S:243</span>
+</span><span class='line'><span class="c">#2  0x0000000000000000 in ?? ()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can start/resume the kernel with <code>c</code>, and pause it with <code>ctrl+c</code>.  The gdb
+scripts provided by the kernel via CONFIG_GDB_SCRIPTS can be viewed with
+<code>apropos lx</code>. <code>lx-dmesg</code> is incredibly handy for viewing the kernel dmesg
+buffer, particularly in the case of a kernel panic before the serial driver has
+been brought up (in which case there’s output from QEMU to stdout, which is
+just as much fun as debugging graphics code (ie. black screen)).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="o">(</span>gdb<span class="o">)</span> apropos lx
+</span><span class='line'><span class="k">function </span>lx_current -- Return current task
+</span><span class='line'><span class="k">function </span>lx_module -- Find module by name and <span class="k">return </span>the module variable
+</span><span class='line'><span class="k">function </span>lx_per_cpu -- Return per-cpu variable
+</span><span class='line'><span class="k">function </span>lx_task_by_pid -- Find Linux task by PID and <span class="k">return </span>the task_struct variable
+</span><span class='line'><span class="k">function </span>lx_thread_info -- Calculate Linux thread_info from task variable
+</span><span class='line'><span class="k">function </span>lx_thread_info_by_pid -- Calculate Linux thread_info from task variable found by pid
+</span><span class='line'>lx-cmdline --  Report the Linux Commandline used in the current kernel
+</span><span class='line'>lx-cpus -- List CPU status arrays
+</span><span class='line'>lx-dmesg -- Print Linux kernel log buffer
+</span><span class='line'>lx-fdtdump -- Output Flattened Device Tree header and dump FDT blob to the filename
+</span><span class='line'>lx-iomem -- Identify the IO memory resource locations defined by the kernel
+</span><span class='line'>lx-ioports -- Identify the IO port resource locations defined by the kernel
+</span><span class='line'>lx-list-check -- Verify a list consistency
+</span><span class='line'>lx-lsmod -- List currently loaded modules
+</span><span class='line'>lx-mounts -- Report the VFS mounts of the current process namespace
+</span><span class='line'>lx-ps -- Dump Linux tasks
+</span><span class='line'>lx-symbols -- <span class="o">(</span>Re-<span class="o">)</span>load symbols of Linux kernel and currently loaded modules
+</span><span class='line'>lx-version --  Report the Linux Version of the current kernel
+</span><span class='line'>
+</span><span class='line'><span class="o">(</span>gdb<span class="o">)</span> lx-version
+</span><span class='line'>Linux version 4.19.0-rc7+ <span class="o">(</span>nick@nick-Blade-Stealth<span class="o">)</span> <span class="o">(</span>clang version 8.0.0
+</span><span class='line'><span class="o">(</span>https://git.llvm.org/git/clang.git/ 60c8c0cc0786c7f6b8dc5c1e3acd7ec98f0a7b6d<span class="o">)</span>
+</span><span class='line'><span class="o">(</span>https://git.llvm.org/git/llvm.git/ 64c3a57bec9dbe3762fa1d80055ba850d6658f5b<span class="o">))</span>
+</span><span class='line'><span class="c">#18 SMP Wed Oct 24 19:29:53 PDT 2018</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Where to Go From Here</h2>
+
+<p>Maybe try cross compiling a kernel (you&rsquo;ll need a cross
+compiler/assembler/linker/debugger and likely a different <code>console=ttyXXX</code>
+kernel command line parameter), building your own root filesystem with
+<a href="https://buildroot.org/">buildroot</a>,
+or exploring the rest of QEMU&rsquo;s command line options.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2558,132 +2913,6 @@ tells you about the specifics sizes of standard integers and pointers.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/15/whats-in-a-word/">What&#8217;s in a Word?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-05-15T17:58:00-07:00" pubdate data-updated="true">May 15<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/05/15/whats-in-a-word/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Recently, there some was some confusion between myself and a coworker over the
-definition of a &ldquo;word.&rdquo;  I&rsquo;m currently working on a blog post about data
-alignment and figured it would be good to clarify some things now, that we can
-refer to later.</p>
-
-<p>Having studied computer engineering and being quite fond of processor design,
-when I think of a &ldquo;word,&rdquo; I think of the number of bits wide a processor&rsquo;s
-general purpose registers are
-(aka <a href="https://en.wikipedia.org/wiki/Word_%28computer_architecture%29#Size_families">word size</a>).
-This places hard requirements on the largest representable number and address
-space.  A 64 bit processor can represent 2<sup>64</sup>-1 (1.8x10<sup>19</sup>) as the largest
-unsigned long integer, and address up to 2<sup>64</sup>-1 (16 EiB) different addresses in
-memory.</p>
-
-<p>Further, word size limits the possible combinations of operations the processor
-can perform, length of immediate values used, inflates the size of binary files
-and memory needed to store pointers, and puts pressure on instruction caches.</p>
-
-<p>Word size also has implications on loads and stores based on alignment, as
-we&rsquo;ll see in a follow up post.</p>
-
-<p>When I think of 8 bit computers, I think of my first microcontroller: an
-Arduino with an Atmel AVR processor.  When I think of 16 bit computers, I think
-of my first game console, a Super Nintendo with a Ricoh 5A22.  When I think of
-32 bit computers, I think of my first desktop with Intel&rsquo;s Pentium III.  And
-when I think of 64 bit computers, I think modern smartphones with ARMv8
-instruction sets.  When someone mentions a particular word size, what are the
-machines that come to mind for you?</p>
-
-<p>So to me, when someone&rsquo;s talking about a 64b processor, to that machine (and
-me) a word is 64b.  When we&rsquo;re referring to a 8b processor, a word is 8b.</p>
-
-<p>Now, some confusion.</p>
-
-<p>Back in my previous blog posts about
-<a href="/blog/2014/04/18/lets-write-some-x86-64/">x86-64 assembly</a>,
-<a href="/blog/2015/05/25/interpreter-compiler-jit/">JITs</a>, or
-<a href="/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/">debugging</a>,
-you might have seen me use instructions that have suffixes of b for byte (8b),
-w for word (16b), dw for double word (32b), and qw for quad word (64b) (since
-SSE2 there&rsquo;s also double quadwords of 128b).</p>
-
-<p>Wait a minute!  How suddenly does a &ldquo;word&rdquo; refer to 16b on a 64b processor, as
-opposed to a 64b &ldquo;word?&rdquo;</p>
-
-<p>In short, historical baggage.  Intel&rsquo;s first hit processor was the
-<a href="https://en.wikipedia.org/wiki/Intel_4004">4004</a>,
-a 4b processor released in 1971.  It wasn&rsquo;t until 1979 that Intel created the
-16b
-<a href="https://en.wikipedia.org/wiki/Intel_8086">8086 processor</a>.</p>
-
-<p>The 8086 was created to compete with other 16b processors that beat it to the
-market, like the
-<a href="https://en.wikipedia.org/wiki/Zilog_Z80">Zilog Z80</a>
-(any Gameboy emulator fans out there?  Yes, I know about the Sharp LR35902).
-The 8086 was the first design in the
-<a href="https://en.wikipedia.org/wiki/X86">x86 family</a>,
-and it allowed for the same assembly syntax from the earlier 8008, 8080, and
-8085 to be reassembled for it.  The 8086&rsquo;s little brother (8088) would be used
-in
-<a href="https://en.wikipedia.org/wiki/IBM_Personal_Computer#Open_standards">IBM&rsquo;s PC</a>,
-and the rest is history.  x86 would become one of the most successful
-ISAs in history.</p>
-
-<p>For backwards compatibility, it seems that both Microsoft&rsquo;s (whose success has
-tracked that of x86 since MS-DOS and IBM&rsquo;s PC) and Intel&rsquo;s documentation refers
-to words still as being 16b. This allowed 16b PE32+ executables to be run on
-32b or even 64b newer versions of Windows, without requiring recompilation of
-source or source code modification.</p>
-
-<p>This isn&rsquo;t necessarily wrong to refer to a word based on backwards
-compatibility, it&rsquo;s just important to understand the context in which the term
-&ldquo;word&rdquo; is being used, and that there might be some confusion if you have a
-background with x86 assembly, Windows API programming, or processor design.</p>
-
-<p>So the next time someone asks: why does Intel&rsquo;s documentation commonly refer to
-a &ldquo;word&rdquo; as 16b, you can tell them that the x86 and x86-64 ISAs have maintained
-the notion of a word being 16b since the first x86 processor, the 8086, which
-was a 16b processor.</p>
-
-<p><em>Side Note: for an excellent historical perspective programming early x86
-chips, I recommend Michael Abrash&rsquo;s</em>
-<a href="http://www.gamedev.net/page/resources/_/technical/graphics-programming-and-theory/graphics-programming-black-book-r1698">Graphics Programming Black Book</a>.
-<em>For instance he talks about 8086&rsquo;s little brother, the 8088, being a 16b chip
-but only having an 8b bus with which to access memory. This caused a mysterious</em>
-<a href="http://downloads.gamedev.net/pdf/gpbb/gpbb4.pdf">&ldquo;cycle eater&rdquo;</a>
-<em>to prevent fast access to 16b variables, though they were the processor&rsquo;s
-natural size.  Michael also alludes to alignment issues we&rsquo;ll see in a follow
-up post.</em></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2699,6 +2928,10 @@ up post.</em></p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/">Speeding Up Linux Kernel Builds With Ccache</a>
       </li>
     
@@ -2712,10 +2945,6 @@ up post.</em></p>
     
       <li class="post">
         <a href="/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/">Submitting Your First Patch to the Linux Kernel and Responding to Feedback</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/11/20/static-and-dynamic-libraries/">Static and Dynamic Libraries</a>
       </li>
     
   </ul>

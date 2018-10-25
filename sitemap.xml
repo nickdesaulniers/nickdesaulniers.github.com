@@ -142,11 +142,17 @@
         <loc>
             http://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/
         </loc>
-        <lastmod>2018-06-03T14:39:26-07:00</lastmod>
+        <lastmod>2018-10-24T21:19:45-07:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://nickdesaulniers.github.io/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/
+        </loc>
+        <lastmod>2018-10-24T22:32:00-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/blog/archives/</loc>
-        <lastmod>2018-06-03T14:39:26-07:00</lastmod>
+        <lastmod>2018-10-24T22:32:00-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/publications/</loc>
@@ -162,7 +168,7 @@
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/</loc>
-        <lastmod>2018-06-03T14:39:26-07:00</lastmod>
+        <lastmod>2018-10-24T22:32:00-07:00</lastmod>
     </url>
     <url>
         <loc>http://nickdesaulniers.github.io/about/</loc>
