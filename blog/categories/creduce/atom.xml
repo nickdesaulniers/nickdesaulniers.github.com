@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: creduce | Nick Desaulniers]]></title>
+  <link href="http://nickdesaulniers.github.io/blog/categories/creduce/atom.xml" rel="self"/>
+  <link href="http://nickdesaulniers.github.io/"/>
+  <updated>2019-01-18T00:35:53-08:00</updated>
+  <id>http://nickdesaulniers.github.io/</id>
+  <author>
+    <name><![CDATA[Nick Desaulniers]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Finding compiler bugs with C-Reduce]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/"/>
+    <updated>2019-01-18T00:26:00-08:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2019/01/18/finding-compiler-bugs-with-c-reduce</id>
+    <content type="html"><![CDATA[<p>Support for a long awaited GNU C extension,
+<a href="https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html">asm goto</a>,
+is in the midst of landing in
+<a href="https://reviews.llvm.org/D56571">Clang</a> and
+<a href="https://reviews.llvm.org/D53765">LLVM</a>.  We want to make sure that
+we release a high quality implementation, so it&rsquo;s important to test the new
+patches on real code and not just small test cases.  When we hit compiler bugs
+in large source files, it can be tricky to find exactly what part of
+potentially large translation units are problematic.  In this post, we&rsquo;ll take
+a look at using
+<a href="https://embed.cs.utah.edu/creduce/">C-Reduce</a>,
+a multithreaded code bisection utility for C/C++, to help narrow done a
+reproducer for
+<a href="https://github.com/ClangBuiltLinux/linux/issues/320">a real compiler bug</a>
+(potentially; in a patch that was posted, and will be fixed before it can ship
+in production) from a real code base (the Linux kernel).  It&rsquo;s mostly a post to
+myself in the future, so that I can remind myself how to run C-reduce on the
+Linux kernel again, since this is now the third real compiler bug it&rsquo;s helped
+me track down.</p>
+
+<p>So the bug I&rsquo;m focusing on when trying to compile the Linux kernel with Clang
+is a linkage error, all the way at the end of the build.
+<code>
+drivers/spi/spidev.o:(__jump_table+0x74): undefined reference to `.Ltmp4'
+</code>
+Hmm&hellip;looks like the object file (<code>drivers/spi/spidev.o</code>), has a
+section (<code>__jump_table</code>), that references a non-existent
+symbol (<code>.Ltmp</code>), which looks like a temporary label that should have been
+cleaned up by the compiler.  Maybe it was accidentally left behind by an
+optimization pass?</p>
+
+<p>To run C-reduce, we need a shell script that returns 0 when it should keep
+reducing, and an input file.  For an input file, it&rsquo;s just way simpler to
+preprocess it; this helps cut down on the compiler flags that typically
+requires paths (<code>-I</code>, <code>-L</code>).</p>
+
+<h2>Preprocess</h2>
+
+<p>First, let&rsquo;s preprocess the source.  For the kernel, if the file compiles
+correctly, the kernel&rsquo;s KBuild build process will create a file named in the
+form path/to/.file.o.cmd, in our case drivers/spi/.spidev.o.cmd.  (If the file
+doesn&rsquo;t compile, then
+<a href="https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/">I&rsquo;ve had success</a>
+hooking <code>make path/to/file.o</code> with
+<a href="https://github.com/rizsotto/Bear">bear</a>
+then getting the <code>compile_commands.json</code> for the file.)  I find it easiest to
+copy this file to a new shell script, then strip out everything but the first
+line.  I then replace the <code>-c -o &lt;output&gt;.o</code> with <code>-E</code>.  <code>chmod +x</code> that new
+shell script, then run it (outputting to stdout) to eyeball that it looks
+preprocessed, then redirect the output to a <code>.i</code> file.  Now that we have our
+preprocessed input, let&rsquo;s create the C-reduce shell script.</p>
+
+<h2>Reproducer</h2>
+
+<p>I find it helpful to have a shell script in the form:</p>
+
+<ol>
+<li>remove previous object files</li>
+<li>rebuild object files</li>
+<li>disassemble object files and pipe to grep</li>
+</ol>
+
+
+<p>For you, it might be some different steps.
+<a href="https://embed.cs.utah.edu/creduce/using/">As the docs show</a>,
+you just need the shell script to return 0 when it should keep reducing.  From
+our previous shell script that pre-processed the source and dumped a <code>.i</code> file,
+let&rsquo;s change it back to stop before linking rather that preprocessing
+(<code>s/-E/-c/</code>), and change the input to our new <code>.i</code> file.  Finally, let&rsquo;s add
+the test for what we want.  Since I want C-Reduce to keep reducing until the
+disassmbled object file no longer references anything <code>Ltmp</code> related, I write:</p>
+
+<p><code>sh
+$ objdump -Dr -j __jump_table spidev.o | grep Ltmp &gt; /dev/null
+</code></p>
+
+<p>Now I can run the reproducer to check that it at least returns 0, which
+C-Reduce needs to get started:</p>
+
+<p><code>sh
+$ ./spidev_asm_goto.sh
+$ echo $?
+0
+</code></p>
+
+<h2>Running C-Reduce</h2>
+
+<p>Now that we have a reproducer script and input file, let&rsquo;s run C-Reduce.</p>
+
+<p>```
+$ time creduce &mdash;n 40 spidev_asm_goto.sh spidev.i
+===&lt; 144926 >===
+running 40 interestingness tests in parallel
+===&lt; pass_includes :: 0 >===
+===&lt; pass_unifdef :: 0 >===
+===&lt; pass_comments :: 0 >===
+===&lt; pass_blank :: 0 >===
+(0.7 %, 2393679 bytes)
+(5.3 %, 2282207 bytes)
+===&lt; pass_clang_binsrch :: replace-function-def-with-decl >===
+(12.6 %, 2107372 bytes)
+&hellip;
+===&lt; pass_indent :: final >===
+(100.0 %, 156 bytes)
+===================== done ====================</p>
+
+<p>pass statistics:
+  method pass_clang_binsrch :: remove-unused-function worked 1 times and failed 0 times
+&hellip;
+  method pass_lines :: 0 worked 427 times and failed 998 times</p>
+
+<pre><code>        ******** /android0/kernel-all/spidev.i ********
+</code></pre>
+
+<p>a() {
+  int b;
+  c();
+  if (c &lt; 2)</p>
+
+<pre><code>b = d();
+</code></pre>
+
+<p>  else {</p>
+
+<pre><code>asm goto("1:.long b - ., %l[l_yes] - . \n\t" : : : : l_yes);
+</code></pre>
+
+<p>  l_yes:;
+  }
+  if (b)</p>
+
+<pre><code>e();
+</code></pre>
+
+<p>}
+creduce &mdash;n 40 spidev_asm_goto.sh spidev.i  1892.35s user 1186.10s system 817% cpu 6:16.76 total
+$ wc -l spidev.i.orig
+56160 spidev.i.orig
+$ wc -l spidev.i
+12 spidev.i
+```</p>
+
+<p>So it took C-reduce just over 6 minutes to turn >56k lines of mostly irrelevant
+code into 12 when running 40 threads on my 48 core workstation.</p>
+
+<p>It&rsquo;s also highly entertaining to watch C-Reduce work its magic. In another
+terminal, I highly recommend running <code>watch -n1 cat &lt;input_file_to_creduce.i&gt;</code>
+to see it pared down before your eyes.</p>
+
+<p>Jump to 4:24 to see where things really pick up.
+<a href="https://asciinema.org/a/XtD0QdiIUGhvc1G2BqTJ9gti2"><img src="https://asciinema.org/a/XtD0QdiIUGhvc1G2BqTJ9gti2.svg" alt="asciicast" /></a>
+<a href="https://asciinema.org/a/zdkbvUqDsilSa5QjGJr3ANP6y"><img src="https://asciinema.org/a/zdkbvUqDsilSa5QjGJr3ANP6y.svg" alt="asciicast" /></a></p>
+
+<p>Finally, we still want to bisect our compiler flags (the kernel uses a lot).  I
+still do this process manually, and it&rsquo;s not too bad.  Having proper and
+minimal steps to reproduce compiler bugs is critical.</p>
+
+<p>That&rsquo;s enough for a great bug report for now.  In a future episode, we&rsquo;ll see
+how to start pulling apart llvm to see where compilation is going amiss.</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -9,8 +9,12 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="Typically, when we modify a program, we’d like to run it to verify our changes.
-Before booting a compiled Linux kernel image on actual hardware, it &hellip;">
+  <meta name="description" content="Support for a long awaited GNU C extension,
+asm goto,
+is in the midst of landing in
+Clang and
+LLVM. We want to make sure that
+we release a high &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +85,236 @@ Before booting a compiled Linux kernel image on actual hardware, it &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-01-18T00:26:00-08:00" pubdate data-updated="true">Jan 18<span>th</span>, 2019</time>
+        
+         | <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Support for a long awaited GNU C extension,
+<a href="https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html">asm goto</a>,
+is in the midst of landing in
+<a href="https://reviews.llvm.org/D56571">Clang</a> and
+<a href="https://reviews.llvm.org/D53765">LLVM</a>.  We want to make sure that
+we release a high quality implementation, so it&rsquo;s important to test the new
+patches on real code and not just small test cases.  When we hit compiler bugs
+in large source files, it can be tricky to find exactly what part of
+potentially large translation units are problematic.  In this post, we&rsquo;ll take
+a look at using
+<a href="https://embed.cs.utah.edu/creduce/">C-Reduce</a>,
+a multithreaded code bisection utility for C/C++, to help narrow done a
+reproducer for
+<a href="https://github.com/ClangBuiltLinux/linux/issues/320">a real compiler bug</a>
+(potentially; in a patch that was posted, and will be fixed before it can ship
+in production) from a real code base (the Linux kernel).  It&rsquo;s mostly a post to
+myself in the future, so that I can remind myself how to run C-reduce on the
+Linux kernel again, since this is now the third real compiler bug it&rsquo;s helped
+me track down.</p>
+
+<p>So the bug I&rsquo;m focusing on when trying to compile the Linux kernel with Clang
+is a linkage error, all the way at the end of the build.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>drivers/spi/spidev.o:(__jump_table+0x74): undefined reference to `.Ltmp4'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Hmm&hellip;looks like the object file (<code>drivers/spi/spidev.o</code>), has a
+section (<code>__jump_table</code>), that references a non-existent
+symbol (<code>.Ltmp</code>), which looks like a temporary label that should have been
+cleaned up by the compiler.  Maybe it was accidentally left behind by an
+optimization pass?</p>
+
+<p>To run C-reduce, we need a shell script that returns 0 when it should keep
+reducing, and an input file.  For an input file, it&rsquo;s just way simpler to
+preprocess it; this helps cut down on the compiler flags that typically
+requires paths (<code>-I</code>, <code>-L</code>).</p>
+
+<h2>Preprocess</h2>
+
+<p>First, let&rsquo;s preprocess the source.  For the kernel, if the file compiles
+correctly, the kernel&rsquo;s KBuild build process will create a file named in the
+form path/to/.file.o.cmd, in our case drivers/spi/.spidev.o.cmd.  (If the file
+doesn&rsquo;t compile, then
+<a href="https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/">I&rsquo;ve had success</a>
+hooking <code>make path/to/file.o</code> with
+<a href="https://github.com/rizsotto/Bear">bear</a>
+then getting the <code>compile_commands.json</code> for the file.)  I find it easiest to
+copy this file to a new shell script, then strip out everything but the first
+line.  I then replace the <code>-c -o &lt;output&gt;.o</code> with <code>-E</code>.  <code>chmod +x</code> that new
+shell script, then run it (outputting to stdout) to eyeball that it looks
+preprocessed, then redirect the output to a <code>.i</code> file.  Now that we have our
+preprocessed input, let&rsquo;s create the C-reduce shell script.</p>
+
+<h2>Reproducer</h2>
+
+<p>I find it helpful to have a shell script in the form:</p>
+
+<ol>
+<li>remove previous object files</li>
+<li>rebuild object files</li>
+<li>disassemble object files and pipe to grep</li>
+</ol>
+
+
+<p>For you, it might be some different steps.
+<a href="https://embed.cs.utah.edu/creduce/using/">As the docs show</a>,
+you just need the shell script to return 0 when it should keep reducing.  From
+our previous shell script that pre-processed the source and dumped a <code>.i</code> file,
+let&rsquo;s change it back to stop before linking rather that preprocessing
+(<code>s/-E/-c/</code>), and change the input to our new <code>.i</code> file.  Finally, let&rsquo;s add
+the test for what we want.  Since I want C-Reduce to keep reducing until the
+disassmbled object file no longer references anything <code>Ltmp</code> related, I write:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>objdump -Dr -j __jump_table spidev.o | grep Ltmp &gt; /dev/null
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now I can run the reproducer to check that it at least returns 0, which
+C-Reduce needs to get started:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>./spidev_asm_goto.sh
+</span><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$?</span>
+</span><span class='line'>0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Running C-Reduce</h2>
+
+<p>Now that we have a reproducer script and input file, let&rsquo;s run C-Reduce.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span><span class="nb">time </span>creduce --n 40 spidev_asm_goto.sh spidev.i
+</span><span class='line'><span class="o">===</span>&lt; 144926 &gt;<span class="o">===</span>
+</span><span class='line'>running 40 interestingness tests in <span class="nv">parallel</span>
+</span><span class='line'><span class="o">===</span>&lt; pass_includes :: 0 &gt;<span class="o">===</span>
+</span><span class='line'><span class="o">===</span>&lt; pass_unifdef :: 0 &gt;<span class="o">===</span>
+</span><span class='line'><span class="o">===</span>&lt; pass_comments :: 0 &gt;<span class="o">===</span>
+</span><span class='line'><span class="o">===</span>&lt; pass_blank :: 0 &gt;<span class="o">===</span>
+</span><span class='line'><span class="o">(</span>0.7 %, 2393679 bytes<span class="o">)</span>
+</span><span class='line'><span class="o">(</span>5.3 %, 2282207 bytes<span class="o">)</span>
+</span><span class='line'><span class="o">===</span>&lt; pass_clang_binsrch :: replace-function-def-with-decl &gt;<span class="o">===</span>
+</span><span class='line'><span class="o">(</span>12.6 %, 2107372 bytes<span class="o">)</span>
+</span><span class='line'>...
+</span><span class='line'><span class="o">===</span>&lt; pass_indent :: final &gt;<span class="o">===</span>
+</span><span class='line'><span class="o">(</span>100.0 %, 156 bytes<span class="o">)</span>
+</span><span class='line'><span class="o">=====================</span> <span class="k">done</span> <span class="o">====================</span>
+</span><span class='line'>
+</span><span class='line'>pass statistics:
+</span><span class='line'>  method pass_clang_binsrch :: remove-unused-function worked 1 <span class="nb">times </span>and failed 0 <span class="nb">times</span>
+</span><span class='line'>...
+</span><span class='line'>  method pass_lines :: 0 worked 427 <span class="nb">times </span>and failed 998 <span class="nb">times</span>
+</span><span class='line'>            ******** /android0/kernel-all/spidev.i ********
+</span><span class='line'>
+</span><span class='line'>a<span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>  int b;
+</span><span class='line'>  c<span class="o">()</span>;
+</span><span class='line'>  <span class="k">if</span> <span class="o">(</span>c &lt; 2<span class="o">)</span>
+</span><span class='line'>    <span class="nv">b</span> <span class="o">=</span> d<span class="o">()</span>;
+</span><span class='line'>  <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>    asm goto<span class="o">(</span><span class="s2">&quot;1:.long b - ., %l[l_yes] - . \n\t&quot;</span> : : : : l_yes<span class="o">)</span>;
+</span><span class='line'>  l_yes:;
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="k">if</span> <span class="o">(</span>b<span class="o">)</span>
+</span><span class='line'>    e<span class="o">()</span>;
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>creduce --n 40 spidev_asm_goto.sh spidev.i  1892.35s user 1186.10s system 817% cpu 6:16.76 total
+</span><span class='line'><span class="nv">$ </span>wc -l spidev.i.orig
+</span><span class='line'>56160 spidev.i.orig
+</span><span class='line'><span class="nv">$ </span>wc -l spidev.i
+</span><span class='line'>12 spidev.i
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So it took C-reduce just over 6 minutes to turn >56k lines of mostly irrelevant
+code into 12 when running 40 threads on my 48 core workstation.</p>
+
+<p>It&rsquo;s also highly entertaining to watch C-Reduce work its magic. In another
+terminal, I highly recommend running <code>watch -n1 cat &lt;input_file_to_creduce.i&gt;</code>
+to see it pared down before your eyes.</p>
+
+<p>Jump to 4:24 to see where things really pick up.
+<a href="https://asciinema.org/a/XtD0QdiIUGhvc1G2BqTJ9gti2"><img src="https://asciinema.org/a/XtD0QdiIUGhvc1G2BqTJ9gti2.svg" alt="asciicast" /></a>
+<a href="https://asciinema.org/a/zdkbvUqDsilSa5QjGJr3ANP6y"><img src="https://asciinema.org/a/zdkbvUqDsilSa5QjGJr3ANP6y.svg" alt="asciicast" /></a></p>
+
+<p>Finally, we still want to bisect our compiler flags (the kernel uses a lot).  I
+still do this process manually, and it&rsquo;s not too bad.  Having proper and
+minimal steps to reproduce compiler bugs is critical.</p>
+
+<p>That&rsquo;s enough for a great bug report for now.  In a future episode, we&rsquo;ll see
+how to start pulling apart llvm to see where compilation is going amiss.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2643,276 +2877,6 @@ messages. <code>G</code> to fetch new messages.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/30/data-models-and-word-size/">Data Models and Word Size</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-05-30T12:54:00-07:00" pubdate data-updated="true">May 30<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/05/30/data-models-and-word-size/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><em>This post is a follow up to
-<a href="/blog/2016/05/15/whats-in-a-word/">my previous blog post about word size</a>.</em></p>
-
-<p>Three C/C++ programmers walk into a bar.  One argues that sizeof(void*) is
-equivalent to sizeof(long), one argues that sizeof(void*) is equivalent to
-sizeof(int), and the third argues it’s sizeof(long long).  Simultaneously,
-they’re all right, but they’re also all wrong (and need a lesson about portable
-C code).  What the hell is going on?</p>
-
-<p>One of the first few programs a programmer might write after hello world is
-something like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(int): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(long): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span><span class="p">));</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(long long): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span> <span class="kt">long</span><span class="p">));</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sizeof(void*): %zu</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><em>Note the use of the %zu format specifier, a C99 addition that isn’t portable to
-older compilers!  (This post is more about considerations when porting older
-code to newer machines, not about porting newer code to run on older machines.
-Not having a standards compliant C compiler makes writing more portable C code
-even trickier, and is a subject for another blog post).</em></p>
-
-<p>When I run that code on my x86-64 OSX machine, I get the following output:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sizeof<span class="o">(</span>int<span class="o">)</span>: 4
-</span><span class='line'>sizeof<span class="o">(</span>long<span class="o">)</span>: 8
-</span><span class='line'>sizeof<span class="o">(</span>long long<span class="o">)</span>: 8
-</span><span class='line'>sizeof<span class="o">(</span>void*<span class="o">)</span>: 8
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So it looks like I would be the first programmer in the story in the first
-paragraph, since on my machine, it looks like sizeof(long) == sizeof(void*).
-Also note how sizeof(long long) is equivalent as well.</p>
-
-<p>But what would happen if I compiled my code on a 32 bit machine?  Luckily, my
-processor has backwards compatibility with 32b binaries, so I can cross compile
-it locally and still run it. Ex:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>➜  clang sizeof.c -Wall -Wextra -Wpedantic
-</span><span class='line'>➜  file a.out
-</span><span class='line'>a.out: Mach-O 64-bit executable x86_64
-</span><span class='line'>➜  clang sizeof.c -Wall -Wextra -Wpedantic -m32
-</span><span class='line'>➜  file a.out
-</span><span class='line'>a.out: Mach-O executable i386
-</span><span class='line'>➜  ./a.out
-</span><span class='line'>sizeof<span class="o">(</span>int<span class="o">)</span>: 4
-</span><span class='line'>sizeof<span class="o">(</span>long<span class="o">)</span>: 4
-</span><span class='line'>sizeof<span class="o">(</span>long long<span class="o">)</span>: 8
-</span><span class='line'>sizeof<span class="o">(</span>void*<span class="o">)</span>: 4
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Huh, suddenly sizeof(void*) == sizeof(int) == sizeof(long)!  This seems
-to be the case of the second programmer from the story.</p>
-
-<p>Both programmer 1 and programmer 2 might agree that the size of a pointer is
-equivalent to their machine’s respective
-<a href="/blog/2016/05/15/whats-in-a-word/">word size</a>,
-but that too would be an incorrect assumption for portable C/C++ code!</p>
-
-<p>Programmer 3 goes through the hellscape that is installing a working compiler
-for Windows and building a 64b command line application (to be fair, installing
-command line tools for OSX is worse; installing a compiler for most OS’ leaves
-much to be desired).  When they run that program, they see:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'>sizeof<span class="o">(</span>int<span class="o">)</span>: 4
-</span><span class='line'>sizeof<span class="o">(</span>long<span class="o">)</span>: 4
-</span><span class='line'>sizeof<span class="o">(</span>long long<span class="o">)</span>: 8
-</span><span class='line'>sizeof<span class="o">(</span>void*<span class="o">)</span>: 8
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This is yet a third case (the third programmer from the story).  In this case,
-only sizeof(long long) is equivalent to sizeof(void*).</p>
-
-<h3>Data Models</h3>
-
-<p>What these programmers are seeing is known as data models.  Programmer 1 one on
-a 64b x86-64 OSX machine had an LP64 data model where longs (L), (larger long
-longs,) and pointers (P) are 64b, but ints were 32b.  Programmer 2 on a 32b x86
-OSX machine had an ILP32 data model where ints (I), longs (L), and pointers (P)
-were 32b, but long longs were 64b.  Programmer 3 on a 64b x86-64 Windows
-machine had a LLP64 data model, where only long longs (LL) and pointers (P)
-were 64b, ints and longs being 32b.</p>
-
-<table>
-<thead>
-<tr>
-<th><strong>Data model</strong> </th>
-<th> <strong>sizeof(int)</strong> </th>
-<th> <strong>sizeof(long)</strong> </th>
-<th> <strong>sizeof(long long)</strong> </th>
-<th> <strong>sizeof(void*)</strong> </th>
-<th> <strong>example</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>ILP32 </td>
-<td> 32b </td>
-<td> 32b </td>
-<td> 64b </td>
-<td> 32b </td>
-<td> Win32, i386 OSX &amp; Linux</td>
-</tr>
-<tr>
-<td>LP64 </td>
-<td> 32b </td>
-<td> 64b </td>
-<td> 64b </td>
-<td> 64b </td>
-<td> x86-64 OSX &amp; Linux</td>
-</tr>
-<tr>
-<td>LLP64 </td>
-<td> 32b </td>
-<td> 32b </td>
-<td> 64b </td>
-<td> 64b </td>
-<td> Win64</td>
-</tr>
-</tbody>
-</table>
-
-
-<p>There are older data models such as LP32 (Windows 3.1, Macintosh, where ints
-are 16b), and more exotic ones like ILP64, and SILP64.  Knowing the data model
-thus is important for portable C/C++ code.</p>
-
-<h3>Historical Perspective</h3>
-
-<p>Running out of address space is and will continue to be tradition in computing.
-Applications become bigger as computer power and memory gets cheaper.
-Companies want to sell chips that have larger word sizes to address more
-memory, but early adopters don’t want to buy a computer where there favorite
-application hasn’t been compiled and thus doesn’t exist on yet.  <strong>Someone from
-the back shouts <em>virtual machines</em> then ducks as a chair is thrown.</strong></p>
-
-<p><a href="http://www.unix.org/version2/whatsnew/lp64_wp.html">This document</a>
-highlights some reasons why LP64 is preferred to ILP64: ILP64
-made portable C code that only needed 32b of precision harder to maintain (on
-ILP64 an int was 64b, but a short was 16b!).  It mentions how for data
-structures that did not contain pointers, their size would be the same on LLP64
-as ILP32, which is the direction Microsoft went.  LLP64 was essentially the
-ILP32 model with 64b pointers.</p>
-
-<p><em>Linux also supports an ABI called
-<a href="https://en.wikipedia.org/wiki/X32_ABI">x32</a>
-which can use x86-64 ISA improvements but uses 32b pointers to reduce the size
-of data structures that would otherwise have 64b pointers.</em></p>
-
-<p>For a great historical perspective on the evolution of word size and data
-models, as well as the &ldquo;toil and trouble&rdquo; caused,
-<a href="https://queue.acm.org/detail.cfm?id=1165766">this paper</a>
-was an excellent reference.  It describes Microsoft finally abandoning support
-for 16b data models in Windows XP 64.  It mentions that the industry was pretty
-split between LP64, LLP64, and ILP64 as porting code from the good old days of
-ILP32 would break in different ways.  That the use of long was more prevalent
-in Windows applications vs the use of int in unix applications.  It also makes
-the key point that a lot of programmers from the ILP32 era made assumptions
-that sizeof(int) == sizeof(long) == sizeof(void*) which would not hold true
-for the LP64/LLP64 era.</p>
-
-<p>One important point the paper makes makes that’s easily missed is that typedef
-wasn’t added to C until 1977 when hardware manufactures still couldn’t agree on
-how many bits were in a char (CHAR_BITS) and some machines were using 24b
-addressing schemes.  stdint.h and inttypes.h did not exist yet.</p>
-
-<p><a href="/blog/2016/05/15/whats-in-a-word/">This article</a>
-talks about two main categories of effects of switching from ILP32 to LP64 and
-has excellent examples of problematic code.  That section near the end is worth
-the read alone and makes excellent points to look for during code review.</p>
-
-<h3>Conclusion</h3>
-
-<p>Word size or ISA doesn’t tell you anything about sizeof(int), sizeof(long), or
-sizeof(long long).  We also saw that one machine can support multiple different
-data models (when I compiled and ran the same code with the -m32 flag).</p>
-
-<p>The C standard tells you minimum guaranteed sizes for these types, but the data
-model (part of the ABI, external to but abiding by the C standard) is what
-tells you about the specifics sizes of standard integers and pointers.</p>
-
-<h3>Further Reading</h3>
-
-<ul>
-<li><a href="http://www.unix.org/version2/whatsnew/lp64_wp.html">64-Bit Programming Models: Why LP64?</a></li>
-<li><a href="https://queue.acm.org/detail.cfm?id=1165766">The Long Road to 64 Bits</a></li>
-<li><a href="http://www.unix.org/whitepapers/64bit.html">The UNIX System &mdash; 64bit and Data Size Neutrality</a></li>
-<li><a href="https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models">64-bit data models</a></li>
-<li><a href="https://docs.oracle.com/cd/E19620-01/805-3024/lp64-1/index.html">C Language Data Type Models: LP64 and ILP32</a></li>
-<li><a href="https://blogs.oracle.com/nike/entry/ilp64_lp64_llp64">ILP64, LP64, LLP64</a></li>
-<li><a href="https://en.wikipedia.org/wiki/X32_ABI">x32 ABI</a></li>
-<li><a href="http://stackoverflow.com/a/9162072">difference between stdint.h and inttypes.h</a></li>
-<li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384083%28v=vs.85%29.aspx">Abstract Data Models</a></li>
-<li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384264%28v=vs.85%29.aspx">The New Data Types</a></li>
-<li><a href="http://stackoverflow.com/a/13413892">Is there any reason not to use fixed width integer types (e.g. uint8_t)?</a></li>
-<li><a href="https://blogs.msdn.microsoft.com/oldnewthing/20050131-00/?p=36563/">Why did the Win64 team choose the LLP64 model?</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2928,6 +2892,10 @@ tells you about the specifics sizes of standard integers and pointers.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
       </li>
     
@@ -2941,10 +2909,6 @@ tells you about the specifics sizes of standard integers and pointers.</p>
     
       <li class="post">
         <a href="/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/">Running Clang-Tidy on the Linux Kernel</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/">Submitting Your First Patch to the Linux Kernel and Responding to Feedback</a>
       </li>
     
   </ul>
@@ -2989,7 +2953,7 @@ tells you about the specifics sizes of standard integers and pointers.</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2018 - Nick Desaulniers -
+  Copyright &copy; 2019 - Nick Desaulniers -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
