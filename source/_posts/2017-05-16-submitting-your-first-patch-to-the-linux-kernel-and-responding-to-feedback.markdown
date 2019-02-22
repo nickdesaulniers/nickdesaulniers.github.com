@@ -24,7 +24,7 @@ or email me).
 
 ## Step 1: Setting up an email client
 
-I mostly use `git send-email` for sending patch files.  In my `~/,gitconfig` I
+I mostly use `git send-email` for sending patch files.  In my `~/.gitconfig` I
 have added:
 
 ```ini
