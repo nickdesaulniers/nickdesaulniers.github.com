@@ -5,6 +5,24 @@ comments: true
 sharing: true
 footer: true
 ---
+## 2019
+
+### Compiling the Linux Kernel with LLVM Tools
+[FOSDEM '19'](https://fosdem.org/2019/schedule/event/llvm_kernel/) - Brussels, Belgium - February 2-3
+
+[slides](https://fosdem.org/2019/schedule/event/llvm_kernel/attachments/slides/3330/export/events/attachments/llvm_kernel/slides/3330/clang_linux_fosdem_19.pdf)
+
+[video](https://video.fosdem.org/2019/K.4.201/llvm_kernel.webm)
+
+## 2018
+
+### Compiling the Linux Kernel with Clang
+[Linux Plumbers Conference 2018](https://www.linuxplumbersconf.org/event/2/contributions/256/) - Vancouver, Canada - November 13-15
+
+[slides](https://docs.google.com/presentation/d/1vJrsJ7fRSi6uidJWVSI2bg8aR19gXeshLgD0tcXfMqg/edit?usp=sharing)
+
+[video](https://www.youtube.com/watch?v=SSWUrWqnSz0)
+
 ## 2017
 
 ### Compiling Android Userspace and Linux Kernel with LLVM
