@@ -283,8 +283,10 @@ longer have the <code>xorl %eax, %eax</code>.  Same for <code>f(void)</code> in 
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Is an error in C, but surprisingly C++ is less strict here, not only allowing
-it but also taking the semantics of the definition. (Spooky)</p>
+<p>Is an error in C, but in C++ thanks to operator overloading these are two
+separate functions! (<code>_Z3barv</code> vs <code>_Z3bari</code>). (Thanks HN user
+<a href="https://news.ycombinator.com/item?id=19895079">pdpi</a>, for helping me
+understand this. Cunningham&rsquo;s Law ftw.)</p>
 
 <p>Needless to say, If you write code like that where your function declarations
 and definitions do not match, you will be put in prison.
