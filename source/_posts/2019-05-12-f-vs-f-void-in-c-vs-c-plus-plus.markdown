@@ -118,8 +118,10 @@ longer have the `xorl %eax, %eax`.  Same for `f(void)` in C or C++.
 int bar(void);
 int bar(int x) { return x + 42; }
 ```
-Is an error in C, but surprisingly C++ is less strict here, not only allowing
-it but also taking the semantics of the definition. (Spooky)
+Is an error in C, but in C++ thanks to operator overloading these are two
+separate functions! (`_Z3barv` vs `_Z3bari`). (Thanks HN user
+[pdpi](https://news.ycombinator.com/item?id=19895079), for helping me
+understand this. Cunningham's Law ftw.)
 
 Needless to say, If you write code like that where your function declarations
 and definitions do not match, you will be put in prison.
