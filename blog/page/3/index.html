@@ -9,11 +9,7 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="ECMAScript 5&rsquo;s
-Function.prototype.bind
-is a great tool that&rsquo;s implemented in all
-modern browser JavaScript engines.
-It allows you to &hellip;">
+  <meta name="description" content="Your application just broke, oh no! It couldn&rsquo;t have been your code, right? I&rsquo;ve always had trouble spotting mistakes in my own work such &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -84,6 +80,139 @@ It allows you to &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/03/01/write-a-test-case/">Write a Test Case</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-01T13:22:00-08:00" pubdate data-updated="true">Mar 1<span>st</span>, 2014</time>
+        
+         | <a href="/blog/2014/03/01/write-a-test-case/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Your application just broke, oh no!  It couldn&rsquo;t have been <em>your</em> code, right?</p>
+
+<p>I&rsquo;ve always had trouble spotting mistakes in my own work such as spelling,
+grammar, mathematical, or even in programming.  With spelling or grammar,
+office applications quickly pick up on my mistakes and underline them for me,
+but most of my mistakes come from my own hubris.  I&rsquo;m confident in what I do,
+and that gets me in trouble when I make little mistakes.  I&rsquo;m confident that I
+solved this problem correctly and didn&rsquo;t make any small mistakes.  As a kid
+competing in timed math competitions, I quickly learned that reviewing your
+work cost time, so it was important to recognize where common mistakes would
+crop up on certain problems and spend slightly extra time the first time
+through those problem areas, rather than double checking the work in its
+entirety, unless I had the time to spare.  Measure twice, cut once.</p>
+
+<p>The same is true for programming.  Writing test cases is time consuming, and if
+time is money, then it could be said that writing tests is costly.  There&rsquo;s
+probably a logical fallacy in there.  In general, we hope that the time-cost of
+writing test
+cases will be recuperated by the time-cost of bugs caught, though it&rsquo;s not easy
+to measure the time-cost of averted bugs.  I&rsquo;m all for test cases.  I think
+that
+<a href="http://sqlite.org/testing.html#coverage">SQLite having 100% branch coverage</a>
+is incredible, truly an lofty
+achievement.  People get bogged down in arguments over type systems where
+testing is more of a must for languages without a compiler to catch certain
+bugs.</p>
+
+<p>Ok, so going back to your code, something is wrong.  But we&rsquo;re confident it
+couldn&rsquo;t be <em>our</em> code.  Maybe it&rsquo;s one of those open source modules I&rsquo;m using
+not being tested enough, or that pesky browser implementation, or this damned
+OS.  It couldn&rsquo;t be <em>my</em> code.</p>
+
+<p><strong>Prove it.</strong></p>
+
+<p>I see bug reports all the time where people say your X breaks my Y, but when
+asked to provide Y they can&rsquo;t for whatever software licensing reason.  The bug
+resolver (person who is enabled to fix said bug in X), doesn&rsquo;t know at this
+point whether the bug reporter (developer of Y) did their homework; the bug is
+unconfirmed.  Both reporter and resolver are suspicious of each others&#8217; code.
+<em>I</em> don&rsquo;t make silly mistakes, right?</p>
+
+<p><img class="center" src="/images/dude.jpg"></p>
+
+<p>So it&rsquo;s up to the resolver to work out a test case.  Being able to reproduce
+said issue is the first goal to resolving a bug.  Just like scientific
+statements aren&rsquo;t taken as fact until reproducible, so too will this bug be
+merely conjecture at this point.  It kills me when the bug resolver closes an
+issue because it <em>works for me</em>.  Nothing boils my blood more; I took the time
+to try and help you and wasn&rsquo;t rewarded on some level so I feel that I wasted
+my time.  But from where you stand the resolver is not correct, so again I
+say&hellip;</p>
+
+<p><strong>Prove it.</strong></p>
+
+<p>I think that it&rsquo;s super hard to get meaningful feedback from users.  It&rsquo;s hard
+for them to express why they&rsquo;re frustrated.  We as software developers don&rsquo;t
+always point them in the right direction.  As users can have wide ranges of
+technical capabilities, sometimes we as more technical oriented people have to
+do a little hand holding.  For instance, from Firefox, how many hops does it
+take to get from the application&rsquo;s menus to their open bug tracker,
+<a href="https://bugzilla.mozilla.org/">bugzilla</a>?
+Where can I report an issue?  How do I report an issue?
+Do I annoy the hell out of the user until they rate my app?
+Users might be complaining on Twitter, but that&rsquo;s sure as hell not where
+devlopers are looking for bug reports.
+Enabling the user to provide feedback could be
+viewed as a double edged sword.  Can I make meaningful conclusions from the
+torrent of feedback I&rsquo;m now getting?  Did I structure my form in such a way to
+ask the right questions?  Should we make our issue tracker public?  Should we
+make security issues that could harm users, if more widely understood, public?
+Public to fellow employees, even?  What did you expect to happen, and is that
+what actually happened?  This rabbit hole goes deep.</p>
+
+<p>The other day, I was writing a patch for a large application that was developed
+by someone else and that I still don&rsquo;t fully comprehend in its entirety. My
+patch should have worked, why wasn&rsquo;t it working?  Probably something in this
+person&rsquo;s code right?  Sure enough, I wrote a simple test case to eliminate
+everything but the control variables, and it turns out <em>I was wrong</em>.</p>
+
+<p>It&rsquo;s hard to get users to
+do more than the bare minimum to report an issue, even at all, but to prevent
+the issue from being ignored or closed because it works for the developer in
+their environment, take the time to report it correctly the first time.
+As someone who understands technology more than the average person, take the
+time to write a cut down test case that
+exposes the issue. The developer who looks at the issue will be grateful;
+instead of wasting their time with something that may not even be a bug, you&rsquo;ve
+just done something that would have to be done anyways if it is indeed a bug.
+You might find that a reduced code size shows that it&rsquo;s in
+fact not an issue with someone else&rsquo;s code, but in fact a simple mistake you
+made somewhere in your monolithic application.  Or it might be exactly the
+evidence you need to get someone&rsquo;s attention to fix said problem.  That test
+case might even be included in the latest test suite.  Either way, you have now
+proved beyond a reasonable doubt that the issue does not lie in your fault.</p>
+
+<p><strong>Write a Test Case for Your Next Bug Report or Issue.</strong></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -3598,176 +3727,6 @@ mobile web?</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/">C Function Pointers Alternate Syntax</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-26T17:49:00-08:00" pubdate data-updated="true">Jan 26<span>th</span>, 2013</time>
-        
-         | <a href="/blog/2013/01/26/c-function-pointers-alternate-syntax/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>On an interview with <a href="https://squareup.com/">Square</a>, I made the mistake
-of stating that one of the benefits of working with JavaScript over C is
-that functions are <a href="http://en.wikipedia.org/wiki/First-class_function">first class</a>
-in JavaScript, therefore they may be <a href="http://eloquentjavascript.net/chapter6.html">passed around</a>.  To which the
-interviewer replied, &ldquo;Well, C can do that, what about function pointers?&rdquo;  What? Luckily, I
-was able to get out of that jam by guessing that JavaScript had a nicer
-syntax.</p>
-
-<p>While I was taught some C in university, we had never gone over function
-pointers or more in depth topics such as <a href="http://en.wikipedia.org/wiki/Static_library">static</a>
-or <a href="http://en.wikipedia.org/wiki/Dynamic_library">dynamic</a> <a href="http://www.yolinux.com/TUTORIALS/LibraryArchives-StaticAndDynamic.html">linkage</a>.
-I was so embarrassed that my expensive (read <a href="http://online.wsj.com/article/SB10001424127887324442304578231922159602676.html?mod=WSJ_hps_LEFTTopStories">overpriced</a>)
-degree had not taught me more about
-the C programming language, especially from the Computer Engineering
-department that focuses on software <strong>AND</strong> hardware.  On my exit
-interview with the dean, I was very opinionated on the amount of C that
-was (or wasn&rsquo;t) taught at my university.  His argument was that there
-are only so much of so many languages you can cover in a university, which
-to some extent is valid.  My problem has been that I&rsquo;ve enjoyed learning
-many different programming languages, though I didn&rsquo;t really get it the
-first time around (with Java).  I think knowing many different languages
-and their respective paradigms makes you a better programmer in other
-languages, since you can bring a <a href="http://therubyway.org/">Ruby Way</a> to
-<a href="http://www.rust-lang.org/">Rust</a> or a <a href="http://www.ibm.com/developerworks/library/wa-javascript/index.html">JavaScript functional</a>
-<a href="http://interglacial.com/hoj/hoj.html">style</a> into C.</p>
-
-<p>I had read two books in the meantime that really flushed out more of the
-C language to me and I would definitely recommend them to those who want
-to learn more about the language. They are <a href="http://shop.oreilly.com/product/0636920015482.do">Head First C</a> by Dave and Dawn
-Griffiths and <a href="http://shop.oreilly.com/product/0636920025108.do">21st Century C</a> by Ben Klemens.
-I&rsquo;m also aware that <a href="http://en.wikipedia.org/wiki/The_C_Programming_Language">The C Programming Language</a> by
-Brian Kernighan and Dennis Ritchie is also known as the canonical text.
-The book is often referred to as &lsquo;K&amp;R&rsquo; after the authors&#8217; initials, and Dennis
-Ritchie was the original creators of the C language and co-developer of
-Unix.  I&rsquo;d love to get a chance to read it someday.</p>
-
-<p><a href="http://blog.charlescary.com/?p=95">This article</a> appeared on
-<a href="http://news.ycombinator.com/">Hacker News</a> and really piqued my
-interest.  Defenitely a great read.  What really stuck out to me was one
-of the <a href="http://blog.charlescary.com/?p=95#comment-31">comments</a> though.
-The author of the comment mentioned a less ugly syntax for function
-pointers, with a <a href="http://pastebin.com/MsJLY22j">link to an example</a>.
-Now I&rsquo;m not sure what the commenter meant by &ldquo;these params decay
-naturally to function pointers&rdquo; but I was skeptical about this different
-syntax.  Even the <a href="http://en.wikipedia.org/wiki/Function_pointer#Example_in_C">Wikipedia article</a>
-used the syntax that I was familiar with.  So I wrote up a quick example
-to try it:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="c1">// compiled with:</span>
-</span><span class='line'><span class="c1">// clang -Wall -Wextra function_pointers.c -o function_pointers</span>
-</span><span class='line'><span class="cp">#include &quot;stdio.h&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="nf">usual_syntax</span> <span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">fn</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;usual syntax start&quot;</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">fn</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;usual syntax end&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="nf">other_syntax</span> <span class="p">(</span><span class="kt">void</span> <span class="n">fn</span> <span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">))</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;other syntax start&quot;</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">fn</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;other syntax end&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="nf">hello</span> <span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;hello %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;hello world&quot;</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">usual_syntax</span><span class="p">(</span><span class="n">hello</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">other_syntax</span><span class="p">(</span><span class="n">hello</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Sure enough we get:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">hello</span> <span class="n">world</span>
-</span><span class='line'><span class="n">usual</span> <span class="n">syntax</span> <span class="n">start</span>
-</span><span class='line'><span class="n">hello</span> <span class="mi">1</span>
-</span><span class='line'><span class="n">usual</span> <span class="n">syntax</span> <span class="n">end</span>
-</span><span class='line'><span class="n">other</span> <span class="n">syntax</span> <span class="n">start</span>
-</span><span class='line'><span class="n">hello</span> <span class="mi">2</span>
-</span><span class='line'><span class="n">other</span> <span class="n">syntax</span> <span class="n">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So the moral to the story I guess is that there&rsquo;s always more to your
-favorite language.  From using <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/variadic_macros.c">variadic macros</a>
-with <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/compound_literal.c">compound literals</a>
-to enable a more <a href="https://github.com/nickdesaulniers/21stCenturyC/blob/master/chpt10/foreach.c">functional style</a>
-in C to reflecting upon a function&rsquo;s <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/length">number of arguments</a>
-or <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/name">name</a>
-or <a href="http://taylodl.wordpress.com/2012/09/03/functional-javascript-memoization-part-ii/">adding attributes to a function</a>
-or the
-<a href="http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/">y-combinator</a>
-in JavaScript, I learn something new every day.  And I hope that you did
-too!  Thanks for reading!  If you have some other recommendations on
-good programming books, or design patterns, please leave a comment or
-write a reply blog post!</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -3785,6 +3744,10 @@ write a reply blog post!</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">F() vs F(void) in C vs C++</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
       </li>
     
@@ -3798,10 +3761,6 @@ write a reply blog post!</p>
     
       <li class="post">
         <a href="/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/">GCC vs LLVM Q3 2017: Active Developer Counts</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/">Running Clang-Tidy on the Linux Kernel</a>
       </li>
     
   </ul>

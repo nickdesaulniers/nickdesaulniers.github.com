@@ -4,7 +4,7 @@
   <title><![CDATA[Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2019-02-27T00:15:17-08:00</updated>
+  <updated>2019-05-12T14:31:41-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -12,6 +12,298 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[f() vs f(void) in C vs C++]]></title>
+    <link href="http://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/"/>
+    <updated>2019-05-12T13:42:00-07:00</updated>
+    <id>http://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus</id>
+    <content type="html"><![CDATA[<p>TL;DR</p>
+
+<p>Prefer <code>f(void)</code> in C to <em>potentially</em> save a 1B instruction per function call
+when targeting x86_64 as a micro-optimization. <code>-Wstrict-prototypes</code> can help.
+Doesn’t matter for C++.</p>
+
+<h2>The Problem</h2>
+
+<p>While messing around with some C code in
+<a href="http://godbolt.org">godbolt Compiler Explorer</a>,
+I kept noticing a particular funny case.  It seemed with my small test cases
+that sometimes function calls would zero out the return register before calling
+a function that took no arguments, but other times not.  Upon closer
+inspection, it seemed like a difference between function definitions,
+particularly <code>f()</code> vs <code>f(void)</code>.  For example, the following C code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">foo</span><span class="p">();</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">bar</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">baz</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">foo</span><span class="p">();</span>
+</span><span class='line'>  <span class="n">bar</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>would generate the following assembly:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'><span class="nl">baz:</span>
+</span><span class='line'>  <span class="nf">pushq</span> <span class="nv">%rax</span> <span class="c"># realign stack for callq</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span> <span class="c"># zero %al, non variadic</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">bar</span> <span class="c"># why you no zero %al?</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">popq</span> <span class="nv">%rcx</span>
+</span><span class='line'>  <span class="nf">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In particular, focus on the call the <code>foo</code> vs the call to <code>bar</code>.  <code>foo</code> is
+preceded with <code>xorl %eax, %eax</code> (X ^ X == 0, and is the shortest encoding for
+an instruction that zeroes a register on the variable length encoded x86_64,
+which is why its used a lot such as in setting the return value).  (If you’re
+curious about the pushq/popq, see
+<a href="http://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/">point #1</a>.)
+Now I’ve seen zeroing before (see
+<a href="http://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/">point #3</a>
+and remember that <code>%al</code> is the lowest byte of <code>%eax</code> and <code>%rax</code>), but if it was
+done for the call to <code>foo</code>, then why was it not additionally done for the call
+to <code>bar</code>? <code>%eax</code> being x86_64’s return register for the C ABI should be treated
+as call clobbered.  So if you set it, then made a function call that may have
+clobbered it (and you can’t deduce otherwise), then wouldn’t you have to reset
+it to make an additional function call?</p>
+
+<p>Let’s look at a few more cases and see if we can find the pattern.  Let’s take
+a look at 2 sequential calls to <code>foo</code> vs 2 sequential calls to <code>bar</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">foo</span><span class="p">();</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">quux</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">foo</span><span class="p">();</span> <span class="c1">// notice %eax is always zeroed</span>
+</span><span class='line'>  <span class="n">foo</span><span class="p">();</span> <span class="c1">// notice %eax is always zeroed</span>
+</span><span class='line'><span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'><span class="nl">quux:</span>
+</span><span class='line'>  <span class="nf">pushq</span> <span class="nv">%rax</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">popq</span> <span class="nv">%rcx</span>
+</span><span class='line'>  <span class="nf">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">bar</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">quuz</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">bar</span><span class="p">();</span> <span class="c1">// notice %eax is not zeroed</span>
+</span><span class='line'>  <span class="n">bar</span><span class="p">();</span> <span class="c1">// notice %eax is not zeroed</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'><span class="nl">quuz:</span>
+</span><span class='line'>  <span class="nf">pushq</span> <span class="nv">%rax</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">bar</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">bar</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">popq</span> <span class="nv">%rcx</span>
+</span><span class='line'>  <span class="nf">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So it should be pretty clear now that the pattern is <code>f(void)</code> does not
+generate the <code>xorl %eax, %eax</code>, while <code>f()</code> does.  What gives, aren’t they
+declaring <code>f</code> the same; a function that takes no parameters?  Unfortunately, in
+C the answer is no, and C and C++ differ here.</p>
+
+<h2>An explanation</h2>
+
+<p><code>f()</code> is not necessarily &ldquo;<code>f</code> takes no arguments&rdquo; but more of &ldquo;I’m not telling
+you what arguments <code>f</code> takes (but it’s not variadic).&rdquo;  Consider this perfectly
+legal C and C++ code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">foo</span><span class="p">();</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">foo</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="mi">42</span><span class="p">;</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It seems that C++ inherited this from C, but only in C++ does <code>f()</code> seems to
+have the semantics of &ldquo;<code>f</code> takes no arguments,&rdquo; as the previous examples all no
+longer have the <code>xorl %eax, %eax</code>.  Same for <code>f(void)</code> in C or C++.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">bar</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">bar</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">42</span><span class="p">;</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Is an error in C, but surprisingly C++ is less strict here, not only allowing
+it but also taking the semantics of the definition. (Spooky)</p>
+
+<p>Needless to say, If you write code like that where your function declarations
+and definitions do not match, you will be put in prison.
+<a href="https://youtu.be/D2ydY5sBnIg?t=97">Do not pass go, do not collect $200</a>).
+<a href="https://clang.llvm.org/docs/ControlFlowIntegrity.html">Control flow integrity</a>
+analysis is particularly sensitive to these cases, manifesting in runtime
+crashes.</p>
+
+<h2>What could a sufficiently smart compiler do to help?</h2>
+
+<p><code>-Wall</code> and <code>-Wextra</code> will just flag the <code>-Wunused-parameter</code>.  We need the
+help of <code>-Wmissing-prototypes</code> to flag the mismatch between declaration and
+definition. (An aside; I had a hard time remembering which was the declaration
+and which was the definition when learning C++.  The mnemonic I came up with
+and still use today is: think of definition as in muscle definition; where the
+meat of the function is.  Declarations are just hot air.)  It’s not until we
+get to <code>-Wstrict-prototypes</code> do we get a warning that we should use <code>f(void)</code>.
+<code>-Wstrict-prototypes</code> is kind of a stylistic warning, so that’s why it’s not
+part of <code>-Wall</code> or <code>-Wextra</code>.  Stylistic warnings are in bikeshed territory
+(*cough* <code>-Wparentheses</code> *cough*).</p>
+
+<p>One issue with C and C++’s style of code sharing and encapsulation via headers
+is that declarations often aren’t enough for the powerful analysis techniques
+of production optimizing compilers (whether or not a pointer
+<a href="https://jonasdevlieghere.com/escape-analysis-capture-tracking-in-llvm/">&ldquo;escapes&rdquo;</a>
+is a big one that comes to mind).  Let’s see if a &ldquo;sufficiently smart compiler&rdquo;
+could notice when we’ve declared <code>f()</code>, but via observation of the definition
+of <code>f()</code> noticed that we really only needed the semantics of <code>f(void)</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">puts</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span><span class="p">);</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">__attribute__</span><span class="p">((</span><span class="n">noinline</span><span class="p">))</span> <span class="n">foo2</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">quacks</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">foo2</span><span class="p">();</span>
+</span><span class='line'>  <span class="n">foo2</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'><span class="nl">quacks:</span>
+</span><span class='line'>  <span class="nf">pushq</span> <span class="nv">%rax</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo2</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo2</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">popq</span> <span class="nv">%rcx</span>
+</span><span class='line'>  <span class="nf">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A ha! So by having the full definition of <code>foo2</code> in this case in the same
+translation unit, Clang was able to deduce that <code>foo2</code> didn’t actually need the
+semantics of <code>f()</code>, so it could skip the <code>xorl %eax, %eax</code> we’d seen for <code>f()</code>
+style definitions earlier.  If we change <code>foo2</code> to a declaration (such as would
+be the case if it was defined in an <code>external</code> translation unit, and its
+declaration included via header), then Clang can no longer observe whether
+<code>foo2</code> definition differs or not from the declaration.</p>
+
+<p>So Clang can potentially save you a single instruction (<code>xorl %eax, %eax</code>)
+whose encoding is only 1B, per function call to functions declared in the style
+<code>f()</code>, but only IF the definition is in the same translation unit and doesn’t
+differ from the declaration, and you happen to be targeting x86_64. *deflated
+whew* But usually it can’t because it’s only been provided the declaration via
+header.</p>
+
+<h2>Conclusion</h2>
+
+<p>I certainly think <code>f()</code> is <em>prettier</em> than <code>f(void)</code> (so C++ got this right),
+but pretty code may not always be the fastest and it’s not always
+straightforward when to prefer one over the other.</p>
+
+<p>So it seems that <code>f()</code> is ok for strictly C++ code.  For C or mixed C and C++,
+<code>f(void)</code> might be better.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://stackoverflow.com/q/6212665/1027966">https://stackoverflow.com/q/6212665/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/693788/1027966">https://stackoverflow.com/q/693788/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/12643202/1027966">https://stackoverflow.com/q/12643202/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/51032/1027966">https://stackoverflow.com/q/51032/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/416345/1027966">https://stackoverflow.com/q/416345/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/41803937/1027966">https://stackoverflow.com/q/41803937/1027966</a></li>
+<li><a href="http://david.tribble.com/text/cdiffs.htm#C99-empty-parm">http://david.tribble.com/text/cdiffs.htm#C99-empty-parm</a></li>
+<li><a href="https://godbolt.org/z/nsgGpt">https://godbolt.org/z/nsgGpt</a></li>
+<li><a href="https://godbolt.org/z/IORbBb">https://godbolt.org/z/IORbBb</a></li>
+<li><a href="https://godbolt.org/z/51s7K0">https://godbolt.org/z/51s7K0</a></li>
+<li><a href="https://bugs.llvm.org/show_bug.cgi?id=41851">https://bugs.llvm.org/show_bug.cgi?id=41851</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Finding compiler bugs with C-Reduce]]></title>
@@ -5760,110 +6052,6 @@ on May 22 demystifying Raw WebGL.  You should come and check it out.</p>
 
 <blockquote><p>To me, machine code doesn&#8217;t feel analogous to this concept of the divine name. I certainly wouldn&#8217;t describe it as &#8220;like a flawless glass; a light of total understanding streamed through it&#8221;. Even if you strip away all the accidental complexity, machine code is still permeated by mundane implementation-oriented concerns. Also, the abstractions which we use to organize and &#8220;understand&#8221; the program are gone; information is lost.</p><p>My imagination of a divine language looks a lot more like an idealized and cleaned-up LISP. It&#8217;d be capable of representing all known means of abstraction and combination (in the SICP sense), it might be thought of as a kind of super-language of which all of our real-world languages are just messy subsets.</p><footer><strong>Dan Gohman</strong></footer></blockquote>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Write a Test Case]]></title>
-    <link href="http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/"/>
-    <updated>2014-03-01T13:22:00-08:00</updated>
-    <id>http://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case</id>
-    <content type="html"><![CDATA[<p>Your application just broke, oh no!  It couldn&rsquo;t have been <em>your</em> code, right?</p>
-
-<p>I&rsquo;ve always had trouble spotting mistakes in my own work such as spelling,
-grammar, mathematical, or even in programming.  With spelling or grammar,
-office applications quickly pick up on my mistakes and underline them for me,
-but most of my mistakes come from my own hubris.  I&rsquo;m confident in what I do,
-and that gets me in trouble when I make little mistakes.  I&rsquo;m confident that I
-solved this problem correctly and didn&rsquo;t make any small mistakes.  As a kid
-competing in timed math competitions, I quickly learned that reviewing your
-work cost time, so it was important to recognize where common mistakes would
-crop up on certain problems and spend slightly extra time the first time
-through those problem areas, rather than double checking the work in its
-entirety, unless I had the time to spare.  Measure twice, cut once.</p>
-
-<p>The same is true for programming.  Writing test cases is time consuming, and if
-time is money, then it could be said that writing tests is costly.  There&rsquo;s
-probably a logical fallacy in there.  In general, we hope that the time-cost of
-writing test
-cases will be recuperated by the time-cost of bugs caught, though it&rsquo;s not easy
-to measure the time-cost of averted bugs.  I&rsquo;m all for test cases.  I think
-that
-<a href="http://sqlite.org/testing.html#coverage">SQLite having 100% branch coverage</a>
-is incredible, truly an lofty
-achievement.  People get bogged down in arguments over type systems where
-testing is more of a must for languages without a compiler to catch certain
-bugs.</p>
-
-<p>Ok, so going back to your code, something is wrong.  But we&rsquo;re confident it
-couldn&rsquo;t be <em>our</em> code.  Maybe it&rsquo;s one of those open source modules I&rsquo;m using
-not being tested enough, or that pesky browser implementation, or this damned
-OS.  It couldn&rsquo;t be <em>my</em> code.</p>
-
-<p><strong>Prove it.</strong></p>
-
-<p>I see bug reports all the time where people say your X breaks my Y, but when
-asked to provide Y they can&rsquo;t for whatever software licensing reason.  The bug
-resolver (person who is enabled to fix said bug in X), doesn&rsquo;t know at this
-point whether the bug reporter (developer of Y) did their homework; the bug is
-unconfirmed.  Both reporter and resolver are suspicious of each others&#8217; code.
-<em>I</em> don&rsquo;t make silly mistakes, right?</p>
-
-<p><img class="center" src="http://nickdesaulniers.github.io/images/dude.jpg"></p>
-
-<p>So it&rsquo;s up to the resolver to work out a test case.  Being able to reproduce
-said issue is the first goal to resolving a bug.  Just like scientific
-statements aren&rsquo;t taken as fact until reproducible, so too will this bug be
-merely conjecture at this point.  It kills me when the bug resolver closes an
-issue because it <em>works for me</em>.  Nothing boils my blood more; I took the time
-to try and help you and wasn&rsquo;t rewarded on some level so I feel that I wasted
-my time.  But from where you stand the resolver is not correct, so again I
-say&hellip;</p>
-
-<p><strong>Prove it.</strong></p>
-
-<p>I think that it&rsquo;s super hard to get meaningful feedback from users.  It&rsquo;s hard
-for them to express why they&rsquo;re frustrated.  We as software developers don&rsquo;t
-always point them in the right direction.  As users can have wide ranges of
-technical capabilities, sometimes we as more technical oriented people have to
-do a little hand holding.  For instance, from Firefox, how many hops does it
-take to get from the application&rsquo;s menus to their open bug tracker,
-<a href="https://bugzilla.mozilla.org/">bugzilla</a>?
-Where can I report an issue?  How do I report an issue?
-Do I annoy the hell out of the user until they rate my app?
-Users might be complaining on Twitter, but that&rsquo;s sure as hell not where
-devlopers are looking for bug reports.
-Enabling the user to provide feedback could be
-viewed as a double edged sword.  Can I make meaningful conclusions from the
-torrent of feedback I&rsquo;m now getting?  Did I structure my form in such a way to
-ask the right questions?  Should we make our issue tracker public?  Should we
-make security issues that could harm users, if more widely understood, public?
-Public to fellow employees, even?  What did you expect to happen, and is that
-what actually happened?  This rabbit hole goes deep.</p>
-
-<p>The other day, I was writing a patch for a large application that was developed
-by someone else and that I still don&rsquo;t fully comprehend in its entirety. My
-patch should have worked, why wasn&rsquo;t it working?  Probably something in this
-person&rsquo;s code right?  Sure enough, I wrote a simple test case to eliminate
-everything but the control variables, and it turns out <em>I was wrong</em>.</p>
-
-<p>It&rsquo;s hard to get users to
-do more than the bare minimum to report an issue, even at all, but to prevent
-the issue from being ignored or closed because it works for the developer in
-their environment, take the time to report it correctly the first time.
-As someone who understands technology more than the average person, take the
-time to write a cut down test case that
-exposes the issue. The developer who looks at the issue will be grateful;
-instead of wasting their time with something that may not even be a bug, you&rsquo;ve
-just done something that would have to be done anyways if it is indeed a bug.
-You might find that a reduced code size shows that it&rsquo;s in
-fact not an issue with someone else&rsquo;s code, but in fact a simple mistake you
-made somewhere in your monolithic application.  Or it might be exactly the
-evidence you need to get someone&rsquo;s attention to fix said problem.  That test
-case might even be included in the latest test suite.  Either way, you have now
-proved beyond a reasonable doubt that the issue does not lie in your fault.</p>
-
-<p><strong>Write a Test Case for Your Next Bug Report or Issue.</strong></p>
 ]]></content>
   </entry>
   

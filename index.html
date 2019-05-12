@@ -9,12 +9,8 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="Support for a long awaited GNU C extension,
-asm goto,
-is in the midst of landing in
-Clang and
-LLVM. We want to make sure that
-we release a high &hellip;">
+  <meta name="description" content="TL;DR Prefer f(void) in C to potentially save a 1B instruction per function call
+when targeting x86_64 as a micro-optimization. -Wstrict-prototypes &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -85,6 +81,327 @@ we release a high &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">F() vs F(void) in C vs C++</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-05-12T13:42:00-07:00" pubdate data-updated="true">May 12<span>th</span>, 2019</time>
+        
+         | <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>TL;DR</p>
+
+<p>Prefer <code>f(void)</code> in C to <em>potentially</em> save a 1B instruction per function call
+when targeting x86_64 as a micro-optimization. <code>-Wstrict-prototypes</code> can help.
+Doesn’t matter for C++.</p>
+
+<h2>The Problem</h2>
+
+<p>While messing around with some C code in
+<a href="http://godbolt.org">godbolt Compiler Explorer</a>,
+I kept noticing a particular funny case.  It seemed with my small test cases
+that sometimes function calls would zero out the return register before calling
+a function that took no arguments, but other times not.  Upon closer
+inspection, it seemed like a difference between function definitions,
+particularly <code>f()</code> vs <code>f(void)</code>.  For example, the following C code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">foo</span><span class="p">();</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">bar</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">baz</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">foo</span><span class="p">();</span>
+</span><span class='line'>  <span class="n">bar</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>would generate the following assembly:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'><span class="nl">baz:</span>
+</span><span class='line'>  <span class="nf">pushq</span> <span class="nv">%rax</span> <span class="c"># realign stack for callq</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span> <span class="c"># zero %al, non variadic</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">bar</span> <span class="c"># why you no zero %al?</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">popq</span> <span class="nv">%rcx</span>
+</span><span class='line'>  <span class="nf">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In particular, focus on the call the <code>foo</code> vs the call to <code>bar</code>.  <code>foo</code> is
+preceded with <code>xorl %eax, %eax</code> (X ^ X == 0, and is the shortest encoding for
+an instruction that zeroes a register on the variable length encoded x86_64,
+which is why its used a lot such as in setting the return value).  (If you’re
+curious about the pushq/popq, see
+<a href="/blog/2014/04/18/lets-write-some-x86-64/">point #1</a>.)
+Now I’ve seen zeroing before (see
+<a href="/blog/2014/04/18/lets-write-some-x86-64/">point #3</a>
+and remember that <code>%al</code> is the lowest byte of <code>%eax</code> and <code>%rax</code>), but if it was
+done for the call to <code>foo</code>, then why was it not additionally done for the call
+to <code>bar</code>? <code>%eax</code> being x86_64’s return register for the C ABI should be treated
+as call clobbered.  So if you set it, then made a function call that may have
+clobbered it (and you can’t deduce otherwise), then wouldn’t you have to reset
+it to make an additional function call?</p>
+
+<p>Let’s look at a few more cases and see if we can find the pattern.  Let’s take
+a look at 2 sequential calls to <code>foo</code> vs 2 sequential calls to <code>bar</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">foo</span><span class="p">();</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">quux</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">foo</span><span class="p">();</span> <span class="c1">// notice %eax is always zeroed</span>
+</span><span class='line'>  <span class="n">foo</span><span class="p">();</span> <span class="c1">// notice %eax is always zeroed</span>
+</span><span class='line'><span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'><span class="nl">quux:</span>
+</span><span class='line'>  <span class="nf">pushq</span> <span class="nv">%rax</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">popq</span> <span class="nv">%rcx</span>
+</span><span class='line'>  <span class="nf">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">bar</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">quuz</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">bar</span><span class="p">();</span> <span class="c1">// notice %eax is not zeroed</span>
+</span><span class='line'>  <span class="n">bar</span><span class="p">();</span> <span class="c1">// notice %eax is not zeroed</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'><span class="nl">quuz:</span>
+</span><span class='line'>  <span class="nf">pushq</span> <span class="nv">%rax</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">bar</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">bar</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">popq</span> <span class="nv">%rcx</span>
+</span><span class='line'>  <span class="nf">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So it should be pretty clear now that the pattern is <code>f(void)</code> does not
+generate the <code>xorl %eax, %eax</code>, while <code>f()</code> does.  What gives, aren’t they
+declaring <code>f</code> the same; a function that takes no parameters?  Unfortunately, in
+C the answer is no, and C and C++ differ here.</p>
+
+<h2>An explanation</h2>
+
+<p><code>f()</code> is not necessarily &ldquo;<code>f</code> takes no arguments&rdquo; but more of &ldquo;I’m not telling
+you what arguments <code>f</code> takes (but it’s not variadic).&rdquo;  Consider this perfectly
+legal C and C++ code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">foo</span><span class="p">();</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">foo</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="mi">42</span><span class="p">;</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It seems that C++ inherited this from C, but only in C++ does <code>f()</code> seems to
+have the semantics of &ldquo;<code>f</code> takes no arguments,&rdquo; as the previous examples all no
+longer have the <code>xorl %eax, %eax</code>.  Same for <code>f(void)</code> in C or C++.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">bar</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">bar</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">42</span><span class="p">;</span> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Is an error in C, but surprisingly C++ is less strict here, not only allowing
+it but also taking the semantics of the definition. (Spooky)</p>
+
+<p>Needless to say, If you write code like that where your function declarations
+and definitions do not match, you will be put in prison.
+<a href="https://youtu.be/D2ydY5sBnIg?t=97">Do not pass go, do not collect $200</a>).
+<a href="https://clang.llvm.org/docs/ControlFlowIntegrity.html">Control flow integrity</a>
+analysis is particularly sensitive to these cases, manifesting in runtime
+crashes.</p>
+
+<h2>What could a sufficiently smart compiler do to help?</h2>
+
+<p><code>-Wall</code> and <code>-Wextra</code> will just flag the <code>-Wunused-parameter</code>.  We need the
+help of <code>-Wmissing-prototypes</code> to flag the mismatch between declaration and
+definition. (An aside; I had a hard time remembering which was the declaration
+and which was the definition when learning C++.  The mnemonic I came up with
+and still use today is: think of definition as in muscle definition; where the
+meat of the function is.  Declarations are just hot air.)  It’s not until we
+get to <code>-Wstrict-prototypes</code> do we get a warning that we should use <code>f(void)</code>.
+<code>-Wstrict-prototypes</code> is kind of a stylistic warning, so that’s why it’s not
+part of <code>-Wall</code> or <code>-Wextra</code>.  Stylistic warnings are in bikeshed territory
+(*cough* <code>-Wparentheses</code> *cough*).</p>
+
+<p>One issue with C and C++’s style of code sharing and encapsulation via headers
+is that declarations often aren’t enough for the powerful analysis techniques
+of production optimizing compilers (whether or not a pointer
+<a href="https://jonasdevlieghere.com/escape-analysis-capture-tracking-in-llvm/">&ldquo;escapes&rdquo;</a>
+is a big one that comes to mind).  Let’s see if a &ldquo;sufficiently smart compiler&rdquo;
+could notice when we’ve declared <code>f()</code>, but via observation of the definition
+of <code>f()</code> noticed that we really only needed the semantics of <code>f(void)</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">puts</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span><span class="p">);</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">__attribute__</span><span class="p">((</span><span class="n">noinline</span><span class="p">))</span> <span class="n">foo2</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">puts</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">quacks</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">foo2</span><span class="p">();</span>
+</span><span class='line'>  <span class="n">foo2</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='gas'><span class='line'><span class="nl">quacks:</span>
+</span><span class='line'>  <span class="nf">pushq</span> <span class="nv">%rax</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo2</span>
+</span><span class='line'>  <span class="nf">callq</span> <span class="no">foo2</span>
+</span><span class='line'>  <span class="nf">xorl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%eax</span>
+</span><span class='line'>  <span class="nf">popq</span> <span class="nv">%rcx</span>
+</span><span class='line'>  <span class="nf">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>A ha! So by having the full definition of <code>foo2</code> in this case in the same
+translation unit, Clang was able to deduce that <code>foo2</code> didn’t actually need the
+semantics of <code>f()</code>, so it could skip the <code>xorl %eax, %eax</code> we’d seen for <code>f()</code>
+style definitions earlier.  If we change <code>foo2</code> to a declaration (such as would
+be the case if it was defined in an <code>external</code> translation unit, and its
+declaration included via header), then Clang can no longer observe whether
+<code>foo2</code> definition differs or not from the declaration.</p>
+
+<p>So Clang can potentially save you a single instruction (<code>xorl %eax, %eax</code>)
+whose encoding is only 1B, per function call to functions declared in the style
+<code>f()</code>, but only IF the definition is in the same translation unit and doesn’t
+differ from the declaration, and you happen to be targeting x86_64. *deflated
+whew* But usually it can’t because it’s only been provided the declaration via
+header.</p>
+
+<h2>Conclusion</h2>
+
+<p>I certainly think <code>f()</code> is <em>prettier</em> than <code>f(void)</code> (so C++ got this right),
+but pretty code may not always be the fastest and it’s not always
+straightforward when to prefer one over the other.</p>
+
+<p>So it seems that <code>f()</code> is ok for strictly C++ code.  For C or mixed C and C++,
+<code>f(void)</code> might be better.</p>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://stackoverflow.com/q/6212665/1027966">https://stackoverflow.com/q/6212665/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/693788/1027966">https://stackoverflow.com/q/693788/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/12643202/1027966">https://stackoverflow.com/q/12643202/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/51032/1027966">https://stackoverflow.com/q/51032/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/416345/1027966">https://stackoverflow.com/q/416345/1027966</a></li>
+<li><a href="https://stackoverflow.com/q/41803937/1027966">https://stackoverflow.com/q/41803937/1027966</a></li>
+<li><a href="http://david.tribble.com/text/cdiffs.htm#C99-empty-parm">http://david.tribble.com/text/cdiffs.htm#C99-empty-parm</a></li>
+<li><a href="https://godbolt.org/z/nsgGpt">https://godbolt.org/z/nsgGpt</a></li>
+<li><a href="https://godbolt.org/z/IORbBb">https://godbolt.org/z/IORbBb</a></li>
+<li><a href="https://godbolt.org/z/51s7K0">https://godbolt.org/z/51s7K0</a></li>
+<li><a href="https://bugs.llvm.org/show_bug.cgi?id=41851">https://bugs.llvm.org/show_bug.cgi?id=41851</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2752,131 +3069,6 @@ assembly.  Stay tuned.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/06/18/mutt-gmail-ubuntu/">Setting Up Mutt With Gmail on Ubuntu</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-06-18T16:26:00-07:00" pubdate data-updated="true">Jun 18<span>th</span>, 2016</time>
-        
-         | <a href="/blog/2016/06/18/mutt-gmail-ubuntu/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I was looking to set up the
-<a href="http://www.mutt.org/">mutt</a>
-email client on my Ubuntu box to go through my gmail account.  Since it took me
-a couple of hours to figure out, and I’ll probably forget by the time I need to
-know again, I figure I’d post my steps here.</p>
-
-<p>I’m on Ubuntu 16.04 LTS (<code>lsb_release -a</code>)</p>
-
-<p>Install mutt:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo apt-get install mutt
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>In gmail, allow other apps to access gmail:</p>
-
-<p><a href="https://support.google.com/accounts/answer/6010255?hl=en">Allowing less secure apps to access your account</a>
-<a href="https://www.google.com/settings/security/lesssecureapps">Less Secure Apps</a></p>
-
-<p>Create the folder</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo touch <span class="nv">$MAIL</span>
-</span><span class='line'><span class="nv">$ </span>sudo chmod 660 <span class="nv">$MAIL</span>
-</span><span class='line'><span class="nv">$ </span>sudo chown <span class="sb">`</span>whoami<span class="sb">`</span>:mail <span class="nv">$MAIL</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>where <code>$MAIL</code> for me was <code>/var/mail/nick</code>.</p>
-
-<p>Create the ~/.muttrc file</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">set </span><span class="nv">realname</span> <span class="o">=</span> <span class="s2">&quot;&lt;first and last name&gt;&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">from</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail username&gt;@gmail.com&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">use_from</span> <span class="o">=</span> yes
-</span><span class='line'><span class="nb">set </span><span class="nv">envelope_from</span> <span class="o">=</span> yes
-</span><span class='line'>
-</span><span class='line'><span class="nb">set </span><span class="nv">smtp_url</span> <span class="o">=</span> <span class="s2">&quot;smtps://&lt;gmail username&gt;@gmail.com@smtp.gmail.com:465/&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">smtp_pass</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail password&gt;&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">imap_user</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail username&gt;@gmail.com&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">imap_pass</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail password&gt;&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">folder</span> <span class="o">=</span> <span class="s2">&quot;imaps://imap.gmail.com:993&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">spoolfile</span> <span class="o">=</span> <span class="s2">&quot;+INBOX&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">ssl_force_tls</span> <span class="o">=</span> yes
-</span><span class='line'>
-</span><span class='line'><span class="c"># G to get mail</span>
-</span><span class='line'><span class="nb">bind </span>index G imap-fetch-mail
-</span><span class='line'><span class="nb">set </span><span class="nv">editor</span> <span class="o">=</span> <span class="s2">&quot;vim&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">charset</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span>
-</span><span class='line'><span class="nb">set </span><span class="nv">record</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I’m sure there’s better/more config options.  Feel free to go wild, this is by
-no means a comprehensive setup.</p>
-
-<p>Run mutt:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>mutt
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>We should see it connect and download our messages.  <code>m</code> to start sending new
-messages. <code>G</code> to fetch new messages.</p>
-
-<p><img class="center" src="/images/mutt.png"></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -2892,6 +3084,10 @@ messages. <code>G</code> to fetch new messages.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">F() vs F(void) in C vs C++</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
       </li>
     
@@ -2905,10 +3101,6 @@ messages. <code>G</code> to fetch new messages.</p>
     
       <li class="post">
         <a href="/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/">GCC vs LLVM Q3 2017: Active Developer Counts</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/">Running Clang-Tidy on the Linux Kernel</a>
       </li>
     
   </ul>

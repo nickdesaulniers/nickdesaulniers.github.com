@@ -9,8 +9,10 @@
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="This post is a follow up to
-my previous blog post about word size. Three C/C++ programmers walk into a bar. One argues that sizeof(void*) is &hellip;">
+  <meta name="description" content="I was looking to set up the
+mutt
+email client on my Ubuntu box to go through my gmail account. Since it took me
+a couple of hours to figure out, and &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +83,131 @@ my previous blog post about word size. Three C/C++ programmers walk into a bar. 
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/06/18/mutt-gmail-ubuntu/">Setting Up Mutt With Gmail on Ubuntu</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-06-18T16:26:00-07:00" pubdate data-updated="true">Jun 18<span>th</span>, 2016</time>
+        
+         | <a href="/blog/2016/06/18/mutt-gmail-ubuntu/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I was looking to set up the
+<a href="http://www.mutt.org/">mutt</a>
+email client on my Ubuntu box to go through my gmail account.  Since it took me
+a couple of hours to figure out, and I’ll probably forget by the time I need to
+know again, I figure I’d post my steps here.</p>
+
+<p>I’m on Ubuntu 16.04 LTS (<code>lsb_release -a</code>)</p>
+
+<p>Install mutt:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo apt-get install mutt
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In gmail, allow other apps to access gmail:</p>
+
+<p><a href="https://support.google.com/accounts/answer/6010255?hl=en">Allowing less secure apps to access your account</a>
+<a href="https://www.google.com/settings/security/lesssecureapps">Less Secure Apps</a></p>
+
+<p>Create the folder</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>sudo touch <span class="nv">$MAIL</span>
+</span><span class='line'><span class="nv">$ </span>sudo chmod 660 <span class="nv">$MAIL</span>
+</span><span class='line'><span class="nv">$ </span>sudo chown <span class="sb">`</span>whoami<span class="sb">`</span>:mail <span class="nv">$MAIL</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>where <code>$MAIL</code> for me was <code>/var/mail/nick</code>.</p>
+
+<p>Create the ~/.muttrc file</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nb">set </span><span class="nv">realname</span> <span class="o">=</span> <span class="s2">&quot;&lt;first and last name&gt;&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">from</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail username&gt;@gmail.com&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">use_from</span> <span class="o">=</span> yes
+</span><span class='line'><span class="nb">set </span><span class="nv">envelope_from</span> <span class="o">=</span> yes
+</span><span class='line'>
+</span><span class='line'><span class="nb">set </span><span class="nv">smtp_url</span> <span class="o">=</span> <span class="s2">&quot;smtps://&lt;gmail username&gt;@gmail.com@smtp.gmail.com:465/&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">smtp_pass</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail password&gt;&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">imap_user</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail username&gt;@gmail.com&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">imap_pass</span> <span class="o">=</span> <span class="s2">&quot;&lt;gmail password&gt;&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">folder</span> <span class="o">=</span> <span class="s2">&quot;imaps://imap.gmail.com:993&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">spoolfile</span> <span class="o">=</span> <span class="s2">&quot;+INBOX&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">ssl_force_tls</span> <span class="o">=</span> yes
+</span><span class='line'>
+</span><span class='line'><span class="c"># G to get mail</span>
+</span><span class='line'><span class="nb">bind </span>index G imap-fetch-mail
+</span><span class='line'><span class="nb">set </span><span class="nv">editor</span> <span class="o">=</span> <span class="s2">&quot;vim&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">charset</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span>
+</span><span class='line'><span class="nb">set </span><span class="nv">record</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I’m sure there’s better/more config options.  Feel free to go wild, this is by
+no means a comprehensive setup.</p>
+
+<p>Run mutt:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>mutt
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We should see it connect and download our messages.  <code>m</code> to start sending new
+messages. <code>G</code> to fetch new messages.</p>
+
+<p><img class="center" src="/images/mutt.png"></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -3592,139 +3719,6 @@ on May 22 demystifying Raw WebGL.  You should come and check it out.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/03/01/write-a-test-case/">Write a Test Case</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-03-01T13:22:00-08:00" pubdate data-updated="true">Mar 1<span>st</span>, 2014</time>
-        
-         | <a href="/blog/2014/03/01/write-a-test-case/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Your application just broke, oh no!  It couldn&rsquo;t have been <em>your</em> code, right?</p>
-
-<p>I&rsquo;ve always had trouble spotting mistakes in my own work such as spelling,
-grammar, mathematical, or even in programming.  With spelling or grammar,
-office applications quickly pick up on my mistakes and underline them for me,
-but most of my mistakes come from my own hubris.  I&rsquo;m confident in what I do,
-and that gets me in trouble when I make little mistakes.  I&rsquo;m confident that I
-solved this problem correctly and didn&rsquo;t make any small mistakes.  As a kid
-competing in timed math competitions, I quickly learned that reviewing your
-work cost time, so it was important to recognize where common mistakes would
-crop up on certain problems and spend slightly extra time the first time
-through those problem areas, rather than double checking the work in its
-entirety, unless I had the time to spare.  Measure twice, cut once.</p>
-
-<p>The same is true for programming.  Writing test cases is time consuming, and if
-time is money, then it could be said that writing tests is costly.  There&rsquo;s
-probably a logical fallacy in there.  In general, we hope that the time-cost of
-writing test
-cases will be recuperated by the time-cost of bugs caught, though it&rsquo;s not easy
-to measure the time-cost of averted bugs.  I&rsquo;m all for test cases.  I think
-that
-<a href="http://sqlite.org/testing.html#coverage">SQLite having 100% branch coverage</a>
-is incredible, truly an lofty
-achievement.  People get bogged down in arguments over type systems where
-testing is more of a must for languages without a compiler to catch certain
-bugs.</p>
-
-<p>Ok, so going back to your code, something is wrong.  But we&rsquo;re confident it
-couldn&rsquo;t be <em>our</em> code.  Maybe it&rsquo;s one of those open source modules I&rsquo;m using
-not being tested enough, or that pesky browser implementation, or this damned
-OS.  It couldn&rsquo;t be <em>my</em> code.</p>
-
-<p><strong>Prove it.</strong></p>
-
-<p>I see bug reports all the time where people say your X breaks my Y, but when
-asked to provide Y they can&rsquo;t for whatever software licensing reason.  The bug
-resolver (person who is enabled to fix said bug in X), doesn&rsquo;t know at this
-point whether the bug reporter (developer of Y) did their homework; the bug is
-unconfirmed.  Both reporter and resolver are suspicious of each others&#8217; code.
-<em>I</em> don&rsquo;t make silly mistakes, right?</p>
-
-<p><img class="center" src="/images/dude.jpg"></p>
-
-<p>So it&rsquo;s up to the resolver to work out a test case.  Being able to reproduce
-said issue is the first goal to resolving a bug.  Just like scientific
-statements aren&rsquo;t taken as fact until reproducible, so too will this bug be
-merely conjecture at this point.  It kills me when the bug resolver closes an
-issue because it <em>works for me</em>.  Nothing boils my blood more; I took the time
-to try and help you and wasn&rsquo;t rewarded on some level so I feel that I wasted
-my time.  But from where you stand the resolver is not correct, so again I
-say&hellip;</p>
-
-<p><strong>Prove it.</strong></p>
-
-<p>I think that it&rsquo;s super hard to get meaningful feedback from users.  It&rsquo;s hard
-for them to express why they&rsquo;re frustrated.  We as software developers don&rsquo;t
-always point them in the right direction.  As users can have wide ranges of
-technical capabilities, sometimes we as more technical oriented people have to
-do a little hand holding.  For instance, from Firefox, how many hops does it
-take to get from the application&rsquo;s menus to their open bug tracker,
-<a href="https://bugzilla.mozilla.org/">bugzilla</a>?
-Where can I report an issue?  How do I report an issue?
-Do I annoy the hell out of the user until they rate my app?
-Users might be complaining on Twitter, but that&rsquo;s sure as hell not where
-devlopers are looking for bug reports.
-Enabling the user to provide feedback could be
-viewed as a double edged sword.  Can I make meaningful conclusions from the
-torrent of feedback I&rsquo;m now getting?  Did I structure my form in such a way to
-ask the right questions?  Should we make our issue tracker public?  Should we
-make security issues that could harm users, if more widely understood, public?
-Public to fellow employees, even?  What did you expect to happen, and is that
-what actually happened?  This rabbit hole goes deep.</p>
-
-<p>The other day, I was writing a patch for a large application that was developed
-by someone else and that I still don&rsquo;t fully comprehend in its entirety. My
-patch should have worked, why wasn&rsquo;t it working?  Probably something in this
-person&rsquo;s code right?  Sure enough, I wrote a simple test case to eliminate
-everything but the control variables, and it turns out <em>I was wrong</em>.</p>
-
-<p>It&rsquo;s hard to get users to
-do more than the bare minimum to report an issue, even at all, but to prevent
-the issue from being ignored or closed because it works for the developer in
-their environment, take the time to report it correctly the first time.
-As someone who understands technology more than the average person, take the
-time to write a cut down test case that
-exposes the issue. The developer who looks at the issue will be grateful;
-instead of wasting their time with something that may not even be a bug, you&rsquo;ve
-just done something that would have to be done anyways if it is indeed a bug.
-You might find that a reduced code size shows that it&rsquo;s in
-fact not an issue with someone else&rsquo;s code, but in fact a simple mistake you
-made somewhere in your monolithic application.  Or it might be exactly the
-evidence you need to get someone&rsquo;s attention to fix said problem.  That test
-case might even be included in the latest test suite.  Either way, you have now
-proved beyond a reasonable doubt that the issue does not lie in your fault.</p>
-
-<p><strong>Write a Test Case for Your Next Bug Report or Issue.</strong></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -3742,6 +3736,10 @@ proved beyond a reasonable doubt that the issue does not lie in your fault.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">F() vs F(void) in C vs C++</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
       </li>
     
@@ -3755,10 +3753,6 @@ proved beyond a reasonable doubt that the issue does not lie in your fault.</p>
     
       <li class="post">
         <a href="/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/">GCC vs LLVM Q3 2017: Active Developer Counts</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/">Running Clang-Tidy on the Linux Kernel</a>
       </li>
     
   </ul>
