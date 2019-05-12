@@ -7,7 +7,7 @@ categories: c c++ declaration definition
 ---
 TL;DR
 
-Prefer `f(void)` in C to *potentially* save a 1B instruction per function call
+Prefer `f(void)` in C to *potentially* save a 2B instruction per function call
 when targeting x86_64 as a micro-optimization. `-Wstrict-prototypes` can help.
 Doesn’t matter for C++.
 
@@ -181,7 +181,7 @@ declaration included via header), then Clang can no longer observe whether
 `foo2` definition differs or not from the declaration.
 
 So Clang can potentially save you a single instruction (`xorl %eax, %eax`)
-whose encoding is only 1B, per function call to functions declared in the style
+whose encoding is only 2B, per function call to functions declared in the style
 `f()`, but only IF the definition is in the same translation unit and doesn’t
 differ from the declaration, and you happen to be targeting x86_64. \*deflated
 whew\* But usually it can’t because it’s only been provided the declaration via
