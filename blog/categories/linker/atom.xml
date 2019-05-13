@@ -4,7 +4,7 @@
   <title><![CDATA[Category: linker | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/linker/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2019-05-12T17:18:49-07:00</updated>
+  <updated>2019-05-12T18:25:17-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -292,7 +292,7 @@ want to make:</p>
 
 <p>By default, they are off by 8 on function entry.  See
 Section 3.2.2 page 16 of the
-<a href="http://www.x86-64.org/documentation_folder/abi-0.99.pdf">ABI</a>.</p>
+<a href="https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf">ABI</a>.</p>
 
 <p>Why is the stack pointer misaligned by 8 bytes on function entry?  I&rsquo;m going to
 punt on the answer to that for a bit, but I promise I&rsquo;ll come back to it.  The
@@ -313,7 +313,7 @@ ABI point:</p>
 
 <h2>x86-64 ABI point 2: The calling conventions for function invocations require passing integer arguments in the following sequence of registers: %rdi, %rsi, %rdx, %rcx, %r8, %r9, then pushing the rest on the stack in reverse order.</h2>
 
-<p>See <a href="http://www.x86-64.org/documentation_folder/abi-0.99.pdf">section 3.2.3</a>
+<p>See <a href="https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf">section 3.2.3</a>
 under &ldquo;Passing&rdquo;.  Warning:
 <a href="http://msdn.microsoft.com/en-us/library/ms235286.aspx">Microsoft has a different calling convention</a>.
 This is quite troubling to me, because I assumed that Instruction Set
@@ -392,7 +392,7 @@ printf does:</p>
 <h2>x86-64 ABI point 3: Variadic functions need to have the number of vector arguments specified in %al.</h2>
 
 <p>This will make printf debugging hard without.  Also in
-<a href="http://www.x86-64.org/documentation_folder/abi-0.99.pdf">section 3.2.3 under passing</a>.</p>
+<a href="https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf">section 3.2.3 under passing</a>.</p>
 
 <p>If you don&rsquo;t know what vector arguments are, no worries!  I&rsquo;m not going to cover
 them.  Just know that without this, the contents of %al may work in a basic
