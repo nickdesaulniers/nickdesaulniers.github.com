@@ -4,7 +4,7 @@
   <title><![CDATA[Category: declaration | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/declaration/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2019-05-12T16:33:57-07:00</updated>
+  <updated>2019-05-12T17:06:07-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -224,7 +224,8 @@ straightforward when to prefer one over the other.</p>
 <li><a href="https://godbolt.org/z/nsgGpt">https://godbolt.org/z/nsgGpt</a></li>
 <li><a href="https://godbolt.org/z/IORbBb">https://godbolt.org/z/IORbBb</a></li>
 <li><a href="https://godbolt.org/z/51s7K0">https://godbolt.org/z/51s7K0</a></li>
-<li><a href="https://bugs.llvm.org/show_bug.cgi?id=41851">https://bugs.llvm.org/show_bug.cgi?id=41851</a></li>
+<li><a href="https://bugs.llvm.org/show_bug.cgi?id=41851">https://bugs.llvm.org/show_bug.cgi?id=41851</a> (the maintainer of Clang cites
+the relevant part of the C11 spec for this)</li>
 </ul>
 
 ]]></content>
