@@ -112,7 +112,10 @@ int foo(int x) { return 42; }
 ```
 It seems that C++ inherited this from C, but only in C++ does `f()` seems to
 have the semantics of "`f` takes no arguments," as the previous examples all no
-longer have the `xorl %eax, %eax`.  Same for `f(void)` in C or C++.
+longer have the `xorl %eax, %eax`.  Same for `f(void)` in C or C++. That's
+because `foo()` and `foo(int)` are two different function in C++ thanks to
+operator overloading (thanks reddit user /u/OldWolf2). Also, it seems that C
+supported this difference for backwards compatibility w/ K & R C.
 
 ```c
 int bar(void);
