@@ -210,5 +210,6 @@ So it seems that `f()` is ok for strictly C++ code.  For C or mixed C and C++,
 - https://godbolt.org/z/nsgGpt
 - https://godbolt.org/z/IORbBb
 - https://godbolt.org/z/51s7K0
-- https://bugs.llvm.org/show_bug.cgi?id=41851
+- https://bugs.llvm.org/show_bug.cgi?id=41851 (the maintainer of Clang cites
+the relevant part of the C11 spec for this)
 
