@@ -274,7 +274,10 @@ legal C and C++ code:</p>
 
 <p>It seems that C++ inherited this from C, but only in C++ does <code>f()</code> seems to
 have the semantics of &ldquo;<code>f</code> takes no arguments,&rdquo; as the previous examples all no
-longer have the <code>xorl %eax, %eax</code>.  Same for <code>f(void)</code> in C or C++.</p>
+longer have the <code>xorl %eax, %eax</code>.  Same for <code>f(void)</code> in C or C++. That&rsquo;s
+because <code>foo()</code> and <code>foo(int)</code> are two different function in C++ thanks to
+operator overloading (thanks reddit user /u/OldWolf2). Also, it seems that C
+supported this difference for backwards compatibility w/ K &amp; R C.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
