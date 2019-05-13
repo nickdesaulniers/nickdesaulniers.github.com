@@ -4,7 +4,7 @@
   <title><![CDATA[Category: declaration | Nick Desaulniers]]></title>
   <link href="http://nickdesaulniers.github.io/blog/categories/declaration/atom.xml" rel="self"/>
   <link href="http://nickdesaulniers.github.io/"/>
-  <updated>2019-05-12T18:25:17-07:00</updated>
+  <updated>2019-05-13T00:25:59-07:00</updated>
   <id>http://nickdesaulniers.github.io/</id>
   <author>
     <name><![CDATA[Nick Desaulniers]]></name>
@@ -127,14 +127,14 @@ It seems that C++ inherited this from C, but only in C++ does <code>f()</code> s
 have the semantics of &ldquo;<code>f</code> takes no arguments,&rdquo; as the previous examples all no
 longer have the <code>xorl %eax, %eax</code>.  Same for <code>f(void)</code> in C or C++. That&rsquo;s
 because <code>foo()</code> and <code>foo(int)</code> are two different function in C++ thanks to
-operator overloading (thanks reddit user /u/OldWolf2). Also, it seems that C
+function overloading (thanks reddit user /u/OldWolf2). Also, it seems that C
 supported this difference for backwards compatibility w/ K &amp; R C.</p>
 
 <p><code>c
 int bar(void);
 int bar(int x) { return x + 42; }
 </code>
-Is an error in C, but in C++ thanks to operator overloading these are two
+Is an error in C, but in C++ thanks to function overloading these are two
 separate functions! (<code>_Z3barv</code> vs <code>_Z3bari</code>). (Thanks HN user
 <a href="https://news.ycombinator.com/item?id=19895079">pdpi</a>, for helping me
 understand this. Cunningham&rsquo;s Law ftw.)</p>
