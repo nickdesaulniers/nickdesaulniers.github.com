@@ -114,14 +114,14 @@ It seems that C++ inherited this from C, but only in C++ does `f()` seems to
 have the semantics of "`f` takes no arguments," as the previous examples all no
 longer have the `xorl %eax, %eax`.  Same for `f(void)` in C or C++. That's
 because `foo()` and `foo(int)` are two different function in C++ thanks to
-operator overloading (thanks reddit user /u/OldWolf2). Also, it seems that C
+function overloading (thanks reddit user /u/OldWolf2). Also, it seems that C
 supported this difference for backwards compatibility w/ K & R C.
 
 ```c
 int bar(void);
 int bar(int x) { return x + 42; }
 ```
-Is an error in C, but in C++ thanks to operator overloading these are two
+Is an error in C, but in C++ thanks to function overloading these are two
 separate functions! (`_Z3barv` vs `_Z3bari`). (Thanks HN user
 [pdpi](https://news.ycombinator.com/item?id=19895079), for helping me
 understand this. Cunningham's Law ftw.)
