@@ -278,7 +278,7 @@ want to make:
 ##x86-64 ABI point 1: function calls need the stack pointer to be aligned by a multiple of 16 bytes.
 By default, they are off by 8 on function entry.  See
 Section 3.2.2 page 16 of the
-[ABI](http://www.x86-64.org/documentation_folder/abi-0.99.pdf).
+[ABI](https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf).
 
 Why is the stack pointer misaligned by 8 bytes on function entry?  I'm going to
 punt on the answer to that for a bit, but I promise I'll come back to it.  The
@@ -298,7 +298,7 @@ on the stack in reverse order).  The convention (in OSX and Linux) is our second
 ABI point:
 
 ##x86-64 ABI point 2: The calling conventions for function invocations require passing integer arguments in the following sequence of registers: %rdi, %rsi, %rdx, %rcx, %r8, %r9, then pushing the rest on the stack in reverse order.
-See [section 3.2.3](http://www.x86-64.org/documentation_folder/abi-0.99.pdf)
+See [section 3.2.3](https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf)
 under "Passing".  Warning:
 [Microsoft has a different calling convention](http://msdn.microsoft.com/en-us/library/ms235286.aspx).
 This is quite troubling to me, because I assumed that Instruction Set
@@ -376,7 +376,7 @@ printf does:
 
 ##x86-64 ABI point 3: Variadic functions need to have the number of vector arguments specified in %al.
 This will make printf debugging hard without.  Also in
-[section 3.2.3 under passing](http://www.x86-64.org/documentation_folder/abi-0.99.pdf).
+[section 3.2.3 under passing](https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf).
 
 If you don't know what vector arguments are, no worries!  I'm not going to cover
 them.  Just know that without this, the contents of %al may work in a basic
