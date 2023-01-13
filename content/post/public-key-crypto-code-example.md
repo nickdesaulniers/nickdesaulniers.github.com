@@ -235,9 +235,9 @@ mistake can compromise the entire system.  Peer review and open source,
 implementations
 [go a long way](http://dodcio.defense.gov/OpenSourceSoftwareFAQ.aspx#Q%3a_Doesn.27t_hiding_source_code_automatically_make_software_more_secure.3F).
 
-{% blockquote Kerckhoffs's principle %}
+{{< blockquote title="Kerckhoffs's principle" >}}
 A cryptosystem should be secure even if everything about the system, except the key, is public knowledge.
-{% endblockquote%}
+{{< /blockquote >}}
 
 I wanted to write this post because I believe abstinence-only crypto education
 isn't working and I cant stand when anyone acts like part of a cabal from their

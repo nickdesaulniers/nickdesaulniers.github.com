@@ -4,7 +4,7 @@ date = "2014-04-18"
 slug = "2014/04/18/lets-write-some-x86-64"
 Categories = []
 +++
-{% blockquote Hiro Protagonist and The Librarian, Snow Crash by Neal Stephenson %}
+{{< blockquote author="Hiro Protagonist and The Librarian" title="Snow Crash by Neal Stephenson" >}}
 ..."'Our speech interposes itself between apprehension and truth like a dusty pane or warped mirror.  The tongue of Eden was like a flawless glass; a light of total understanding streamed through it.  Thus Babel was a second Fall.' And Isaac the Blind, an early Kabbalist, said that, to quote Gershom Scholem's translation, 'The speech of men is connected with divine speech and all language whether heavenly or human derives from one source: the Divine Name.' The practical kabbalists, the sorcerers, bore the title Ba'al Shem, meaning 'master of the divine name.'"
 
 "The machine language of the world," Hiro says.
@@ -12,7 +12,7 @@ Categories = []
 "Is this another analogy?"
 
 "Computers speak machine language," Hiro says.  "It's written in ones and zeroes - binary code.  At the lowest level, all computers are programmed with strings of ones and zeroes.  When you program in machine language, you are controlling the computer at its brainstem, the root of its existence.  It's the tongue of Eden.  But it's very difficult to work in machine language because you go crazy after a while, working at such a minute level.  So a whole Babel of computer languages has been created for programmers: FORTRAN, BASIC, COBOL, LISP, Pascal, C, PROLOG, FORTH.  You talk to the computer in one of these languages, and a piece of software called a compiler converts it into machine language.  But you never can tell exactly what the compiler is doing.  It doesn't always come out the way you want.  Like a dusty pane or warped mirror. A really advanced hacker comes to understand the true inner workings of the machine – he sees through the language he's working in and glimpses the secret functioning of the binary code – becomes a Ba'al Shem of sorts."
-{% endblockquote %}
+{{< /blockquote >}}
 
 This a beautiful quote, one that I think truly captures the relationship between
 higher level languages and the Instruction Set Architecture (ISA)'s machine
@@ -230,11 +230,11 @@ section visible to other sections.  You may be
 [wondering](http://stackoverflow.com/a/5908708/1027966)
 why directives and sections both begin with a dot.
 
-{% blockquote Dan Gohman %}
+{{< blockquote author="Dan Gohman" >}}
 '.'' isn't a valid identifier character in C, so way back when it became common to use '.'' as a prefix in the assembler and linker in order to avoid clashing with C symbol names. This unfortunately was used for both section names and directives, because both can appear in contexts where a simple parser wouldn't be able to disambiguate otherwise.
 
 I don't know why they used the same convention for directives and section names, but they did, and it's not practical to change it now.
-{% endblockquote %}
+{{< /blockquote >}}
 
 Ok now the subtraction instruction.  We've got a bit to go over with just this
 one line.  The first is the instruction itself.  The sub instruction has
@@ -256,9 +256,9 @@ last
 ([as opposed to the Intel syntax](http://stackoverflow.com/q/972602/1027966),
 where the destination follows the instruction name ex. `subq rsp, 8`).
 
-{% blockquote Dan Gohman %}
+{{< blockquote author="Dan Gohman" >}}
 I'm biased towards AT&T-syntax because GCC, LLVM, and icc (at least on Unix-like platforms) all use it, so it's what I'm used to by necessity. People familiar with assembly languages on other platforms sometimes find it feels backwards from what they're used to, but it is learnable.
-{% endblockquote %}
+{{< /blockquote >}}
 
 I'm writing my examples in AT&T syntax simply because when I compile my C code
 from clang with the -S flag, or run my object files through gobjdump, I get AT&T
@@ -588,8 +588,8 @@ In summary, remember:
 
 Closing thoughts by Dan:
 
-{% blockquote Dan Gohman %}
+{{< blockquote author="Dan Gohman" >}}
 To me, machine code doesn't feel analogous to this concept of the divine name. I certainly wouldn't describe it as "like a flawless glass; a light of total understanding streamed through it". Even if you strip away all the accidental complexity, machine code is still permeated by mundane implementation-oriented concerns. Also, the abstractions which we use to organize and "understand" the program are gone; information is lost.
 
 My imagination of a divine language looks a lot more like an idealized and cleaned-up LISP. It'd be capable of representing all known means of abstraction and combination (in the SICP sense), it might be thought of as a kind of super-language of which all of our real-world languages are just messy subsets.
-{% endblockquote %}
+{{< /blockquote >}}

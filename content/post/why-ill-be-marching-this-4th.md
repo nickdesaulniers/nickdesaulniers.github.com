@@ -4,9 +4,9 @@ date = "2013-07-03"
 slug = "2013/07/03/why-ill-be-marching-this-4th"
 Categories = []
 +++
-{% blockquote %}
+{{< blockquote >}}
 If you've done nothing wrong, then you've got nothing to hide.
-{% endblockquote %}
+{{< /blockquote >}}
 
 Wrong.  Nothing ever justifies giving up your
 [human rights](http://www.un.org/en/documents/udhr/index.shtml#a12)
@@ -74,10 +74,10 @@ looking the other way.
 Sounds to me like the crew hasn't been doing enough reflection.  What about the
 captain?
 
-{% blockquote President Obama http://www.youtube.com/watch?v=Xec48sUutuA %}
+{{< blockquote author="President Obama" link="http://www.youtube.com/watch?v=Xec48sUutuA" >}}
 I think it’s important to recognize that you can’t have 100 percent security
 and also then have 100 per cent privacy and zero inconvenience.
-{% endblockquote %}
+{{< /blockquote >}}
 
 Hearing the President of our country say that,
 [the incompetent media's focus on Snowden](http://www.washingtonpost.com/blogs/wonkblog/wp/2013/07/03/how-ed-snowden-became-a-bigger-story-than-nsa-spying-in-two-charts/),
@@ -87,9 +87,9 @@ literally reminds me of the part in Star Wars where in order to stop a growing
 threat and protect the people, a democracy is turned into an authoritarian
 empire.
 
-{% blockquote Padme, Star Wars Ep. 3 http://vimeo.com/57563428 %}
+{{< blockquote author="Padme" title="Star Wars Ep. 3" link="http://vimeo.com/57563428" >}}
 So this is how liberty dies...with thunderous applause?
-{% endblockquote %}
+{{< /blockquote >}}
 
 Not on my watch.  And not on yours either.  Join us this 4th of July for a
 peaceful rally against infringements on our 4th Amendment rights as part of the
@@ -98,4 +98,3 @@ national
 movement.  Let's ask the NSA to go
 back to the drawing board and find a way to uncompromisingly provide security
 ***and*** privacy.
-

@@ -64,9 +64,9 @@ problems than they are worth. There exist more advanced techniques such as
 How much does your site [weigh](http://www.sitepoint.com/minimizing-page-weight-matters/)?
 
 # An expensive website does not make an awesome app #
-{% blockquote %}
+{{< blockquote >}}
 Why doesn't my million dollar website make a kick ass web app?
-{% endblockquote %}
+{{< /blockquote >}}
 
 This point is brought to you by [Matt Basta](http://www.mattbasta.com/).  The
 point is that there is something fundamentally different between a web "site"

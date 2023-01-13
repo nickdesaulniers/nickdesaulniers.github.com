@@ -67,13 +67,13 @@ people with varying backgrounds, because they come up with solutions I
 never could have.  And if you want to beat your enemy, you have to know
 your enemy.  That means empathizing, understanding where they come from.
 
-{% blockquote Han Tzu, Shadow of The Giant pg. 303 by Orson Scott Card %}
+{{< blockquote author="Han Tzu" title="Shadow of The Giant pg. 303 by Orson Scott Card" >}}
 If you give orders and explain nothing, you might get obedience, but
 you'll get no creativity. If you tell them your purpose, then when your
 original plan is shown to be faulty, they'll find another way to achieve
 your goal. Explaining to your men doesn't weaken their respect for you,
 it proves your respect for them.
-{% endblockquote %}
+{{< /blockquote >}}
 
 I don't hate anyone for what they believe, nor do I
 try to persuade them otherwise.  I just feel like the technologically
@@ -104,10 +104,10 @@ deceased: ["It pains me to think that MIT played any role in a series of events 
 Fuck you. Maybe if MIT's bottom line wasn't their acceptance rate, they
 might be able to look out for more than just their own.
 
-{% blockquote Edmund Burke, Thoughts on the Cause of Present Discontents %}
+{{< blockquote author="Edmund Burke" title="Thoughts on the Cause of Present Discontents" >}}
 All that is necessary for the triumph of evil is that good men do
 nothing.
-{% endblockquote %}
+{{< /blockquote >}}
 
 Suicide is never the answer.  No matter how shitty your current
 situation is, no matter if things will never go back to the way they
@@ -122,7 +122,7 @@ provides a cathartic placebo effect.  If you are depressed or hurting, and
 you need someone to talk to, even a complete stranger, feel free to
 contact me.  I will always provide an ear and a shoulder.
 
-{% blockquote Valerie, V for Vendetta %}
+{{< blockquote author="Valerie" title="V for Vendetta" >}}
 It seems strange that my life should end in such a terrible place, but
 for three years I had roses and apologized to no one. I shall die here.
 Every inch of me shall perish. Every inch, but one. An inch. It is small
@@ -133,7 +133,7 @@ world turns, and that things get better. But what I hope most of all is
 that you understand what I mean when I tell you that, even though I do
 not know you, and even though I may never meet you, laugh with you, cry
 with you, or kiss you, I love you. With all my heart, I love you.
-{% endblockquote %}
+{{< /blockquote >}}
 
 The next time the media industry tries to limit what you have access to
 on the Internet, make a big ruckus.  Inform everyone you know about the
@@ -184,7 +184,8 @@ What will you do to shape the world you live in?  What are you going to do to
 fix it?  If you don't, I will.  Because if you want something done
 right, you have to do it yourself.
 
-{% blockquote Rage Against the Machine, Guerrilla Radio %}
+{{< blockquote author="Rage Against the Machine" title="Guerrilla Radio" >}}
 It has to start somewhere It has to start sometime
+
 What better place than here, what better time than now?
-{% endblockquote %}
+{{< /blockquote >}}

@@ -4,9 +4,9 @@ date = "2013-04-29"
 slug = "2013/04/29/the-persistence-of-memory"
 Categories = []
 +++
-{% blockquote Elon Musk, Bloomberg, http://www.businessweek.com/articles/2012-09-13/elon-musk-the-21st-century-industrialist#p5, Elon Musk, the 21st Century Industrialist %}
+{{< blockquote author="Elon Musk" link="http://www.businessweek.com/articles/2012-09-13/elon-musk-the-21st-century-industrialist#p5" title="Elon Musk, the 21st Century Industrialist, Bloomberg" >}}
 I would like to die on Mars...
-{% endblockquote %}
+{{< /blockquote >}}
 
 Well, isn't that forward thinking?  Granted, the full quote
 *I would like to die on Mars, just not on impact* is meant to sound hopeful of
@@ -15,9 +15,9 @@ will be buried on Mars.  But is it forward thinking, enough?  Does it push the
 needle to where it needs to be pushed?  Does it strive for innovation and push
 our imagination like Star Trek did?  Or is it just a realistic goal for SpaceX?
 
-{% blockquote Albert Einstein %}
+{{< blockquote author="Albert Einstein" >}}
 The person with big dreams is more powerful than one with all the facts.
-{% endblockquote %}
+{{< /blockquote >}}
 
 While Elon would like to die on Mars, I think it would be neat to transfer my "soul" into a
 computer.  We refer to data persistence within a computer as memory, using
@@ -68,13 +68,13 @@ where the richest 1% live forever while the poor are forced to die.  Frozen Walt
 Disney just sat up.  An abuse of the technology, not too different a world from
 the one in [Surrogates](http://en.wikipedia.org/wiki/Surrogates_%28film%29).
 
-{% blockquote Pozzo, Waiting for Godot by Samuel Becket %}
+{{< blockquote author="Pozzo" title="Waiting for Godot by Samuel Becket" >}}
 Have you not done tormenting me with your accursed time! It's Abominable! When! When! One day, is that not enough for you, one day he went dumb, one day I went blind, one day we'll go deaf, one day we were born, one day we shall die, the same day, the same second, is that not enough for you? They give birth astride a grave, the light gleams an instant, then it's night once more.
-{% endblockquote %}
+{{< /blockquote >}}
 
-{% blockquote Mustafa Mond, Brave New World by Alduos Huxley %}
+{{< blockquote author="Mustafa Mond" title="Brave New World by Alduos Huxley" >}}
 They say that it is fear of death and what comes after death that makes men turn to religion.
-{% endblockquote %}
+{{< /blockquote >}}
 
 Ever since my father passed away, I've occasionally suffered from existential
 anxiety attacks.  It usually starts with me thinking about those Discovery
@@ -87,17 +87,17 @@ won't care.  Currently, I calm myself down my telling myself that such an event
 is a long time away and I will live a long and happy life with many descendants,
 though I have no guarantees.  My father only lived to be 48.
 
-{% blockquote Valentine, Children of the Mind by Orson Scott Card %}
+{{< blockquote author="Valentine" title="Children of the Mind by Orson Scott Card" >}}
 'That's such a weak excuse,' said Valentine. 'Everyone dies. Everyone leaves. What matters is the things you build together before they go. What matters is the part of them that continues in you when they're gone.'
-{% endblockquote %}
+{{< /blockquote >}}
 
-{% blockquote White Flowers, Lost Odyssey %}
+{{< blockquote author="White Flowers" title="Lost Odyssey" >}}
 Where before they would bloom and wither in the space of a single day, now they hold their blooms for three and four days at a time. Moistened by the dew of night, bathed in the light of the sun, the white flowers strive to live their lives to the fullest, beautifying the town as if striving to live out the portion of life denied to those whose "tomorrows" were snatched away from them forever.
-{% endblockquote %}
+{{< /blockquote >}}
 
-{% blockquote The Upstreamers, Lost Odyssey %}
+{{< blockquote author="The Upstreamers" title="Lost Odyssey" >}}
 Human beings, who cannot live forever, daring to take a journey without end. This might be the ultimate tragedy, but it could just as well be the ultimate comedy. Kaim knows one thing, however: one cannot simply dismiss it as an exercise in futility.
-{% endblockquote %}
+{{< /blockquote >}}
 
 Randy Pausch's *The Last Lecture* taught me that legacy is the greatest thing you
 can leave behind.  While I haven't yet started the business I've always wanted,
@@ -107,9 +107,9 @@ the slim chance they might really appreciate my taste in music.  I also want to
 write a book someday, that way I can marvel at how
 [my ideas will outlast me](http://www.goodreads.com/quotes/287093-beneath-this-mask-there-is-more-than-flesh-beneath-this).
 
-{% blockquote Steve Jobs, Steve Jobs by Walter Isaacson %}
+{{< blockquote author="Steve Jobs" title="Steve Jobs by Walter Isaacson" >}}
 I like to think that something survives after you die, it's strange to think that you accumulate all this experience, and maybe a little wisdom, and it just goes away.  So I really want to believe that something survives, that maybe your consciousness endures.  But on the other hand, perhaps it's like an on-off switch.  "Click!" And you're gone.
-{% endblockquote %}
+{{< /blockquote >}}
 
 It terrifies me to no end to think what could possibly drive someone to suicide.
 What doom a person would have to be surrounded with to honestly believe that no
@@ -119,19 +119,19 @@ terrifies me to think of all of the amazing minds this world has seen, among so
 many who choose not to develop their own, that have come and gone.  Those who
 could change the world yet are snatched away.
 
-{% blockquote Parabola, Tool %}
+{{< blockquote author="Parabola" title="Tool" >}}
 This body holding me reminds me of my own mortality. Embrace this moment. Remember. We are eternal. All this pain is an illusion.
-{% endblockquote %}
+{{< /blockquote >}}
 
 I'm sorry this post turned a little dark.  By talking about my fears, I hope to
 not let them control me.  I believe publishing this will be a relief.  I think
 I'll join Elon on Mars, but unlike Elon, I believe I will transcend my physical
 being.  It's important therefor, to treasure your body while it lasts.
 
-{% blockquote Children of the Mind, Orson Scott Card %}
+{{< blockquote title="Children of the Mind, Orson Scott Card" >}}
 'But it [life] won't have amounted to anything,' said Grego. 'If your children die, then it was all a waste.' 'No' said Olhado quietly. Grego shook his head. 'Yes it does, Olhado. Death undoes everything.' Olhado shrugged. 'Then why do you bother doing everything, Grego? Because someday you will die. Why should anyone ever have children? Someday they will die, their children will die, all children will die. Someday stars will wind down or blow up. Someday death will cover us all like the water of a lake and perhaps nothing will ever come to the surface to show that we were there. But we were there, and during the time we lived, we were alive. That's the truth-what is, what was, what will be-not what could be, what should have been, what never can be. If we die, then our death has meaning to the rest of the universe. Even if our lives are unknown, the fact that someone lived here, and died, that will have repercussions, that will shape the universe.'
-{% endblockquote %}
+{{< /blockquote >}}
 
-{% blockquote Old Revolutionary, Lost Odyssey %}
+{{< blockquote author="Old Revolutionary" title="Lost Odyssey" >}}
 There will allways be hope, wherever you are, until you yourself abondon it.
-{% endblockquote %}
+{{< /blockquote >}}
