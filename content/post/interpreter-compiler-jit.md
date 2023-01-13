@@ -22,7 +22,7 @@ of C code each.
 
 All of the code in the post is up on [GitHub](https://github.com/nickdesaulniers/bf_interpreter_jit_compiler).
 
-{% youtube _C5AHaS1mOA %}
+{{< youtube _C5AHaS1mOA >}}
 
 Brainfuck is an interesting, if hard to read, language.  It only has eight
 operations it can perform `> < + - . , [ ]`, yet is Turing complete.  There's nothing really to
