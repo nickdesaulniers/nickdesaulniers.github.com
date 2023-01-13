@@ -1,0 +1,33 @@
+baseURL = 'https://nickdesaulniers.github.io/'
+languageCode = 'en-us'
+title = 'Nick Desaulniers'
+theme="Hugo-Octopress"
+
+[permalinks]
+# Configures post URLs
+post="/blog/:year/:month/:day/:title/"
+
+[params]
+  subtitle="The enemy's gate is down"
+  rss=true
+
+[[menu.main]]
+  Name = "About"
+  URL = "/about/about/index.html"
+  weight = -10
+[[menu.main]]
+  Name = "Archives"
+  URL = "/"
+  weight = -10
+[[menu.main]]
+  Name = "Blog"
+  URL = "/"
+  weight = -10
+[[menu.main]]
+  Name = "Publications"
+  URL = "/"
+  weight = -10
+[[menu.main]]
+  Name = "Talks"
+  URL = "/"
+  weight = -10
