@@ -13,6 +13,13 @@ post="/blog/:year/:month/:day/:title/"
   rss=true
   searchEngineURL="https://www.google.com/search"
   googleAnalytics="UA-36993986-1"
+  sidebarRecentLimit=5
+  github="https://github.com/nickdesaulniers"
+  gitlab="https://gitlab.com/nickdesaulniers"
+  mastodon="https://fosstodon.org/@llvm"
+  linkedin="https://www.linkedin.com/in/nick-desaulniers-75520334"
+  stackoverflow="https://stackoverflow.com/users/1027966/nick-desaulniers"
+  youtube="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"
 
 [[menu.main]]
   Name = "About"
