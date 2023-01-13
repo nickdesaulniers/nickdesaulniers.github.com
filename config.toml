@@ -10,6 +10,7 @@ post="/blog/:year/:month/:day/:title/"
 [params]
   subtitle="The enemy's gate is down"
   rss=true
+  searchEngineURL="https://www.google.com/search"
 
 [[menu.main]]
   Name = "About"
