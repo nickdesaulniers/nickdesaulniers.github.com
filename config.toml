@@ -2,6 +2,7 @@ baseURL = 'https://nickdesaulniers.github.io/'
 languageCode = 'en-us'
 title = 'Nick Desaulniers'
 theme="Hugo-Octopress"
+disqusShortname="wangstabill"
 
 [permalinks]
 # Configures post URLs
