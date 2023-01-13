@@ -69,5 +69,5 @@ $ mutt
 We should see it connect and download our messages.  `m` to start sending new
 messages. `G` to fetch new messages.
 
-{% img center /images/mutt.png %}
+![mutt](/images/mutt.png)
 

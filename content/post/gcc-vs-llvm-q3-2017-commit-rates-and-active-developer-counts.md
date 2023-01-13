@@ -36,7 +36,7 @@ counting a bunch.  Also, the comparison is not quite fair since the overlap in
 front-end-language and back-end-target support in these two massive projects
 does not overlap in a lot of places.
 
-{% img center /images/gcc_clang_authors.jpg %}
+![gcc clang authors](/images/gcc_clang_authors.jpg)
 
 LLVM’s 60 day active contributors are ~3x-5x times GCC’s and growing, while
 GCC’s 100-count hasn’t changed much since ‘04.  It’s safe to say GCC is not

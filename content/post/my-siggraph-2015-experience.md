@@ -26,11 +26,15 @@ hanging off the back and could walk around.  Toyota and Ford had demos where you
 could inspect their vehicles in virtual space.  I did not see a single HTC/Valve
 Vive at SIGGRAPH.
 
-{% img center /images/siggraph/s8.jpg %}
-{% img center /images/siggraph/s1.jpg %}
-{% img center /images/siggraph/s3.jpg %}
-{% img center /images/siggraph/s2.jpg %}
-{% img center /images/siggraph/s4.jpg %}
+![siggraph](/images/siggraph/s8.jpg)
+
+![siggraph](/images/siggraph/s1.jpg)
+
+![siggraph](/images/siggraph/s3.jpg)
+
+![siggraph](/images/siggraph/s2.jpg)
+
+![siggraph](/images/siggraph/s4.jpg)
 
 ##AR
 Epson had some AR glasses. They were very glasses friendly, unlike most VR
@@ -50,7 +54,7 @@ special screen.  When walking around the screen, the viewing angle always seemed
 correct.  It was very convincing, except for the jarring restart of the animated
 loop which could be smoothed out (think looping/seamless gifs).
 
-{% img center /images/siggraph/s5.jpg %}
+![siggraph](/images/siggraph/s5.jpg)
 
 ##VR/3D video
 Google cardboard had a booth showing off 3D videos from youtube.  I had a hard
@@ -85,7 +89,7 @@ being projected on a hemisphere, but it was neat in that like IMAX your entire
 FOV was encompassed, but you could move your head, not see any pixels, and
 didn't experience any motion sickness or disorientation.
 
-{% img center /images/siggraph/s7.jpg %}
+![siggraph](/images/siggraph/s7.jpg)
 
 ##X3D/X3DOM
 I spoke with some folks at the X3D booth about X3DOM.  To me, it seems like a
@@ -102,7 +106,7 @@ There was a cool maker faire, some things I'll have to order for family members
 (young hackers in training) were [Canny bots](http://cannybots.com/),
 [eBee](http://ebeeproject.net/) and [Piper](http://www.withpiper.com/).
 
-{% img center /images/siggraph/s6.jpg %}
+![siggraph](/images/siggraph/s6.jpg)
 
 ##Experimental tech
 Bunch of neat input devices, one I liked used directional sound as tactile
@@ -117,7 +121,8 @@ looked gorgeous, hardcover printed in color.  I met about half of the fellow
 authors who were also at SIGGRAPH, and our editor.  I even got to meet Eric
 Haines, who reviewed my chapter before publication!
 
-{% img center /images/siggraph/s9.jpg %}
-{% img center /images/siggraph/s10.jpg %}
-{% img center /images/siggraph/s11.jpg %}
+![siggraph](/images/siggraph/s9.jpg)
 
+![siggraph](/images/siggraph/s10.jpg)
+
+![siggraph](/images/siggraph/s11.jpg)

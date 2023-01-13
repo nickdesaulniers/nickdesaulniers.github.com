@@ -410,7 +410,7 @@ bottom plate if you can imagine, in this case.  The stack grows towards the
 heap, and it is possible for them to collide if you don't ask the OS to expand
 your data segment (sbrk).
 
-{% img center /images/stack.png %} [credit](http://mcfunley.com/the-debugger-extension-part-6-scanning-threads)
+![stack](/images/stack.png) [credit](http://mcfunley.com/the-debugger-extension-part-6-scanning-threads)
 
 Let's say we want to call something like memset, which from `man memset` we can
 see takes an address, a value to fill, and a number of bytes to fill.  The

@@ -176,7 +176,7 @@ second misaligns it; that's why we allocate an additional 8 B on the stack
 ([x86-64 ABI point #1](/blog/2014/04/18/lets-write-some-x86-64/)).  The stack is mis-aligned upon function entry in x86-64.
 30000 is a multiple of 16.
 
-{% img center /images/compiler_stack_alignment.png %}
+![compiler stack alignment](/images/compiler_stack_alignment.png)
 
 Moving the instruction pointer (`>`, `<`) and modifying the pointed to value
 (`+`, `-`) are straight-forward:
@@ -369,7 +369,7 @@ address of putchar, and %rdx will contain the address of getchar, see
 calling any of them, else they may clobber %rdi, %rsi, or %rdx since they're
 not "callee saved," rather "call clobbered."  See [x86-64 ABI point #4](/blog/2014/04/18/lets-write-some-x86-64/).
 
-{% img center /images/prologue1.png %}
+![prologue](/images/prologue1.png)
 
 ```c
   0x49, 0x89, 0xFC, // movq %rdi, %r12
@@ -380,7 +380,7 @@ not "callee saved," rather "call clobbered."  See [x86-64 ABI point #4](/blog/20
 At this point, %r12 will contain the address of memset, %r13 will contain the
 address of putchar, and %r14 will contain the address of getchar.
 
-{% img center /images/prologue2.png %}
+![prolog2](/images/prologue2.png)
 
 Next up is allocating 30008 B on the stack:
 
@@ -403,7 +403,7 @@ stack. We're allocating an additional 8 B on the stack for alignment
 requirements, similar to the compiler.  By pushing even numbers of 64 b
 registers, we need to realign our stack pointer.
 
-{% img center /images/prologue3.png %}
+![prolog3](/images/prologue3.png)
 
 Next in the prologue, we set up and call memset:
 
@@ -429,7 +429,7 @@ tape.  That's the end of our prologue.
 };
 ```
 
-{% img center /images/prologue4.png %}
+![prolog4](/images/prologue4.png)
 
 We can then push our prologue into our dynamic array implementation:
 
@@ -576,7 +576,7 @@ little simpler, as were not done yet with this case.
   // ...
 ```
 
-{% img center /images/relative_jump_unknown.png %}
+![relative jump unknown](/images/relative_jump_unknown.png)
 
 We pop the matching offset into the dynamic array (from the matching open
 bracket), and calculate the difference from the current size of the instruction

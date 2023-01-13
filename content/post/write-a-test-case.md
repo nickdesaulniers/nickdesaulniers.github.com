@@ -45,7 +45,7 @@ point whether the bug reporter (developer of Y) did their homework; the bug is
 unconfirmed.  Both reporter and resolver are suspicious of each others' code.
 *I* don't make silly mistakes, right?
 
-{% img center /images/dude.jpg %}
+![dude](/images/dude.jpg)
 
 So it's up to the resolver to work out a test case.  Being able to reproduce
 said issue is the first goal to resolving a bug.  Just like scientific
