@@ -15,7 +15,7 @@ crashes.
 
 So a common pattern we'll see is:
 
-```c C
+{{< codecaption lang="c" >}}
 int* nums = (int*) malloc(sizeof(int));
 if (nums == NULL) {
   // handle error
@@ -25,7 +25,7 @@ if (nums == NULL) {
   free(nums);
   nums = NULL;
 }
-```
+{{< /codecaption >}}
 
 Here we allocated space for an integer, cast the `void*` returned from malloc
 to an `int*`, compared it against the `NULL` pointer, then freed the allocated
@@ -60,7 +60,7 @@ either an empty constructor or the constructor of the original data type.  Let's
 take a trip down the rabbit hole to see how we use one.  First, let's look at
 some C++ code, and then translate it to Rust.
 
-```c++ option.cpp
+{{< codecaption lang="c++" title="option.cpp" >}}
 #include <iostream> // cout, endl
 #include <stdlib.h> // rand
 #include <time.h> // time
@@ -92,21 +92,20 @@ int main () {
     cout << "Did I mention that Iron Maiden is my favorite band?" << endl;
   }
 }
-
-```
+{{< /codecaption >}}
 
 Let's step through this program line by line, starting in main.
 
-```c++ Line 14
+{{< codecaption lang="c++" title="Line 14" >}}
 const int* const x = may_return_null();
-```
+{{< /codecaption >}}
 
 Here we're calling a function that may return null, just like malloc!
 
-```c++ Lines 8-9
+{{< codecaption lang="c++" title="Lines 8-9" >}}
 srand(time(NULL));
 return rand() % 2 == 1 ? new int(666) : NULL;
-```
+{{< /codecaption >}}
 
 In the body of `may_return_null` we seed the random number generator, generate a random number, mod it by 2
 (so it can either be 0 or 1, 50-50 chance, hopefully), then either return a
@@ -114,9 +113,9 @@ pointer pointing to memory allocated on the heap or the null pointer.  We also u
 ternary operator, which gives us the power of a conditional statement in the
 form of a concise expression.
 
-```c++ Line 15
+{{< codecaption lang="c++" title="Line 15" >}}
 if (x) {
-```
+{{< /codecaption >}}
 
 We check if the pointer is valid, that is that it is safe to use, as `NULL` is
 falsy in a C++ conditional.  If it is, then we can safely dereference it.  Let's
@@ -124,34 +123,34 @@ switch on the (dereferenced) value.  Notice how we need to break to explicitly
 prevent fall through, though
 [97% of the time that's what you intend](http://books.google.com/books?id=4vm2xK3yn34C&pg=PA37&lpg=PA38&dq=expert+c+fallthrough&source=bl&ots=Ho98ZhXF9X&sig=PebysT8-3zA_9B2aRkuvnz4mCmY&hl=en&sa=X&ei=j8CJUdeWMerJiwLQmICoDw&ved=0CC4Q6AEwAA#v=onepage&q=expert%20c%20fallthrough&f=false).
 
-```c++ Lines 17-22
+{{< codecaption lang="c++" title="Lines 17-22" >}}
 switch (*x) {
   case 777: cout << "Lucky Sevens"        << endl; break;
   case 666: cout << "Number of the Beast" << endl; break;
   case 42: cout  << "Meaning of Life"     << endl; break;
   default: cout  << "Nothing special"     << endl; break;
 }
-```
+{{< /codecaption >}}
 
 If the pointer was null, the else branch of the conditional would execute
 printing a different result.
 
-```c++ Line 24
+{{< codecaption lang="c++" title="Line 24" >}}
 cout << "No value" << endl;
-```
+{{< /codecaption >}}
 
 Finally in we check the value pointed to.  Did I forget something here?  Save
 that thought, we'll come back to it.
 
-```c++ Lines 28-30
+{{< codecaption lang="c++" title="Lines 28-30" >}}
 if (*x == 666) {
   cout << "Did I mention that Iron Maiden is my favorite band?" << endl;
 }
-```
+{{< /codecaption >}}
 
 Let's see my rough translation of this program into Rust.
 
-```rust option.rs
+{{< codecaption lang="rust" title="option.rs" >}}
 use core::rand;
 
 fn may_return_none () -> Option<int> {
@@ -176,7 +175,7 @@ fn main () {
     _ => {}
   };
 }
-```
+{{< /codecaption >}}
 
 Both programs, when compiled *should* randomly print either:
 
@@ -190,12 +189,12 @@ Did I mention that Iron Maiden is my favorite Band?
 Now let's walk through the Rust code, starting at main and compare it to the
 equivalent C++ code.
 
-```rust option.rs Line 8
+{{< codecaption lang="rust" title="option.rs Line 8" >}}
 let x: Option<int> = may_return_none();
-```
-```c++ option.cpp Line 14
+{{< /codecaption >}}
+{{< codecaption lang="c++" title="option.cpp Line 14" >}}
 const int* const x = may_return_null();
-```
+{{< /codecaption >}}
 
 I read this Rust code as 'let x be type Option,
 specialized to type int initialized
@@ -207,13 +206,13 @@ explicit about their const'ness.  In Rust, we could declare x as being explicitl
 mutable: `let mut x: ... = ...;`.  In both, we can also leave the explicit types
 to be inferred by the compiler.
 
-```rust option.rs Line 4
+{{< codecaption lang="rust" title="option.rs Line 4" >}}
 if rand::Rng().next() % 2 == 1 { Some(666) } else { None }
-```
-```c++ option.cpp Lines 8-9
+{{< /codecaption >}}
+{{< codecaption lang="c++" title="option.cpp Lines 8-9" >}}
 srand(time(NULL));
 return rand() % 2 == 1 ? new int(666) : NULL;
-```
+{{< /codecaption >}}
 
 Now for the body of `may_return_none`.  Rust does not have a ternary operator,
 so a single line `if {} else {}` block will have to do.  We also don't need
@@ -240,30 +239,30 @@ matching is a powerful language construct that can entirely replace conditionals
 In fact, the one line if expression could have been written using a match
 expression:
 
-```rust
+{{< codecaption lang="rust" >}}
 if rand::Rng().next() % 2 == 1 { Some(666) } else { None }
 // or
 match rand::Rng().next() % 2 { 1 => Some(666), _ => None }
-``` 
+{{< /codecaption >}}
 
 The basic design pattern
 for accessing the value of an option type in Rust looks like:
 
-```rust
+{{< codecaption lang="rust" >}}
 match x { // x: Option<T>
   Some(y) => { *y },
   None => {}
 }
-```
+{{< /codecaption >}}
 
 The curly braces are optional for one liners (no block needed).
 Pattern matches have to be exhaustive.  That means I have to exhaust all
 possibilities for what the deconstructed value could be.  You can use a branch
 that looks like:
 
-```rust
+{{< codecaption lang="rust" >}}
 _ => 'everything else'
-```
+{{< /codecaption >}}
 
 to catch everything else.  The underscore here means "every other possible case."
 So by having to use a match expression (also not a
@@ -287,9 +286,9 @@ I hope back in my C++ code you spotted the fatal flaw.  On line 28, I just
 dereferenced a raw pointer without checking its validity.  This is a violation
 of memory safety.
 
-```c++ option.cpp Line 28
+{{< codecaption lang="c++" title="option.cpp Line 28" >}}
 if (*x == 666) {
-```
+{{< /codecaption >}}
 
 When running the C++ code, instead of seeing `No value` printed to stdout in the
 case of no value, a segfault occurs.
@@ -301,9 +300,9 @@ No value
 
 What I should have done is something more like:
 
-```c++ Line 28 corrected
+{{< codecaption lang="c++" title="option.cpp Line 28 corrected" >}}
 if (x && *x == 666) {
-```
+{{< /codecaption >}}
 
 But, the C++ compiler let me get away with not handling the case where the
 pointer was invalid (even if doing nothing in the case of "handling" it).  By
