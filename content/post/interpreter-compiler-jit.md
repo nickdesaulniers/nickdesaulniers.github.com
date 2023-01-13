@@ -673,7 +673,7 @@ Or compare the full sources of the [the interpreter](https://github.com/nickdesa
 Let's now examine the performance of these three.  One of the longer running
 Brainfuck programs I can find is [one that prints the Mandelbrot set as ASCII art to stdout](https://github.com/nickdesaulniers/bf_interpreter_jit_compiler/blob/master/samples/mandelbrot.b).
 
-{% video /video/jit.mp4 %}
+{{< video src="/video/jit.mp4" >}}
 
 Running the UNIX command `time` on the interpreter, compiled
 result, and the JIT, we should expect numbers similar to:
