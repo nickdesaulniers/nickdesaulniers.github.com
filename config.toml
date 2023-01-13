@@ -14,7 +14,7 @@ post="/blog/:year/:month/:day/:title/"
 
 [[menu.main]]
   Name = "About"
-  URL = "/about/about/index.html"
+  URL = "/about/"
   weight = -10
 [[menu.main]]
   Name = "Archives"
@@ -26,9 +26,9 @@ post="/blog/:year/:month/:day/:title/"
   weight = -10
 [[menu.main]]
   Name = "Publications"
-  URL = "/publications/publications/index.html"
+  URL = "/publications/"
   weight = -10
 [[menu.main]]
   Name = "Talks"
-  URL = "/talks/talks/index.html"
+  URL = "/talks/"
   weight = -10
