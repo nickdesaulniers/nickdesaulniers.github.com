@@ -12,6 +12,7 @@ post="/blog/:year/:month/:day/:title/"
   subtitle="The enemy's gate is down"
   rss=true
   searchEngineURL="https://www.google.com/search"
+  googleAnalytics="UA-36993986-1"
 
 [[menu.main]]
   Name = "About"
