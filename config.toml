@@ -25,9 +25,9 @@ post="/blog/:year/:month/:day/:title/"
   weight = -10
 [[menu.main]]
   Name = "Publications"
-  URL = "/"
+  URL = "/publications/publications/index.html"
   weight = -10
 [[menu.main]]
   Name = "Talks"
-  URL = "/"
+  URL = "/talks/talks/index.html"
   weight = -10
