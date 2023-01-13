@@ -2,8 +2,9 @@
 title = "8 Months in Mozilla"
 date = "2013-06-13"
 slug = "2013/06/13/8-months-in-mozilla"
-Categories = []
+Categories = ["Mozilla", "Open Source Software", "Microsoft", "Love", "Job"]
 +++
+
 Besides 3 months interrupted to finish degree requirements, and including an
 internship, I’ve been at Mozilla for about 8 months now.  After reading a
 [blog post](http://ahmetalpbalkan.com/blog/8-months-microsoft/)

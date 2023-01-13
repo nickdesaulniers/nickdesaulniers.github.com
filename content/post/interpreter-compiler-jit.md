@@ -2,7 +2,7 @@
 title = "Interpreter Compiler Jit"
 date = "2015-05-25"
 slug = "2015/05/25/interpreter-compiler-jit"
-Categories = []
+Categories = ["interpreter", "compiler", "just in time", "JIT", "Brainfuck", "C"]
 +++
 
 Interpreters and compilers are interesting programs, themselves used to run or

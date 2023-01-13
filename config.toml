@@ -14,6 +14,8 @@ post="/blog/:year/:month/:day/:title/"
   searchEngineURL="https://www.google.com/search"
   googleAnalytics="UA-36993986-1"
   sidebarRecentLimit=5
+  generateTaxonomyList=true
+
   github="https://github.com/nickdesaulniers"
   gitlab="https://gitlab.com/nickdesaulniers"
   mastodon="https://fosstodon.org/@llvm"
