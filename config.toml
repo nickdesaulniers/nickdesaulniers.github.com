@@ -44,3 +44,7 @@ post="/blog/:year/:month/:day/:title/"
   Name = "Talks"
   URL = "/talks/"
   weight = -10
+
+[markup]
+  [markup.highlight]
+    style="solarized-dark"

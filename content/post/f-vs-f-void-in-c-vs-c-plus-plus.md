@@ -63,7 +63,7 @@ int foo();
 int quux() {
   foo(); // notice %eax is always zeroed
   foo(); // notice %eax is always zeroed
-return 0;
+  return 0;
 }
 ```
 ```gas
