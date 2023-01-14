@@ -17,7 +17,7 @@ My blog has been quieter than I would have liked; hopefully I can find more
 time to document some of these, maybe in series form.  May I present to you
 episode I; "*Off by Two*."
 
-+++
+---
 
 Distracted in a conference grand ballroom, above what might be the largest mall
 in the world or at least Bangkok, a blank QEMU session has me seriously
