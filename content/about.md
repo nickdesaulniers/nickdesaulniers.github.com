@@ -4,7 +4,7 @@ comments=false
 type="no_time_to_read"
 +++
 
-![Nick Desaulniers](/images/nick.jpg)
+{{< figure alt="Nick Desaulniers" src="/images/nick.jpg" class="float_right" >}}
 
 Nick Desaulniers is a software engineer at Google working on compiling the
 [Linux Kernel](https://www.kernel.org/) with
@@ -35,5 +35,3 @@ Contributing to
 [Open Source software](https://github.com/nickdesaulniers/What-Open-Source-Means-To-Me#nick-desaulniers)
 and an accessible Internet for all are some of the things that Nick is most
 passionate about.
-
-[LinkedIn](https://www.linkedin.com/pub/nick-desaulniers/34/203/755) - [GitHub](https://github.com/nickdesaulniers)

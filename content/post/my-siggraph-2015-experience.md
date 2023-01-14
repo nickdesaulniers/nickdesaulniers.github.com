@@ -1,5 +1,5 @@
 +++
-title = "My Siggraph 2015 Experience"
+title = "My SIGGRAPH 2015 Experience"
 date = "2015-08-14"
 slug = "2015/08/14/my-siggraph-2015-experience"
 Categories = ["SIGGRAPH", "graphics", "VR"]
@@ -27,13 +27,9 @@ could inspect their vehicles in virtual space.  I did not see a single HTC/Valve
 Vive at SIGGRAPH.
 
 ![siggraph](/images/siggraph/s8.jpg)
-
 ![siggraph](/images/siggraph/s1.jpg)
-
 ![siggraph](/images/siggraph/s3.jpg)
-
 ![siggraph](/images/siggraph/s2.jpg)
-
 ![siggraph](/images/siggraph/s4.jpg)
 
 ## AR
@@ -122,7 +118,5 @@ authors who were also at SIGGRAPH, and our editor.  I even got to meet Eric
 Haines, who reviewed my chapter before publication!
 
 ![siggraph](/images/siggraph/s9.jpg)
-
 ![siggraph](/images/siggraph/s10.jpg)
-
 ![siggraph](/images/siggraph/s11.jpg)

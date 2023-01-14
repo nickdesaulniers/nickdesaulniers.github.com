@@ -25,7 +25,7 @@ Desaulniers, Nick. "Build an HTML5 Game - and distribute it." *Mozilla Hacks*. M
 
 ---
 
-![webgl book cover](/images/webgl_book_cover.jpg)
+{{< figure alt="webgl book cover" src="/images/webgl_book_cover.jpg" class="float_left smaller" >}}
 
 Desaulniers, N. (2015). Emscripten and WebGL. In P. Cozzi, *WebGL Insights*
 (pp. 71-88). Boca Raton, Florida: A K Peters/CRC Press. [Amazon](http://www.amazon.com/WebGL-Insights-Patrick-Cozzi/dp/1498716075/) [CRC Press](https://www.crcpress.com/product/isbn/9781498716079)
