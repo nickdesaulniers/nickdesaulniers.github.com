@@ -2,7 +2,7 @@
 title = "Intro to Debugging X86-64 Assembly"
 date = "2016-01-20"
 slug = "2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace"
-Categories = []
+Categories = ["asm", "dtrace", "lldb", "osx", "x86"]
 +++
 I'm hacking on an assembly project, and wanted to document some of the tricks I
 was using for figuring out what was going on.  This post might seem a little

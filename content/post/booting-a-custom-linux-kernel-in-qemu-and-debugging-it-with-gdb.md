@@ -2,7 +2,7 @@
 title = "Booting a Custom Linux Kernel in QEMU and Debugging It With GDB"
 date = "2018-10-24"
 slug = "2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb"
-Categories = []
+Categories = ["gdb", "linux", "qemu", "vm", "debugging"]
 +++
 Typically, when we modify a program, we’d like to run it to verify our changes.
 Before booting a compiled Linux kernel image on actual hardware, it can save us

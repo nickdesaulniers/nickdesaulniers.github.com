@@ -2,7 +2,7 @@
 title = "Commandments of a Mobile Web"
 date = "2013-02-28"
 slug = "2013/02/28/commandments-of-a-mobile-web"
-Categories = []
+Categories = ["web"]
 +++
 Over the past few years, there's been certain
 [paradigm shifts](http://en.wikipedia.org/wiki/Paradigm_shift)

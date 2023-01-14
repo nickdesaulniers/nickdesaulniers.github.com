@@ -2,7 +2,7 @@
 title = "Whats in a Word"
 date = "2016-05-15"
 slug = "2016/05/15/whats-in-a-word"
-Categories = []
+Categories = ["assembly", "data model", "x86"]
 +++
 Recently, there some was some confusion between myself and a coworker over the
 definition of a "word."  I'm currently working on a blog post about data

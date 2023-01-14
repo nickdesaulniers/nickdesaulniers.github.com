@@ -1,8 +1,8 @@
 +++
-title = "Running Clang Tidy on the Linux Kernel"
+title = "Running Clang-Tidy on the Linux Kernel"
 date = "2017-05-31"
 slug = "2017/05/31/running-clang-tidy-on-the-linux-kernel"
-Categories = []
+Categories = ["static analysis", "clang-tidy", "linux", "llvm"]
 +++
 [Clang-Tidy](http://clang.llvm.org/extra/clang-tidy/) is a linter from the LLVM
 ecosystem.  I wanted to try to run it on the Linux kernel to see what kind of

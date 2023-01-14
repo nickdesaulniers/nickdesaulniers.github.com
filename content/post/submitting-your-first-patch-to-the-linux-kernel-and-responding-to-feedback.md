@@ -2,7 +2,7 @@
 title = "Submitting Your First Patch to the Linux Kernel and Responding to Feedback"
 date = "2017-05-16"
 slug = "2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback"
-Categories = []
+Categories = ["linux", "patch", "email"]
 +++
 After working on the Linux kernel for Nexus and Pixel phones for nearly a year,
 and messing around with the

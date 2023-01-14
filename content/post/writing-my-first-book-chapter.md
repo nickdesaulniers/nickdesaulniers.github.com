@@ -2,7 +2,7 @@
 title = "Writing My First Book Chapter"
 date = "2015-01-25"
 slug = "2015/01/25/writing-my-first-book-chapter"
-Categories = []
+Categories = ["webgl", "emscripten", "asm.js"]
 +++
 It's a feeling of immense satisfaction when we complete a major achievement.
 Being able to say "it's done" is such a great stress relief.  Recently, I

@@ -2,7 +2,7 @@
 title = "Finding Compiler Bugs With C Reduce"
 date = "2019-01-18"
 slug = "2019/01/18/finding-compiler-bugs-with-c-reduce"
-Categories = []
+Categories = ["C", "C++", "debugging", "c-reduce", "linux", "llvm"]
 +++
 Support for a long awaited GNU C extension,
 [asm goto](https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html),

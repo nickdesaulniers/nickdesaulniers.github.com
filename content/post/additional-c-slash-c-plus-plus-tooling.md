@@ -2,7 +2,7 @@
 title = "Additional C/C++ Tooling"
 date = "2015-07-23"
 slug = "2015/07/23/additional-c-slash-c-plus-plus-tooling"
-Categories = []
+Categories = ["C", "C++", "clang", "llvm", "toolchain"]
 +++
 [21st Century C by Ben Klemens](http://shop.oreilly.com/product/0636920025108.do)
 was a great read. It had a section with an

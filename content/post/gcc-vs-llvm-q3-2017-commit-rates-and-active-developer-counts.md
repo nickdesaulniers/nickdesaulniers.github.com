@@ -2,7 +2,7 @@
 title = "GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts"
 date = "2017-09-05"
 slug = "2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts"
-Categories = []
+Categories = ["clang", "gcc", "git", "llvm"]
 +++
 A blog post from a few years ago that really stuck with me was Martin Olsson’s
 [Browser Engines 2015: Commit Rates and Active Developer Counts](https://mo.github.io/2015/11/04/browser-engines-active-developers-and-commit-rates.html),

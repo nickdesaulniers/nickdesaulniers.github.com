@@ -2,7 +2,7 @@
 title = "Why I'll Be Marching This 4th"
 date = "2013-07-03"
 slug = "2013/07/03/why-ill-be-marching-this-4th"
-Categories = []
+Categories = ["politics"]
 +++
 {{< blockquote >}}
 If you've done nothing wrong, then you've got nothing to hide.

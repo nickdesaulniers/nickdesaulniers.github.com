@@ -2,7 +2,7 @@
 title = "Static and Dynamic Libraries"
 date = "2016-11-20"
 slug = "2016/11/20/static-and-dynamic-libraries"
-Categories = []
+Categories = ["C", "C++", "library", "linkage"]
 +++
 This is the second post in a series on memory segmentation.  It covers working
 with static and dynamic libraries in Linux and OSX.  Make sure to check out the

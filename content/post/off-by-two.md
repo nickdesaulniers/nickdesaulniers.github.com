@@ -2,7 +2,7 @@
 title = "Off by Two"
 date = "2020-04-06"
 slug = "2020/04/06/off-by-two"
-Categories = []
+Categories = ["asm", "clang", "asm goto", "linux", "llvm"]
 +++
 "War stories" in programming are entertaining tales of truly evil bugs that
 kept you up at night.  Inspired by posts like

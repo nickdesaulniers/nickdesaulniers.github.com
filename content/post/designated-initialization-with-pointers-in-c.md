@@ -2,7 +2,7 @@
 title = "Designated Initialization With Pointers in C"
 date = "2013-07-25"
 slug = "2013/07/25/designated-initialization-with-pointers-in-c"
-Categories = []
+Categories = ["C", "syntax"]
 +++
 
 Just a quick post on something I just discovered and found neat (I always find

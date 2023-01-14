@@ -1,8 +1,8 @@
 +++
-title = "Internet Freedom Is Not Free"
+title = "[Internet] Freedom Is Not Free"
 date = "2013-01-19"
 slug = "2013/01/19/internet-freedom-is-not-free"
-Categories = []
+Categories = ["politics"]
 +++
 
 Last week, the Internet community

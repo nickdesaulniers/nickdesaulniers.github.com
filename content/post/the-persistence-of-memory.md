@@ -2,7 +2,7 @@
 title = "The Persistence of Memory"
 date = "2013-04-29"
 slug = "2013/04/29/the-persistence-of-memory"
-Categories = []
+Categories = ["death", "memory"]
 +++
 {{< blockquote author="Elon Musk" link="http://www.businessweek.com/articles/2012-09-13/elon-musk-the-21st-century-industrialist#p5" title="Elon Musk, the 21st Century Industrialist, Bloomberg" >}}
 I would like to die on Mars...

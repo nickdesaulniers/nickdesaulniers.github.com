@@ -2,7 +2,7 @@
 title = "My Siggraph 2015 Experience"
 date = "2015-08-14"
 slug = "2015/08/14/my-siggraph-2015-experience"
-Categories = []
+Categories = ["SIGGRAPH", "graphics", "VR"]
 +++
 I was recently lucky enough to get to attend my first SIGGRAPH conference this
 year.  While I didn't attend any talks, I did spend some time in the expo. Here

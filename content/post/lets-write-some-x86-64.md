@@ -2,7 +2,7 @@
 title = "Let's Write Some X86-64"
 date = "2014-04-18"
 slug = "2014/04/18/lets-write-some-x86-64"
-Categories = []
+Categories = ["asm", "x86"]
 +++
 {{< blockquote author="Hiro Protagonist and The Librarian" title="Snow Crash by Neal Stephenson" >}}
 ..."'Our speech interposes itself between apprehension and truth like a dusty pane or warped mirror.  The tongue of Eden was like a flawless glass; a light of total understanding streamed through it.  Thus Babel was a second Fall.' And Isaac the Blind, an early Kabbalist, said that, to quote Gershom Scholem's translation, 'The speech of men is connected with divine speech and all language whether heavenly or human derives from one source: the Divine Name.' The practical kabbalists, the sorcerers, bore the title Ba'al Shem, meaning 'master of the divine name.'"

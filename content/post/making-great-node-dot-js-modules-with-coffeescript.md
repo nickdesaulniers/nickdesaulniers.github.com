@@ -2,7 +2,7 @@
 title = "Making Great Node Dot Js Modules With Coffeescript"
 date = "2013-08-28"
 slug = "2013/08/28/making-great-node-dot-js-modules-with-coffeescript"
-Categories = []
+Categories = ["coffeescript", "javascript", "module", "node.js"]
 +++
 [Node.js](http://nodejs.org/)
 is a great runtime for writing applications in JavaScript, the language

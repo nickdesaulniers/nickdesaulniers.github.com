@@ -2,7 +2,7 @@
 title = "Object Files and Symbols"
 date = "2016-08-13"
 slug = "2016/08/13/object-files-and-symbols"
-Categories = []
+Categories = ["C", "C++", "debugging"]
 +++
 What was supposed to be one blog post about memory segmentation turned into
 what will be a series of posts.  As the first in the series, we cover the

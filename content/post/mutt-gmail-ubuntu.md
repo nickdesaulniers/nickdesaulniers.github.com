@@ -2,7 +2,7 @@
 title = "Mutt Gmail Ubuntu"
 date = "2016-06-18"
 slug = "2016/06/18/mutt-gmail-ubuntu"
-Categories = []
+Categories = ["gmail", "mutt", "ubuntu"]
 +++
 
 I was looking to set up the

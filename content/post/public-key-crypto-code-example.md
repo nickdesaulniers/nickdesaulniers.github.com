@@ -2,7 +2,7 @@
 title = "Public Key Crypto Code Example"
 date = "2015-02-22"
 slug = "2015/02/22/public-key-crypto-code-example"
-Categories = []
+Categories = ["crypto", "javascript", "security"]
 +++
 How is it possible for us to communicate securely when there's the possibility
 of a third party eavesdropping on us?  How can we communicate private secrets

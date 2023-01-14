@@ -1,8 +1,8 @@
 +++
-title = "Rust Pattern Matching and the Option Type"
+title = "Rust: Pattern Matching and the Option Type"
 date = "2013-05-07"
 slug = "2013/05/07/rust-pattern-matching-and-the-option-type"
-Categories = []
+Categories = ["C++", "rust", "null", "optional", "pattern matching"]
 +++
 The other day I was thinking about the function for performing dynamic memory
 allocation in the C standard library, malloc. From the manual pages,

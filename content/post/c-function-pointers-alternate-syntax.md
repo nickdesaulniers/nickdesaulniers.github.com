@@ -2,7 +2,7 @@
 title = "C Function Pointers Alternate Syntax"
 date = "2013-01-26"
 slug = "2013/01/26/c-function-pointers-alternate-syntax"
-Categories = []
+Categories = ["C", "function pointer", "syntax"]
 +++
 
 On an interview with [Square](https://squareup.com/), I made the mistake

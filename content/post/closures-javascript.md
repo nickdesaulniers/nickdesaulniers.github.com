@@ -3,7 +3,7 @@ title = "Closures Javascript"
 date = "2013-01-14"
 slug = "2013/01/14/closures-javascript"
 published = false
-Categories = []
+Categories = ["closure", "javascript", "ruby", "rust"]
 +++
 
 It's all about [closures](http://en.wikipedia.org/wiki/Closure_%28computer_science%29).  Understanding [scope](http://en.wikipedia.org/wiki/Scope_%28computer_science%29) is paramount to coding.

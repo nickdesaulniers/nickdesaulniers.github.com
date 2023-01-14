@@ -2,7 +2,7 @@
 title = "Cross Compiling C/C++ for Android"
 date = "2016-07-01"
 slug = "2016/07/01/android-cli"
-Categories = []
+Categories = ["ARM", "Android", "C", "C++", "cross compile"]
 +++
 Let’s say you want to build a hello world command line application in C or C++
 and run it on your Android phone.  How would you go about it?  It’s not super

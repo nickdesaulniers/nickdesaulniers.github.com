@@ -1,8 +1,8 @@
 +++
-title = "Speeding Up Linux Kernel Builds With Ccache"
+title = "Speeding Up Linux Kernel Builds With ccache"
 date = "2018-06-02"
 slug = "2018/06/02/speeding-up-linux-kernel-builds-with-ccache"
-Categories = []
+Categories = ["C", "linux", "ccache"]
 +++
 [ccache](https://ccache.samba.org/), the compiler cache, is a fantastic way to
 speed up build times for C and C++ code that

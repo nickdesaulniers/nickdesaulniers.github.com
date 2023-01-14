@@ -2,7 +2,7 @@
 title = "Data Models and Word Size"
 date = "2016-05-30"
 slug = "2016/05/30/data-models-and-word-size"
-Categories = []
+Categories = ["C", "data model"]
 +++
 *This post is a follow up to
 [my previous blog post about word size](/blog/2016/05/15/whats-in-a-word/).*

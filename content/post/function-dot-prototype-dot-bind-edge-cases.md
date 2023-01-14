@@ -2,7 +2,7 @@
 title = "Function.prototype.bind Edge Cases"
 date = "2013-09-26"
 slug = "2013/09/26/function-dot-prototype-dot-bind-edge-cases"
-Categories = []
+Categories = ["partial function application", "javascript"]
 +++
 ECMAScript 5's
 [Function.prototype.bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)

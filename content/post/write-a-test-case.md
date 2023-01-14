@@ -2,7 +2,7 @@
 title = "Write a Test Case"
 date = "2014-03-01"
 slug = "2014/03/01/write-a-test-case"
-Categories = []
+Categories = ["testing", "bugs"]
 +++
 Your application just broke, oh no!  It couldn't have been *your* code, right?
 

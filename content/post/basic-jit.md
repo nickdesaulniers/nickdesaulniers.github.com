@@ -2,7 +2,7 @@
 title = "Basic JIT"
 date = "2013-04-03"
 slug = "2013/04/03/basic-jit"
-Categories = []
+Categories = ["C", "Code", "JIT"]
 +++
 Ever since I learned about
 [Just In Time Compilation](`http://en.wikipedia.org/wiki/Just-in-time_compilation)
