@@ -1,7 +1,7 @@
 +++
-title = "Mutt Gmail Ubuntu"
+title = "Setting up mutt with gmail on Ubuntu"
 date = "2016-06-18"
-slug = "2016/06/18/mutt-gmail-ubuntu"
+url = "blog/2016/06/18/mutt-gmail-ubuntu"
 Categories = ["gmail", "mutt", "ubuntu"]
 +++
 

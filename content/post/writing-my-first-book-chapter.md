@@ -1,7 +1,7 @@
 +++
-title = "Writing My First Book Chapter"
+title = "Writing My First Technical Book Chapter"
 date = "2015-01-25"
-slug = "2015/01/25/writing-my-first-book-chapter"
+url = "blog/2015/01/25/writing-my-first-book-chapter"
 Categories = ["webgl", "emscripten", "asm.js"]
 +++
 It's a feeling of immense satisfaction when we complete a major achievement.

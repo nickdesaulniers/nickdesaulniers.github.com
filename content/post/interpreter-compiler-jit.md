@@ -1,5 +1,5 @@
 +++
-title = "Interpreter Compiler Jit"
+title = "Interpreter Compiler JIT"
 date = "2015-05-25"
 slug = "2015/05/25/interpreter-compiler-jit"
 Categories = ["interpreter", "compiler", "just in time", "JIT", "Brainfuck", "C"]

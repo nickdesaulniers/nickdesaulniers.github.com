@@ -1,7 +1,7 @@
 +++
-title = "Designated Initialization With Pointers in C"
+title = "Designated Initialization With Compound Literals in C"
 date = "2013-07-25"
-slug = "2013/07/25/designated-initialization-with-pointers-in-c"
+url = "blog/2013/07/25/designated-initialization-with-pointers-in-c"
 Categories = ["C", "syntax"]
 +++
 

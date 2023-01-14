@@ -1,7 +1,7 @@
 +++
 title = "Function.prototype.bind Edge Cases"
 date = "2013-09-26"
-slug = "2013/09/26/function-dot-prototype-dot-bind-edge-cases"
+url = "blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases"
 Categories = ["partial function application", "javascript"]
 +++
 ECMAScript 5's

@@ -1,7 +1,7 @@
 +++
 title = "Cross Compiling C/C++ for Android"
 date = "2016-07-01"
-slug = "2016/07/01/android-cli"
+url = "blog/2016/07/01/android-cli"
 Categories = ["ARM", "Android", "C", "C++", "cross compile"]
 +++
 Let’s say you want to build a hello world command line application in C or C++

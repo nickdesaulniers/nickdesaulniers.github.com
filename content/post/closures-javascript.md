@@ -1,8 +1,7 @@
 +++
-title = "Closures Javascript"
+title = "Closures: JavaScript, Ruby, and Rust"
 date = "2013-01-14"
 slug = "2013/01/14/closures-javascript"
-published = false
 Categories = ["closure", "javascript", "ruby", "rust"]
 +++
 

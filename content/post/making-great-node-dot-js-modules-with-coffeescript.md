@@ -1,7 +1,7 @@
 +++
-title = "Making Great Node Dot Js Modules With Coffeescript"
+title = "Making Great Node.js Modules With Coffeescript"
 date = "2013-08-28"
-slug = "2013/08/28/making-great-node-dot-js-modules-with-coffeescript"
+url = "blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript"
 Categories = ["coffeescript", "javascript", "module", "node.js"]
 +++
 [Node.js](http://nodejs.org/)

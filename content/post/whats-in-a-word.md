@@ -1,5 +1,5 @@
 +++
-title = "Whats in a Word"
+title = "What's in a Word?"
 date = "2016-05-15"
 slug = "2016/05/15/whats-in-a-word"
 Categories = ["assembly", "data model", "x86"]

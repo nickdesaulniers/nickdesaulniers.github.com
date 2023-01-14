@@ -1,7 +1,7 @@
 +++
-title = "Public Key Crypto Code Example"
+title = "Hidden in Plain Sight - Public Key Crypto"
 date = "2015-02-22"
-slug = "2015/02/22/public-key-crypto-code-example"
+url = "blog/2015/02/22/public-key-crypto-code-example"
 Categories = ["crypto", "javascript", "security"]
 +++
 How is it possible for us to communicate securely when there's the possibility

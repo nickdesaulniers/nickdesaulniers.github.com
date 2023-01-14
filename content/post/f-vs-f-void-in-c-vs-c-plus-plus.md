@@ -1,7 +1,7 @@
 +++
-title = "F() vs F(void) in C vs C++"
+title = "f() vs f(void) in C vs C++"
 date = "2019-05-12"
-slug = "2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus"
+url = "blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus"
 Categories = ["C", "C++", "syntax"]
 +++
 TL;DR
