@@ -17,7 +17,7 @@ actually quite dystopian, and I do not feel that that is the case here.
 
 ***
 ~~Expect no documentation in corporations~~
-##Expect documentation to be sparse or bit rotted##
+## Expect documentation to be sparse or bit rotted
 When developers are coding at an unhindered pace, writing documentation does
 suck.  But once a project reaches a certain size, it cannot sustain growth
 without additional support from additional developers.  When a project reaches
@@ -37,7 +37,7 @@ update code, you should update the relevant tests and documentation.
 
 ***
 ~~It is not what you do, it is what you sell~~
-##It’s all about maintainability##
+## It’s all about maintainability
 I’ve had
 [nightmare code reviews](https://bugzilla.mozilla.org/show_bug.cgi?id=744640).
 Literally reviews so long I’ve had to print
@@ -60,7 +60,7 @@ decisions made by those above you, then you work for the wrong company.
 
 ***
 ~~Not everbody is passionate for engineering~~
-##Everyone here is super passionate about what they do##
+## Everyone here is super passionate about what they do
 While a lot of people here have active family lives, they are all active
 Mozillians.  I’ve yet to meet anyone who didn’t have a common ground in web
 based software (back end, front end, browser, OS, graphics, etc.) to speak the
@@ -75,7 +75,7 @@ an awesome place to grow.
 
 ***
 ~~2-3 hours of coding a day is great~~
-##Contribute at your pace##
+## Contribute at your pace
 There’s no pressure here about time spent coding.  Time spent or number of
 lines written is not a benchmark to live by, code quality is.  I’m a five
 o’clock developer, but when I go home I’m reading up on various software
@@ -88,7 +88,7 @@ time in meetings if we feel they are meaningless.  “Just walk out!”
 
 ***
 ~~Not giving back to the public domain is the norm~~
-##Giving back to the public domain is the norm##
+## Giving back to the public domain is the norm
 My very first week as an intern, I had just finished
 [my first project](https://github.com/nickdesaulniers/Super-Tip-Calculator).
 I approached my manager and said “Hey I’m going to publish this now on
@@ -114,7 +114,7 @@ process and earn the priviledge and trust to become a core volunteer.
 
 ***
 ~~The world outside is not known here a lot~~
-##Everyone here is aware of the outside world##
+## Everyone here is aware of the outside world
 Seeing as we tend to wind up on HN et al almost daily, many of us frequent HN,
 Reddit, Twitter, and /..  It’s always interesting to see coworkers show up in
 comment threads.  When you say something hurtful about Mozilla or Mozilla
@@ -138,7 +138,7 @@ positives, and lay off negatives unless they have actually bitten you.
 
 ***
 ~~Copy-pasting code can be okay~~
-##Measure once, cut twice [is wrong!]##
+## Measure once, cut twice [is wrong!]
 Stack overflow is great.  There’s no way to know every little bit of C or C++.
 JavaScript has some bad parts.  But by copying and pasting code that was
 written from another context, you’re probably introducing bugs into your code.
@@ -146,7 +146,7 @@ Don’t repeat yourself, and don’t cut corners just to get shit done.
 
 ***
 ~~Code reviews can be skipped~~
-##Code reviews are nothing but beneficial##
+## Code reviews are nothing but beneficial
 If they are taking too long to the point where you’re considering cutting them
 out, your team is probably understaffed and overworked.  Code reviews allow
 others to spot bugs that you may have overlooked.  Seeing as they didn’t write
@@ -162,7 +162,7 @@ manager or the rest of the team.
 
 ***
 ~~Latest software, meh~~
-##Latest software, duh##
+## Latest software, duh
 Old, unpatched versions of popular software are susceptible to security flaws.
 Java especially.  It may involve work to update your code for new environments,
 but it’s easier to bite the bullet in small increments frequently than it is to
@@ -170,7 +170,7 @@ wait until it’s too late.
 
 ***
 ~~Your specialties usually do not matter~~
-##You were hired because of the need for someone on your team to have a certain expertise##
+## You were hired because of the need for someone on your team to have a certain expertise
 If this is not the case, what the hell is your recruiting department doing?
 You know the part where start-ups say speed is everything?  It’s because of the
 big established players not optimally allocating resources.  Even if you’re not
@@ -215,7 +215,7 @@ your company does something that you don’t agree with, then I challenge you to
 change your situation.  Be that speaking out or moving on.
 
 ***
-##At the end##
+## At the end
 It’s about expressing your legacy; that will have repercussions that will shape
 our world.  Chasing paychecks and enduring crappy working conditions is not a
 way to live.  So what do you think, world traveler?

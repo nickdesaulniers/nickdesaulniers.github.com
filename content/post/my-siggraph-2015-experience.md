@@ -10,7 +10,7 @@ is a collection of some of the neat things I saw at SIGGRAPH 2015.  Sorry it's
 not more collected; I didn't have the intention of writing a blog post until
 after folks kept asking me "how was it?"
 
-##VR
+## VR
 Most booths had demos on VR headsets.  Many were DK2's and GearVR's.  AMD and
 NVIDIA had Crescent Bay's (next gen VR headset).  It was noticeably lighter than
 the DK2, and I thought it rendered better quality.  It had nicer cable bundling,
@@ -36,7 +36,7 @@ Vive at SIGGRAPH.
 
 ![siggraph](/images/siggraph/s4.jpg)
 
-##AR
+## AR
 Epson had some AR glasses. They were very glasses friendly, unlike most VR
 headsets.  The nose piece was flexible, and if you flattened it out, the headset
 could rest on top of your glasses and worked well.  The headset had some very
@@ -47,7 +47,7 @@ well.  They didn't have positional sensor info, but had some hack that tried to
 estimate positional velocity off the angular momentum (I spoke with the
 programmer who implemented it).  https://moverio.epson.biz/
 
-##Holograms
+## Holograms
 There was a demo of holograms using tilted pieces of plastic arranged in a box.
 Also, there was a multiple (200+) projector array that projected a scene onto a
 special screen.  When walking around the screen, the viewing angle always seemed
@@ -56,7 +56,7 @@ loop which could be smoothed out (think looping/seamless gifs).
 
 ![siggraph](/images/siggraph/s5.jpg)
 
-##VR/3D video
+## VR/3D video
 Google cardboard had a booth showing off 3D videos from youtube.  I had a hard
 time telling if the video were stereoscopic or monoptic since the demo videos
 only had things in the distance so it was hard to tell if parallax was
@@ -65,12 +65,12 @@ as I could tell, all of the correctly rendered stereoscopic shots were computer
 rendered.  I could not find a single instance with footage shot from a
 stereoscopic rig, though I tried.
 
-##Booths/Expo
+## Booths/Expo
 NVIDIA and Intel had the largest booths, followed by Pixar's Renderman.  Felt
 like a GDC event, smaller, but definitely larger than GDC next.  More focus on
 shiny photorealism demos, artistic tools, less on game engines themselves.
 
-##Vulcan/OpenGL ES 3.2
+## Vulcan/OpenGL ES 3.2
 Intel had demos of Vulcan and OpenGL ES 3.2.  For 3.2 they were showing off
 tessellation shaders, I think.  For the Vulcan demo, they had a cool demo showing
 how with
@@ -82,7 +82,7 @@ _still_ not published, so no source code is available. It was explained to me
 that Vulcan is still not thread safe; instead you get the freedom to implement
 synchronization rather than the driver.
 
-##Planetarium
+## Planetarium
 There was a neat demo of a planetarium projector being repurposed to display
 an "on rails" demo of a virtual scene.  You didn't get parallax since it was
 being projected on a hemisphere, but it was neat in that like IMAX your entire
@@ -91,7 +91,7 @@ didn't experience any motion sickness or disorientation.
 
 ![siggraph](/images/siggraph/s7.jpg)
 
-##X3D/X3DOM
+## X3D/X3DOM
 I spoke with some folks at the X3D booth about X3DOM.  To me, it seems like a
 bunch of previous attempts have kind of added on too much complexity in an
 effort to support every use case under the sun, rather than just accept
@@ -101,21 +101,21 @@ also noted the lack of authoring tools as things that hurt adoption.  I have
 some neat things I'm working on in this space, based on this and other prior
 works, that I plan on showing off at the upcoming BrazilJS.
 
-##Maker Faire
+## Maker Faire
 There was a cool maker faire, some things I'll have to order for family members
 (young hackers in training) were [Canny bots](http://cannybots.com/),
 [eBee](http://ebeeproject.net/) and [Piper](http://www.withpiper.com/).
 
 ![siggraph](/images/siggraph/s6.jpg)
 
-##Experimental tech
+## Experimental tech
 Bunch of neat input devices, one I liked used directional sound as tactile
 feedback.  One demo was rearranging icons on a home screen.  Rather than touch
 the screen, there was a field of tiny speakers that would blast your finger with
 sound when it entered to simulate the feeling of vibration. It would vibrate
 to let you know you had "grabbed" and icon, and then drag it.
 
-##Book Signing
+## Book Signing
 This was the first time I got to see my book printed in physical form!  It
 looked gorgeous, hardcover printed in color.  I met about half of the fellow
 authors who were also at SIGGRAPH, and our editor.  I even got to meet Eric

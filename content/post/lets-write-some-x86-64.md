@@ -273,7 +273,7 @@ why are we doing this?  This is something that is left out from some of the
 basic hello world assembly programs I've seen.  This is the first ABI point I
 want to make:
 
-##x86-64 ABI point 1: function calls need the stack pointer to be aligned by a multiple of 16 bytes.
+## x86-64 ABI point 1: function calls need the stack pointer to be aligned by a multiple of 16 bytes.
 By default, they are off by 8 on function entry.  See
 Section 3.2.2 page 16 of the
 [ABI](https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf).
@@ -295,7 +295,7 @@ now pass up to the first 6 arguments in registers (then push the rest, if any,
 on the stack in reverse order).  The convention (in OSX and Linux) is our second
 ABI point:
 
-##x86-64 ABI point 2: The calling conventions for function invocations require passing integer arguments in the following sequence of registers: %rdi, %rsi, %rdx, %rcx, %r8, %r9, then pushing the rest on the stack in reverse order.
+## x86-64 ABI point 2: The calling conventions for function invocations require passing integer arguments in the following sequence of registers: %rdi, %rsi, %rdx, %rcx, %r8, %r9, then pushing the rest on the stack in reverse order.
 See [section 3.2.3](https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf)
 under "Passing".  Warning:
 [Microsoft has a different calling convention](http://msdn.microsoft.com/en-us/library/ms235286.aspx).
@@ -372,7 +372,7 @@ we use the b suffix on the mov instruction.  The next important point of the ABI
 has to do with functions that use a variable number of arguments (varargs), like
 printf does:
 
-##x86-64 ABI point 3: Variadic functions need to have the number of vector arguments specified in %al.
+## x86-64 ABI point 3: Variadic functions need to have the number of vector arguments specified in %al.
 This will make printf debugging hard without.  Also in
 [section 3.2.3 under passing](https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf).
 
@@ -382,7 +382,7 @@ example, where we haven't touched %al, %ax, %eax, or %rax yet, but we shouldn't
 bank on it being 0x0.  In fact we shouldn't bank on most registers being
 preserved after a function call.  Now's a good time to talk about volatility:
 
-##x86-64 ABI point 4: Most registers are not preserved across function calls.
+## x86-64 ABI point 4: Most registers are not preserved across function calls.
 Only %rbx, %rsp, %rbp, and %r12-%r15 (and some others) are.  These are called
 "call saved" or "non volatile" registers.  The rest should be considered "call
 clobbered" or "volatile."  That means every time we invoke a call like printf,

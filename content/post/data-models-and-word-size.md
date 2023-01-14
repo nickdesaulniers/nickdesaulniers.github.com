@@ -86,7 +86,7 @@ sizeof(void*): 8
 This is yet a third case (the third programmer from the story).  In this case,
 only sizeof(long long) is equivalent to sizeof(void\*).
 
-###Data Models
+### Data Models
 
 What these programmers are seeing is known as data models.  Programmer 1 one on
 a 64b x86-64 OSX machine had an LP64 data model where longs (L), (larger long
@@ -106,7 +106,7 @@ There are older data models such as LP32 (Windows 3.1, Macintosh, where ints
 are 16b), and more exotic ones like ILP64, and SILP64.  Knowing the data model
 thus is important for portable C/C++ code.
 
-###Historical Perspective
+### Historical Perspective
 
 Running out of address space is and will continue to be tradition in computing.
 Applications become bigger as computer power and memory gets cheaper.
@@ -150,7 +150,7 @@ talks about two main categories of effects of switching from ILP32 to LP64 and
 has excellent examples of problematic code.  That section near the end is worth
 the read alone and makes excellent points to look for during code review.
 
-###Conclusion
+### Conclusion
 
 Word size or ISA doesn’t tell you anything about sizeof(int), sizeof(long), or
 sizeof(long long).  We also saw that one machine can support multiple different
@@ -160,7 +160,7 @@ The C standard tells you minimum guaranteed sizes for these types, but the data
 model (part of the ABI, external to but abiding by the C standard) is what
 tells you about the specifics sizes of standard integers and pointers.
 
-###Further Reading
+### Further Reading
 * [64-Bit Programming Models: Why LP64?](http://www.unix.org/version2/whatsnew/lp64_wp.html)
 * [The Long Road to 64 Bits](https://queue.acm.org/detail.cfm?id=1165766)
 * [The UNIX System -- 64bit and Data Size Neutrality](http://www.unix.org/whitepapers/64bit.html)
