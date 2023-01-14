@@ -9,6 +9,7 @@ disqusShortname="wangstabill"
 post="/blog/:year/:month/:day/:title/"
 
 [params]
+  author="Nick Desaulniers"
   subtitle="The enemy's gate is down"
   rss=true
   searchEngineURL="https://www.google.com/search"
@@ -18,10 +19,10 @@ post="/blog/:year/:month/:day/:title/"
   customCSS=["css/custom.css"]
 
   github="https://github.com/nickdesaulniers"
-  gitlab="https://gitlab.com/nickdesaulniers"
+  #gitlab="https://gitlab.com/nickdesaulniers"
   mastodon="https://fosstodon.org/@llvm"
   linkedin="https://www.linkedin.com/in/nick-desaulniers-75520334"
-  stackoverflow="https://stackoverflow.com/users/1027966/nick-desaulniers"
+  #stackoverflow="https://stackoverflow.com/users/1027966/nick-desaulniers"
   youtube="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"
 
 [[menu.main]]
