@@ -1,593 +1,226 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-  
-  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-
-  
-    
-    
-      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
-    
-  
-
-  
-  <title>Object Files and Symbols</title>
-
-  
-  
-  <link rel="stylesheet" href="/css/hugo-octopress.css">
-
-  
-  
-    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
-  
-
-  
-    <link rel="stylesheet" href="/css/fork-awesome.min.css">
-  
-
-  
-  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
-
-  
-  
-
-  <meta name="description" content="" />
-  <meta name="keywords" content="">
-  <meta name="author" content="Nick Desaulniers">
-
-  
-  <meta name="generator" content="Hugo 0.109.0">
-
-  
-  
-
-  
-  
-
-  
-  
-
-
-
-</head>
-<body>
-
-
-<header role="banner">
-<hgroup>
-  
-  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
-    <h2>The enemy&#39;s gate is down</h2>
-</hgroup></header>
-
-
-<nav role="navigation">
-<fieldset class="mobile-nav">
-  
-  <select onchange="location = this.value;">
-    <option value="">Navigate…</option>
-      
-        <option value="https://nickdesaulniers.github.io/about/">» About</option>
-      
-        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
-      
-        <option value="https://nickdesaulniers.github.io/">» Blog</option>
-      
-        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
-      
-        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
-      
-  </select>
-</fieldset>
-
-
-<ul class="main-navigation">
-  
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
-    
-  
-</ul>
-
-<ul class="subscription">
-  
-    
-        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
-    
-  
-</ul>
-
-
-  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
-    <fieldset role="search">
-      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
-    </fieldset>
-  </form>
-
-</nav>
-
-
-<div id="main">
-  <div id="content">
-    <div>
-      <article class="hentry" role="article">
-
-        
-        
-
-<header>
-  <p class="meta">Aug 13, 2016
-     - 8 minute read 
-     - <a href="https://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/#disqus_thread">Comments</a>
-
-    
-    
-      - <a class="label" href="https://nickdesaulniers.github.io/categories/c/">C </a><a class="label" href="https://nickdesaulniers.github.io/categories/c&#43;&#43;/">C&#43;&#43; </a><a class="label" href="https://nickdesaulniers.github.io/categories/debugging/">debugging </a>
-    
-  </p>
-  <h1 class="entry-title">
-     Object Files and Symbols 
-  </h1>
-</header>
-
-
-        <div class="entry-content">
-          
-          
-          
-          <p>What was supposed to be one blog post about memory segmentation turned into
-what will be a series of posts.  As the first in the series, we cover the
-extreme basics of object files and symbols.  In follow up posts, I
+<!doctype html><html xmlns=http://www.w3.org/1999/xhtml xml:lang=en lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,minimum-scale=1,maximum-scale=1"><link href=/css/fonts.css rel=stylesheet type=text/css><title>Object Files and Symbols</title><link rel=stylesheet href=/css/hugo-octopress.css><link rel=stylesheet href=https://nickdesaulniers.github.io/css/custom.css><link rel=stylesheet href=/css/fork-awesome.min.css><link href=https://nickdesaulniers.github.io/favicon.png rel=icon><meta name=description content><meta name=keywords content><meta name=author content="Nick Desaulniers"><meta name=generator content="Hugo 0.109.0"></head><body><header role=banner><hgroup><h1><a href=https://nickdesaulniers.github.io/>Nick Desaulniers</a></h1><h2>The enemy's gate is down</h2></hgroup></header><nav role=navigation><fieldset class=mobile-nav><select onchange="location=this.value"><option value>Navigate…</option><option value=https://nickdesaulniers.github.io/about/>» About</option><option value=https://nickdesaulniers.github.io/blog/archives/>» Archives</option><option value=https://nickdesaulniers.github.io/>» Blog</option><option value=https://nickdesaulniers.github.io/publications/>» Publications</option><option value=https://nickdesaulniers.github.io/talks/>» Talks</option></select></fieldset><ul class=main-navigation><li><a href=https://nickdesaulniers.github.io/about/ title=About rel="noopener noreferrer">About</a></li><li><a href=https://nickdesaulniers.github.io/blog/archives/ title=Archives rel="noopener noreferrer">Archives</a></li><li><a href=https://nickdesaulniers.github.io/ title=Blog>Blog</a></li><li><a href=https://nickdesaulniers.github.io/publications/ title=Publications rel="noopener noreferrer">Publications</a></li><li><a href=https://nickdesaulniers.github.io/talks/ title=Talks rel="noopener noreferrer">Talks</a></li></ul><ul class=subscription><a href=https://nickdesaulniers.github.io/index.xml target=_blank type=application/rss+xml title=RSS rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a></ul><form action=https://www.google.com/search method=get target=_blank rel="noopener noreferrer"><fieldset role=search><input class=search type=text name=q results=0 placeholder=Search>
+<input type=hidden name=q value=site:https://nickdesaulniers.github.io/></fieldset></form></nav><div id=main><div id=content><div><article class=hentry role=article><header><p class=meta>Aug 13, 2016
+- 8 minute read
+- <a href=https://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/#disqus_thread>Comments</a>
+- <a class=label href=https://nickdesaulniers.github.io/categories/c/>C </a><a class=label href=https://nickdesaulniers.github.io/categories/c++/>C++ </a><a class=label href=https://nickdesaulniers.github.io/categories/debugging/>debugging</a></p><h1 class=entry-title>Object Files and Symbols</h1></header><div class=entry-content><p>What was supposed to be one blog post about memory segmentation turned into
+what will be a series of posts. As the first in the series, we cover the
+extreme basics of object files and symbols. In follow up posts, I
 plan to talk about
-
-<a href="/blog/2016/11/20/static-and-dynamic-libraries/">static libraries, dynamic libraries,</a>
-dynamic linkage, memory segments, and finally memory usage accounting.  I also
-cover command line tools for working with these notions, both in Linux and OSX.</p>
-<p>A quick review of the compilation+execution pipeline (for terminology):</p>
-<ol>
-<li>Lexing produces tokens</li>
-<li>Parsing produces an abstract syntax tree</li>
-<li>Analysis produces a code flow graph</li>
-<li>Optimization produces a reduced code flow graph</li>
-<li>Code gen produces object code</li>
-<li>Linkage produces a complete executable</li>
-<li>Loader instructs the OS how to start running the executable</li>
-</ol>
-<p>This series will focus on part #6.</p>
-<p>Let&rsquo;s say you have some amazing C/C++ code,  but for separations of concerns,
-you want to start moving it out into separate source files.  Whereas previously
-in one file you had:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#586e75">// main.c
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span><span style="color:#719e07">#include</span> <span style="color:#719e07">&lt;stdio.h&gt;</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07"></span><span style="color:#dc322f">void</span> <span style="color:#268bd2">helper</span> () {
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">puts</span>(<span style="color:#2aa198">&#34;helper&#34;</span>);
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#dc322f">int</span> <span style="color:#268bd2">main</span> () {
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">helper</span>();
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>You now have two source files and maybe a header:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#586e75">// main.c
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span><span style="color:#719e07">#include</span> <span style="color:#719e07">&#34;helper.h&#34;</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07"></span><span style="color:#dc322f">int</span> <span style="color:#268bd2">main</span> () {
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">helper</span>();
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#586e75">// helper.h
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span><span style="color:#dc322f">void</span> <span style="color:#268bd2">helper</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#586e75">//helper.c
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span><span style="color:#719e07">#include</span> <span style="color:#719e07">&lt;stdio.h&gt;</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07">#include</span> <span style="color:#719e07">&#34;helper.h&#34;</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07"></span><span style="color:#dc322f">void</span> <span style="color:#268bd2">helper</span> () {
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">puts</span>(<span style="color:#2aa198">&#34;helper&#34;</span>);
-</span></span><span style="display:flex;"><span>}
+<a href=/blog/2016/11/20/static-and-dynamic-libraries/>static libraries, dynamic libraries,</a>
+dynamic linkage, memory segments, and finally memory usage accounting. I also
+cover command line tools for working with these notions, both in Linux and OSX.</p><p>A quick review of the compilation+execution pipeline (for terminology):</p><ol><li>Lexing produces tokens</li><li>Parsing produces an abstract syntax tree</li><li>Analysis produces a code flow graph</li><li>Optimization produces a reduced code flow graph</li><li>Code gen produces object code</li><li>Linkage produces a complete executable</li><li>Loader instructs the OS how to start running the executable</li></ol><p>This series will focus on part #6.</p><p>Let&rsquo;s say you have some amazing C/C++ code, but for separations of concerns,
+you want to start moving it out into separate source files. Whereas previously
+in one file you had:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#586e75>// main.c
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;stdio.h&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span><span style=color:#dc322f>void</span> <span style=color:#268bd2>helper</span> () {
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>puts</span>(<span style=color:#2aa198>&#34;helper&#34;</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span> () {
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>helper</span>();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>You now have two source files and maybe a header:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#586e75>// main.c
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>#include</span> <span style=color:#719e07>&#34;helper.h&#34;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span> () {
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>helper</span>();
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// helper.h
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#dc322f>void</span> <span style=color:#268bd2>helper</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>//helper.c
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;stdio.h&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&#34;helper.h&#34;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span><span style=color:#dc322f>void</span> <span style=color:#268bd2>helper</span> () {
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>puts</span>(<span style=color:#2aa198>&#34;helper&#34;</span>);
+</span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>In the single source version, we would have compiled and linked that with
-<code>clang main.c</code> and had an executable file.  In the multiple source version, we
+<code>clang main.c</code> and had an executable file. In the multiple source version, we
 first compile our source files to object files, then link them altogether.
-That can be done separately:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang -c helper.c     <span style="color:#586e75"># produces helper.o</span>
-</span></span><span style="display:flex;"><span>$ clang -c main.c       <span style="color:#586e75"># produces main.o</span>
-</span></span><span style="display:flex;"><span>$ clang main.o helper.o <span style="color:#586e75"># produces a.out</span>
-</span></span></code></pre></div><p>We can also do the compilation and linkage in one step:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang helper.c main.c <span style="color:#586e75"># produces a.out</span>
-</span></span></code></pre></div><p>Nothing special thus far; C/C++ 101.  In the first case of separate compilation
-and linkage steps, we were left with intermediate object files (.o).  What
-exactly are these?</p>
-<p>
-<a href="https://en.wikipedia.org/wiki/Object_file" target="_blank" rel="noopener">Object files</a>
-are almost full executables.  They contain machine code, but that code still
-requires a relocation step.  It also contains metadata about the addresses of
+That can be done separately:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang -c helper.c     <span style=color:#586e75># produces helper.o</span>
+</span></span><span style=display:flex><span>$ clang -c main.c       <span style=color:#586e75># produces main.o</span>
+</span></span><span style=display:flex><span>$ clang main.o helper.o <span style=color:#586e75># produces a.out</span>
+</span></span></code></pre></div><p>We can also do the compilation and linkage in one step:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang helper.c main.c <span style=color:#586e75># produces a.out</span>
+</span></span></code></pre></div><p>Nothing special thus far; C/C++ 101. In the first case of separate compilation
+and linkage steps, we were left with intermediate object files (.o). What
+exactly are these?</p><p><a href=https://en.wikipedia.org/wiki/Object_file target=_blank rel=noopener>Object files</a>
+are almost full executables. They contain machine code, but that code still
+requires a relocation step. It also contains metadata about the addresses of
 its variables and functions (called symbols) in an associative data structure
 called a
-
-<a href="https://en.wikipedia.org/wiki/Symbol_table" target="_blank" rel="noopener">symbol table</a>.
+<a href=https://en.wikipedia.org/wiki/Symbol_table target=_blank rel=noopener>symbol table</a>.
 The addresses may not be the final address of the symbol in the final
 executable. They also contain some information for the loader and probably some
-other stuff.</p>
-<p>Remember that if we fail to specify the helper object file, we&rsquo;ll get an
-undefined symbol error.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang main.c
-</span></span><span style="display:flex;"><span>Undefined symbols <span style="color:#719e07">for</span> architecture x86_64:
-</span></span><span style="display:flex;"><span>  <span style="color:#2aa198">&#34;_helper&#34;</span>, referenced from:
-</span></span><span style="display:flex;"><span>      _main in main-459dde.o
-</span></span><span style="display:flex;"><span>ld: symbol<span style="color:#719e07">(</span>s<span style="color:#719e07">)</span> not found <span style="color:#719e07">for</span> architecture x86_64
-</span></span><span style="display:flex;"><span>clang: error: linker <span style="color:#b58900">command</span> failed with <span style="color:#b58900">exit</span> code <span style="color:#2aa198">1</span> <span style="color:#719e07">(</span>use -v to see invocation<span style="color:#719e07">)</span>
+other stuff.</p><p>Remember that if we fail to specify the helper object file, we&rsquo;ll get an
+undefined symbol error.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang main.c
+</span></span><span style=display:flex><span>Undefined symbols <span style=color:#719e07>for</span> architecture x86_64:
+</span></span><span style=display:flex><span>  <span style=color:#2aa198>&#34;_helper&#34;</span>, referenced from:
+</span></span><span style=display:flex><span>      _main in main-459dde.o
+</span></span><span style=display:flex><span>ld: symbol<span style=color:#719e07>(</span>s<span style=color:#719e07>)</span> not found <span style=color:#719e07>for</span> architecture x86_64
+</span></span><span style=display:flex><span>clang: error: linker <span style=color:#b58900>command</span> failed with <span style=color:#b58900>exit</span> code <span style=color:#2aa198>1</span> <span style=color:#719e07>(</span>use -v to see invocation<span style=color:#719e07>)</span>
 </span></span></code></pre></div><p>The problem is main.o refers to some symbol called <code>helper</code>, but on it&rsquo;s own
-doesn&rsquo;t contain any more information about it.  Let&rsquo;s say we want to know what
-symbols an object file contains, or expects to find elsewhere.  Let&rsquo;s introduce
-our first tool, <code>nm</code>.  <code>nm</code> will print the name list or symbol table for a
-given object or executable file.  On OSX, these are prefixed with an
-underscore.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ nm helper.o
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000000</span> T _helper
-</span></span><span style="display:flex;"><span>                 U _puts
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>$ nm main.o
-</span></span><span style="display:flex;"><span>                 U _helper
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000000</span> T _main
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>$ nm a.out
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>0000000100000f50 T _helper
-</span></span><span style="display:flex;"><span>0000000100000f70 T _main
-</span></span><span style="display:flex;"><span>                 U _puts
-</span></span><span style="display:flex;"><span>...
-</span></span></code></pre></div><p>Let&rsquo;s dissect what&rsquo;s going on here.  The output (as understood by <code>man 1 nm</code>)
-is a space separated list of address, type, and symbol name.  We can see that
-the addresses are placeholders in object files, and final in executables.  The
-name should make sense; it&rsquo;s the name of the function or variable.  While I&rsquo;d
+doesn&rsquo;t contain any more information about it. Let&rsquo;s say we want to know what
+symbols an object file contains, or expects to find elsewhere. Let&rsquo;s introduce
+our first tool, <code>nm</code>. <code>nm</code> will print the name list or symbol table for a
+given object or executable file. On OSX, these are prefixed with an
+underscore.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ nm helper.o
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000000</span> T _helper
+</span></span><span style=display:flex><span>                 U _puts
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ nm main.o
+</span></span><span style=display:flex><span>                 U _helper
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000000</span> T _main
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>$ nm a.out
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>0000000100000f50 T _helper
+</span></span><span style=display:flex><span>0000000100000f70 T _main
+</span></span><span style=display:flex><span>                 U _puts
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>Let&rsquo;s dissect what&rsquo;s going on here. The output (as understood by <code>man 1 nm</code>)
+is a space separated list of address, type, and symbol name. We can see that
+the addresses are placeholders in object files, and final in executables. The
+name should make sense; it&rsquo;s the name of the function or variable. While I&rsquo;d
 love to get in depth on the various symbol types and talk about sections, I
 don&rsquo;t think I could do as great a job as Peter Van Der Linden in his book
-&ldquo;Expert C Programming: Deep C Secrets.&rdquo;</p>
-<p>For our case, we just care about whether the symbol in a given object file is
-defined or not.  The type U (undefined) means that this symbol is referenced or
+&ldquo;Expert C Programming: Deep C Secrets.&rdquo;</p><p>For our case, we just care about whether the symbol in a given object file is
+defined or not. The type U (undefined) means that this symbol is referenced or
 used in this object code/executable, but it&rsquo;s value wasn&rsquo;t defined here.
 When we compiled main.c alone and got the undefined symbol error, it should now
-make sense why we got the undefined symbol error for helper.  main.o contains
-a symbol for main, and references helper.  helper.o contains a symbol for
-helper, and references to puts.  The final executable contains symbols for main
-and helper and references to puts.</p>
-<p>You might be wondering where puts comes from then, and why didn&rsquo;t we get an
-undefined symbol error for puts like we did earlier for helper.  The answer is
-the C runtime.  libc is implicitly dynamically linked to all executables
-created by the C compiler.  We&rsquo;ll cover dynamic linkage in a later post in
-this series.</p>
-<p>When the linker performs relocation on the object files, combining them into a
+make sense why we got the undefined symbol error for helper. main.o contains
+a symbol for main, and references helper. helper.o contains a symbol for
+helper, and references to puts. The final executable contains symbols for main
+and helper and references to puts.</p><p>You might be wondering where puts comes from then, and why didn&rsquo;t we get an
+undefined symbol error for puts like we did earlier for helper. The answer is
+the C runtime. libc is implicitly dynamically linked to all executables
+created by the C compiler. We&rsquo;ll cover dynamic linkage in a later post in
+this series.</p><p>When the linker performs relocation on the object files, combining them into a
 final executable, it goes through placeholders of addresses and fills them in.
 We did this manually in our post on
-
-<a href="/blog/2015/05/25/interpreter-compiler-jit/">JIT compilers</a>.</p>
-<p>While <code>nm</code> gave us a look into our symbol table, two other tools I use
-frequently are <code>objdump</code> on Linux and <code>otool</code> on OSX.  Both of these provide
-disassembled assembly instructions and their addresses.  Note how the symbols
+<a href=/blog/2015/05/25/interpreter-compiler-jit/>JIT compilers</a>.</p><p>While <code>nm</code> gave us a look into our symbol table, two other tools I use
+frequently are <code>objdump</code> on Linux and <code>otool</code> on OSX. Both of these provide
+disassembled assembly instructions and their addresses. Note how the symbols
 for functions get translated into labels of the disassembled functions, and
-that their address points to the first instruction in that label.  Since I&rsquo;ve
+that their address points to the first instruction in that label. Since I&rsquo;ve
 shown <code>objdump</code>
-
-<a href="/blog/2013/04/03/basic-jit/">numerous times</a>
+<a href=/blog/2013/04/03/basic-jit/>numerous times</a>
 in
-
-<a href="/blog/2014/04/18/lets-write-some-x86-64/">previous posts</a>,
-here&rsquo;s <code>otool</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ otool -tV helper.o
-</span></span><span style="display:flex;"><span>helper.o:
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>__TEXT,__text<span style="color:#719e07">)</span> section
-</span></span><span style="display:flex;"><span>_helper:
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000000</span>    pushq    %rbp
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000001</span>    movq    %rsp, %rbp
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000004</span>    subq    <span style="color:#268bd2">$0</span>x10, %rsp
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000008</span>    leaq    0xe<span style="color:#719e07">(</span>%rip<span style="color:#719e07">)</span>, %rdi         <span style="color:#586e75">## literal pool for: &#34;helper&#34;</span>
-</span></span><span style="display:flex;"><span>000000000000000f    callq    _puts
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000014</span>    movl    %eax, -0x4<span style="color:#719e07">(</span>%rbp<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000017</span>    addq    <span style="color:#268bd2">$0</span>x10, %rsp
-</span></span><span style="display:flex;"><span>000000000000001b    popq    %rbp
-</span></span><span style="display:flex;"><span>000000000000001c    retq
-</span></span><span style="display:flex;"><span>$ otool -tV main.o
-</span></span><span style="display:flex;"><span>main.o:
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>__TEXT,__text<span style="color:#719e07">)</span> section
-</span></span><span style="display:flex;"><span>_main:
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000000</span>    pushq    %rbp
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000001</span>    movq    %rsp, %rbp
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000004</span>    movb    <span style="color:#268bd2">$0</span>x0, %al
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000006</span>    callq    _helper
-</span></span><span style="display:flex;"><span>000000000000000b    xorl    %eax, %eax
-</span></span><span style="display:flex;"><span>000000000000000d    popq    %rbp
-</span></span><span style="display:flex;"><span>000000000000000e    retq
-</span></span><span style="display:flex;"><span>$ otool -tV a.out
-</span></span><span style="display:flex;"><span>a.out:
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>__TEXT,__text<span style="color:#719e07">)</span> section
-</span></span><span style="display:flex;"><span>_helper:
-</span></span><span style="display:flex;"><span>0000000100000f50    pushq    %rbp
-</span></span><span style="display:flex;"><span>0000000100000f51    movq    %rsp, %rbp
-</span></span><span style="display:flex;"><span>0000000100000f54    subq    <span style="color:#268bd2">$0</span>x10, %rsp
-</span></span><span style="display:flex;"><span>0000000100000f58    leaq    0x43<span style="color:#719e07">(</span>%rip<span style="color:#719e07">)</span>, %rdi        <span style="color:#586e75">## literal pool for: &#34;helper&#34;</span>
-</span></span><span style="display:flex;"><span>0000000100000f5f    callq    0x100000f80             <span style="color:#586e75">## symbol stub for: _puts</span>
-</span></span><span style="display:flex;"><span>0000000100000f64    movl    %eax, -0x4<span style="color:#719e07">(</span>%rbp<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>0000000100000f67    addq    <span style="color:#268bd2">$0</span>x10, %rsp
-</span></span><span style="display:flex;"><span>0000000100000f6b    popq    %rbp
-</span></span><span style="display:flex;"><span>0000000100000f6c    retq
-</span></span><span style="display:flex;"><span>0000000100000f6d    nop
-</span></span><span style="display:flex;"><span>0000000100000f6e    nop
-</span></span><span style="display:flex;"><span>0000000100000f6f    nop
-</span></span><span style="display:flex;"><span>_main:
-</span></span><span style="display:flex;"><span>0000000100000f70    pushq    %rbp
-</span></span><span style="display:flex;"><span>0000000100000f71    movq    %rsp, %rbp
-</span></span><span style="display:flex;"><span>0000000100000f74    movb    <span style="color:#268bd2">$0</span>x0, %al
-</span></span><span style="display:flex;"><span>0000000100000f76    callq    _helper
-</span></span><span style="display:flex;"><span>0000000100000f7b    xorl    %eax, %eax
-</span></span><span style="display:flex;"><span>0000000100000f7d    popq    %rbp
-</span></span><span style="display:flex;"><span>0000000100000f7e    retq
-</span></span></code></pre></div><p><code>readelf -s &lt;object file&gt;</code> will give us a list of symbols on Linux.
-
-<a href="https://en.wikipedia.org/wiki/Executable_and_Linkable_Format" target="_blank" rel="noopener">ELF</a>
+<a href=/blog/2014/04/18/lets-write-some-x86-64/>previous posts</a>,
+here&rsquo;s <code>otool</code>.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ otool -tV helper.o
+</span></span><span style=display:flex><span>helper.o:
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>__TEXT,__text<span style=color:#719e07>)</span> section
+</span></span><span style=display:flex><span>_helper:
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000000</span>    pushq    %rbp
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000001</span>    movq    %rsp, %rbp
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000004</span>    subq    <span style=color:#268bd2>$0</span>x10, %rsp
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000008</span>    leaq    0xe<span style=color:#719e07>(</span>%rip<span style=color:#719e07>)</span>, %rdi         <span style=color:#586e75>## literal pool for: &#34;helper&#34;</span>
+</span></span><span style=display:flex><span>000000000000000f    callq    _puts
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000014</span>    movl    %eax, -0x4<span style=color:#719e07>(</span>%rbp<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000017</span>    addq    <span style=color:#268bd2>$0</span>x10, %rsp
+</span></span><span style=display:flex><span>000000000000001b    popq    %rbp
+</span></span><span style=display:flex><span>000000000000001c    retq
+</span></span><span style=display:flex><span>$ otool -tV main.o
+</span></span><span style=display:flex><span>main.o:
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>__TEXT,__text<span style=color:#719e07>)</span> section
+</span></span><span style=display:flex><span>_main:
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000000</span>    pushq    %rbp
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000001</span>    movq    %rsp, %rbp
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000004</span>    movb    <span style=color:#268bd2>$0</span>x0, %al
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000006</span>    callq    _helper
+</span></span><span style=display:flex><span>000000000000000b    xorl    %eax, %eax
+</span></span><span style=display:flex><span>000000000000000d    popq    %rbp
+</span></span><span style=display:flex><span>000000000000000e    retq
+</span></span><span style=display:flex><span>$ otool -tV a.out
+</span></span><span style=display:flex><span>a.out:
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>__TEXT,__text<span style=color:#719e07>)</span> section
+</span></span><span style=display:flex><span>_helper:
+</span></span><span style=display:flex><span>0000000100000f50    pushq    %rbp
+</span></span><span style=display:flex><span>0000000100000f51    movq    %rsp, %rbp
+</span></span><span style=display:flex><span>0000000100000f54    subq    <span style=color:#268bd2>$0</span>x10, %rsp
+</span></span><span style=display:flex><span>0000000100000f58    leaq    0x43<span style=color:#719e07>(</span>%rip<span style=color:#719e07>)</span>, %rdi        <span style=color:#586e75>## literal pool for: &#34;helper&#34;</span>
+</span></span><span style=display:flex><span>0000000100000f5f    callq    0x100000f80             <span style=color:#586e75>## symbol stub for: _puts</span>
+</span></span><span style=display:flex><span>0000000100000f64    movl    %eax, -0x4<span style=color:#719e07>(</span>%rbp<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>0000000100000f67    addq    <span style=color:#268bd2>$0</span>x10, %rsp
+</span></span><span style=display:flex><span>0000000100000f6b    popq    %rbp
+</span></span><span style=display:flex><span>0000000100000f6c    retq
+</span></span><span style=display:flex><span>0000000100000f6d    nop
+</span></span><span style=display:flex><span>0000000100000f6e    nop
+</span></span><span style=display:flex><span>0000000100000f6f    nop
+</span></span><span style=display:flex><span>_main:
+</span></span><span style=display:flex><span>0000000100000f70    pushq    %rbp
+</span></span><span style=display:flex><span>0000000100000f71    movq    %rsp, %rbp
+</span></span><span style=display:flex><span>0000000100000f74    movb    <span style=color:#268bd2>$0</span>x0, %al
+</span></span><span style=display:flex><span>0000000100000f76    callq    _helper
+</span></span><span style=display:flex><span>0000000100000f7b    xorl    %eax, %eax
+</span></span><span style=display:flex><span>0000000100000f7d    popq    %rbp
+</span></span><span style=display:flex><span>0000000100000f7e    retq
+</span></span></code></pre></div><p><code>readelf -s &lt;object file></code> will give us a list of symbols on Linux.
+<a href=https://en.wikipedia.org/wiki/Executable_and_Linkable_Format target=_blank rel=noopener>ELF</a>
 is the file format used by the loader on Linux, while OSX uses
-
-<a href="https://en.wikipedia.org/wiki/Mach-O" target="_blank" rel="noopener">Mach-O</a>.
-Thus <code>readelf</code> and <code>otool</code>, respectively.</p>
-<p>Also note that for static linkage, symbols need to be unique*, as they refer to
+<a href=https://en.wikipedia.org/wiki/Mach-O target=_blank rel=noopener>Mach-O</a>.
+Thus <code>readelf</code> and <code>otool</code>, respectively.</p><p>Also note that for static linkage, symbols need to be unique*, as they refer to
 memory locations to either read/write to in the case of variables or locations
-to jump to in the case of functions.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ cat double_define.c
-</span></span><span style="display:flex;"><span>void a <span style="color:#719e07">()</span> <span style="color:#719e07">{}</span>
-</span></span><span style="display:flex;"><span>void a <span style="color:#719e07">()</span> <span style="color:#719e07">{}</span>
-</span></span><span style="display:flex;"><span>int main <span style="color:#719e07">()</span> <span style="color:#719e07">{}</span>
-</span></span><span style="display:flex;"><span>$ clang double_define.c
-</span></span><span style="display:flex;"><span>double_define.c:2:6: error: redefinition of <span style="color:#2aa198">&#39;a&#39;</span>
-</span></span><span style="display:flex;"><span>void a <span style="color:#719e07">()</span> <span style="color:#719e07">{}</span>
-</span></span><span style="display:flex;"><span>     ^
-</span></span><span style="display:flex;"><span>double_define.c:1:6: note: previous definition is here
-</span></span><span style="display:flex;"><span>void a <span style="color:#719e07">()</span> <span style="color:#719e07">{}</span>
-</span></span><span style="display:flex;"><span>     ^
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">1</span> error generated.
+to jump to in the case of functions.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ cat double_define.c
+</span></span><span style=display:flex><span>void a <span style=color:#719e07>()</span> <span style=color:#719e07>{}</span>
+</span></span><span style=display:flex><span>void a <span style=color:#719e07>()</span> <span style=color:#719e07>{}</span>
+</span></span><span style=display:flex><span>int main <span style=color:#719e07>()</span> <span style=color:#719e07>{}</span>
+</span></span><span style=display:flex><span>$ clang double_define.c
+</span></span><span style=display:flex><span>double_define.c:2:6: error: redefinition of <span style=color:#2aa198>&#39;a&#39;</span>
+</span></span><span style=display:flex><span>void a <span style=color:#719e07>()</span> <span style=color:#719e07>{}</span>
+</span></span><span style=display:flex><span>     ^
+</span></span><span style=display:flex><span>double_define.c:1:6: note: previous definition is here
+</span></span><span style=display:flex><span>void a <span style=color:#719e07>()</span> <span style=color:#719e07>{}</span>
+</span></span><span style=display:flex><span>     ^
+</span></span><span style=display:flex><span><span style=color:#2aa198>1</span> error generated.
 </span></span></code></pre></div><p>*: there&rsquo;s a notion of weak symbols, and some special things for dynamic
-libraries we&rsquo;ll see in a follow up post.</p>
-<p>Languages like C++ that support function overloading (functions with the same
+libraries we&rsquo;ll see in a follow up post.</p><p>Languages like C++ that support function overloading (functions with the same
 name but different arguments, return types, namespaces, or class) must mangle
-their function names to make them unique.</p>
-<p>Code like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#719e07">namespace</span> util {
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">class</span> <span style="color:#268bd2">Widget</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#719e07">public</span><span style="color:#719e07">:</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#dc322f">void</span> doSomething (<span style="color:#dc322f">bool</span> save);
-</span></span><span style="display:flex;"><span>      <span style="color:#dc322f">void</span> <span style="color:#268bd2">doSomething</span> (<span style="color:#dc322f">int</span> n);
-</span></span><span style="display:flex;"><span>  };
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Will produce symbols like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang class.cpp -std<span style="color:#719e07">=</span>c++11
-</span></span><span style="display:flex;"><span>$ nm a.out
-</span></span><span style="display:flex;"><span>0000000100000f70 T __ZN4util6Widget11doSomethingEb
-</span></span><span style="display:flex;"><span>0000000100000f60 T __ZN4util6Widget11doSomethingEi
-</span></span><span style="display:flex;"><span>...
-</span></span></code></pre></div><p>Note: GNU <code>nm</code> on Linux distros will have a <code>--demangle</code> option:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ nm --demangle a.out
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>00000000004006d0 T util::Widget::doSomething<span style="color:#719e07">(</span>bool<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>00000000004006a0 T util::Widget::doSomething<span style="color:#719e07">(</span>int<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>...
-</span></span></code></pre></div><p>On OSX, we can pipe <code>nm</code> into <code>c++filt</code>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ nm a.out | c++filt
-</span></span><span style="display:flex;"><span>0000000100000f70 T util::Widget::doSomething<span style="color:#719e07">(</span>bool<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>0000000100000f60 T util::Widget::doSomething<span style="color:#719e07">(</span>int<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>...
+their function names to make them unique.</p><p>Code like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#719e07>namespace</span> util {
+</span></span><span style=display:flex><span>  <span style=color:#719e07>class</span> <span style=color:#268bd2>Widget</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>public</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>      <span style=color:#dc322f>void</span> doSomething (<span style=color:#dc322f>bool</span> save);
+</span></span><span style=display:flex><span>      <span style=color:#dc322f>void</span> <span style=color:#268bd2>doSomething</span> (<span style=color:#dc322f>int</span> n);
+</span></span><span style=display:flex><span>  };
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Will produce symbols like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang class.cpp -std<span style=color:#719e07>=</span>c++11
+</span></span><span style=display:flex><span>$ nm a.out
+</span></span><span style=display:flex><span>0000000100000f70 T __ZN4util6Widget11doSomethingEb
+</span></span><span style=display:flex><span>0000000100000f60 T __ZN4util6Widget11doSomethingEi
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>Note: GNU <code>nm</code> on Linux distros will have a <code>--demangle</code> option:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ nm --demangle a.out
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>00000000004006d0 T util::Widget::doSomething<span style=color:#719e07>(</span>bool<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>00000000004006a0 T util::Widget::doSomething<span style=color:#719e07>(</span>int<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>On OSX, we can pipe <code>nm</code> into <code>c++filt</code>:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ nm a.out | c++filt
+</span></span><span style=display:flex><span>0000000100000f70 T util::Widget::doSomething<span style=color:#719e07>(</span>bool<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>0000000100000f60 T util::Widget::doSomething<span style=color:#719e07>(</span>int<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>...
 </span></span></code></pre></div><p>Finally, if you don&rsquo;t have an object file, but instead a backtrace that needs
 demangling, you can either invoke <code>c++filt</code> manually or use
-
-<a href="http://demangler.com/" target="_blank" rel="noopener">demangler.com</a>.</p>
-<p>Rust also mangles its function names.  For FFI or interface with C functions,
+<a href=http://demangler.com/ target=_blank rel=noopener>demangler.com</a>.</p><p>Rust also mangles its function names. For FFI or interface with C functions,
 other languages usually have to look for or expose symbols in a manner suited
 to C, the lowest common denominator.
-
-<a href="http://en.cppreference.com/w/cpp/language/language_linkage" target="_blank" rel="noopener">C++</a>
-has <code>extern &quot;C&quot;</code> blocks and
-
-<a href="https://doc.rust-lang.org/book/ffi.html" target="_blank" rel="noopener">Rust</a>
-has <code>extern</code> blocks.</p>
-<p>We can use <code>strip</code> to remove symbols from a binary.  This can slim down a
-binary at the cost of making stack traces unreadable.  If you&rsquo;re following
+<a href=http://en.cppreference.com/w/cpp/language/language_linkage target=_blank rel=noopener>C++</a>
+has <code>extern "C"</code> blocks and
+<a href=https://doc.rust-lang.org/book/ffi.html target=_blank rel=noopener>Rust</a>
+has <code>extern</code> blocks.</p><p>We can use <code>strip</code> to remove symbols from a binary. This can slim down a
+binary at the cost of making stack traces unreadable. If you&rsquo;re following
 along at home, try comparing the output from your disassembler and <code>nm</code> before
-and after running <code>strip</code> on the executable.  Luckily, you can&rsquo;t strip the
+and after running <code>strip</code> on the executable. Luckily, you can&rsquo;t strip the
 symbols out of object files, otherwise they&rsquo;d be useless as you&rsquo;d no longer be
-able to link them.</p>
-<p>If we compile with the <code>-g</code> flag, we can create a different kind of symbol;
-
-<a href="https://en.wikipedia.org/wiki/Debug_symbol" target="_blank" rel="noopener">debug symbols</a>.
+able to link them.</p><p>If we compile with the <code>-g</code> flag, we can create a different kind of symbol;
+<a href=https://en.wikipedia.org/wiki/Debug_symbol target=_blank rel=noopener>debug symbols</a>.
 Depending on your compiler+host OS, you&rsquo;ll get another file you can run through
-<code>nm</code> to see an entry per symbol.  You&rsquo;ll get more info by using <code>dwarfdump</code> on
-this file.  Debug symbols will retain source information such as filename and
-line number for all symbols.</p>
-<p>This post should have been a simple refresher of some of the basics of working
+<code>nm</code> to see an entry per symbol. You&rsquo;ll get more info by using <code>dwarfdump</code> on
+this file. Debug symbols will retain source information such as filename and
+line number for all symbols.</p><p>This post should have been a simple refresher of some of the basics of working
 with C code. Finding symbols to be placed into a final executable and
 relocating addresses are the main job of the linker, and will be the main theme
 of the posts in this series. Keep your eyes out for more in this series on
-memory segmentation.</p>
-<ul>
-<li>
-<a href="/blog/2016/08/13/object-files-and-symbols/">Part 1 - Object Files and Symbols</a></li>
-<li>
-<a href="/blog/2016/11/20/static-and-dynamic-libraries/">Part 2 - Static and Dynamic Libraries</a></li>
-</ul>
-
-        </div>
-        
-
-<footer>
-  <p class="meta">
-    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-    
-    <time>Aug 13, 2016</time>
-    
-    </span>
-  </p>
-
-  
-
-  <p class="meta">
-    
-        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/" title="Cross Compiling C/C&#43;&#43; for Android">Cross Compiling C/C&#43;&#43; for Android</a>
-    
-
-    
-      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/" title="Static and Dynamic Libraries">Static and Dynamic Libraries</a>
-    
-  </p>
-  
-    
-      <div id="disqus_thread"></div>
-<script type="application/javascript">
-    window.disqus_config = function () {
-    
-    
-    
-    };
-    (function() {
-        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
-            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
-            return;
-        }
-        var d = document, s = d.createElement('script'); s.async = true;
-        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-    
-  
-</footer>
-
-      </article>
-    </div>
-    
-
-<aside class="sidebar thirds">
-  <section class="first odd">
-
-    
-
-    <p>
-      
-    </p>
-  </section>
-
-  
-  
-
-
-
-<ul class="sidebar-nav">
-  <li class="sidebar-nav-item">
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
-    
-    
-    
-    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
-    
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
-    
-    
-
-  
-  
-  </li>
-</ul>
-
-  
-
-  
-
-  
-  
-  
-    
-      <section class="even">
-        <h1>Recent Posts</h1>
-        <ul id="recent_posts">
-          
-          
-            
-              <li class="post">
-                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-              </li>
-            
-          
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-              </li>
-            
-          
-        </ul>
-      </section>
-    
-  
-</aside>
-
-  </div>
-</div>
-
-    <footer role="contentinfo">
-      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
-        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
-      </p>
-    </footer>
-
-    
-    
-
-
-
-    
-    
-    
-
-    
-      <script>
-        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
-        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-        s.parentNode.insertBefore(g,s)}(document,'script'));
-      </script>
-    
-  </body>
-</html>
-
+memory segmentation.</p><ul><li><a href=/blog/2016/08/13/object-files-and-symbols/>Part 1 - Object Files and Symbols</a></li><li><a href=/blog/2016/11/20/static-and-dynamic-libraries/>Part 2 - Static and Dynamic Libraries</a></li></ul></div><footer><p class=meta><span class="byline author vcard">Posted by <span class=fn>Nick Desaulniers</span></span>
+<time>Aug 13, 2016</time></span></p><p class=meta><a class="basic-alignment left" href=https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/ title="Cross Compiling C/C++ for Android">Cross Compiling C/C++ for Android</a>
+<a class="basic-alignment right" href=https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/ title="Static and Dynamic Libraries">Static and Dynamic Libraries</a></p><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//wangstabill.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></footer></article></div><aside class="sidebar thirds"><section class="first odd"><p></p></section><ul class=sidebar-nav><li class=sidebar-nav-item><a target=_blank rel="noopener noreferrer" href=https://github.com/nickdesaulniers title=https://github.com/nickdesaulniers><i class="fa fa-github fa-3x"></i></a>
+<a target=_blank rel="me noopener noreferrer" href=https://fosstodon.org/@llvm title=https://fosstodon.org/@llvm><i class="fa fa-mastodon fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.linkedin.com/in/nick-desaulniers-75520334 title=https://www.linkedin.com/in/nick-desaulniers-75520334><i class="fa fa-linkedin fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ title=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ><i class="fa fa-youtube fa-3x"></i></a></li></ul><section class=even><h1>Recent Posts</h1><ul id=recent_posts><li class=post><a href=/blog/2020/04/06/off-by-two/>Off by Two</a></li><li class=post><a href=/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/>f() vs f(void) in C vs C++</a></li><li class=post><a href=/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/>Finding Compiler Bugs With C-Reduce</a></li><li class=post><a href=/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a></li></ul></section></aside></div></div><footer role=contentinfo><p>Copyright &copy; 2023 Nick Desaulniers - <a href=https://nickdesaulniers.github.io/license/>License</a> -
+<span class=credit>Powered by <a target=_blank href=https://gohugo.io rel="noopener noreferrer">Hugo</a> and <a target=_blank href=https://github.com/parsiya/hugo-octopress/ rel="noopener noreferrer">Hugo-Octopress</a> theme.</p></footer><script>var _gaq=[["_setAccount","UA-36993986-1"],["_trackPageview"]];(function(e,t){var n=e.createElement(t),s=e.getElementsByTagName(t)[0];n.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js",s.parentNode.insertBefore(n,s)})(document,"script")</script></body></html>

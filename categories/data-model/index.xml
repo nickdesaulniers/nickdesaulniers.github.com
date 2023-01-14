@@ -1,32 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>data model on Nick Desaulniers</title>
-    <link>https://nickdesaulniers.github.io/categories/data-model/</link>
-    <description>Recent content in data model on Nick Desaulniers</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Mon, 30 May 2016 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/data-model/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Data Models and Word Size</title>
-      <link>https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/</link>
-      <pubDate>Mon, 30 May 2016 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/</guid>
-      <description>This post is a follow up to my previous blog post about word size.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>data model on Nick Desaulniers</title><link>https://nickdesaulniers.github.io/categories/data-model/</link><description>Recent content in data model on Nick Desaulniers</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Mon, 30 May 2016 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/data-model/index.xml" rel="self" type="application/rss+xml"/><item><title>Data Models and Word Size</title><link>https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/</link><pubDate>Mon, 30 May 2016 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/</guid><description>This post is a follow up to my previous blog post about word size.
 Three C/C++ programmers walk into a bar. One argues that sizeof(void*) is equivalent to sizeof(long), one argues that sizeof(void*) is equivalent to sizeof(int), and the third argues it’s sizeof(long long). Simultaneously, they’re all right, but they’re also all wrong (and need a lesson about portable C code). What the hell is going on?
-One of the first few programs a programmer might write after hello world is something like this:</description>
-    </item>
-    
-    <item>
-      <title>What&#39;s in a Word?</title>
-      <link>https://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/</link>
-      <pubDate>Sun, 15 May 2016 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/</guid>
-      <description>Recently, there some was some confusion between myself and a coworker over the definition of a &amp;ldquo;word.&amp;rdquo; I&amp;rsquo;m currently working on a blog post about data alignment and figured it would be good to clarify some things now, that we can refer to later.
-Having studied computer engineering and being quite fond of processor design, when I think of a &amp;ldquo;word,&amp;rdquo; I think of the number of bits wide a processor&amp;rsquo;s general purpose registers are (aka word size).</description>
-    </item>
-    
-  </channel>
-</rss>
+One of the first few programs a programmer might write after hello world is something like this:</description></item><item><title>What's in a Word?</title><link>https://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/</link><pubDate>Sun, 15 May 2016 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/</guid><description>Recently, there some was some confusion between myself and a coworker over the definition of a &amp;ldquo;word.&amp;rdquo; I&amp;rsquo;m currently working on a blog post about data alignment and figured it would be good to clarify some things now, that we can refer to later.
+Having studied computer engineering and being quite fond of processor design, when I think of a &amp;ldquo;word,&amp;rdquo; I think of the number of bits wide a processor&amp;rsquo;s general purpose registers are (aka word size).</description></item></channel></rss>

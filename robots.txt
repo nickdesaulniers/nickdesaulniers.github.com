@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: 
-
-Sitemap: http://nickdesaulniers.github.io/sitemap.xml 

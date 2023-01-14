@@ -1,963 +1,416 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-  
-  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-
-  
-    
-    
-      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
-    
-  
-
-  
-  <title>Let&#39;s Write Some X86-64</title>
-
-  
-  
-  <link rel="stylesheet" href="/css/hugo-octopress.css">
-
-  
-  
-    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
-  
-
-  
-    <link rel="stylesheet" href="/css/fork-awesome.min.css">
-  
-
-  
-  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
-
-  
-  
-
-  <meta name="description" content="" />
-  <meta name="keywords" content="">
-  <meta name="author" content="Nick Desaulniers">
-
-  
-  <meta name="generator" content="Hugo 0.109.0">
-
-  
-  
-
-  
-  
-
-  
-  
-
-
-
-</head>
-<body>
-
-
-<header role="banner">
-<hgroup>
-  
-  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
-    <h2>The enemy&#39;s gate is down</h2>
-</hgroup></header>
-
-
-<nav role="navigation">
-<fieldset class="mobile-nav">
-  
-  <select onchange="location = this.value;">
-    <option value="">Navigate…</option>
-      
-        <option value="https://nickdesaulniers.github.io/about/">» About</option>
-      
-        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
-      
-        <option value="https://nickdesaulniers.github.io/">» Blog</option>
-      
-        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
-      
-        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
-      
-  </select>
-</fieldset>
-
-
-<ul class="main-navigation">
-  
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
-    
-  
-</ul>
-
-<ul class="subscription">
-  
-    
-        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
-    
-  
-</ul>
-
-
-  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
-    <fieldset role="search">
-      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
-    </fieldset>
-  </form>
-
-</nav>
-
-
-<div id="main">
-  <div id="content">
-    <div>
-      <article class="hentry" role="article">
-
-        
-        
-
-<header>
-  <p class="meta">Apr 18, 2014
-     - 22 minute read 
-     - <a href="https://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/#disqus_thread">Comments</a>
-
-    
-    
-      - <a class="label" href="https://nickdesaulniers.github.io/categories/asm/">asm </a><a class="label" href="https://nickdesaulniers.github.io/categories/x86/">x86 </a>
-    
-  </p>
-  <h1 class="entry-title">
-     Let&#39;s Write Some X86-64 
-  </h1>
-</header>
-
-
-        <div class="entry-content">
-          
-          
-          
-          
-
-
-
-
-
-
-
-
-
-
-  
-  
-  
-  
-
-
-
-
-
-  
-
-
-<blockquote>
-  <p><p>&hellip;&quot;&lsquo;Our speech interposes itself between apprehension and truth like a dusty pane or warped mirror.  The tongue of Eden was like a flawless glass; a light of total understanding streamed through it.  Thus Babel was a second Fall.&rsquo; And Isaac the Blind, an early Kabbalist, said that, to quote Gershom Scholem&rsquo;s translation, &lsquo;The speech of men is connected with divine speech and all language whether heavenly or human derives from one source: the Divine Name.&rsquo; The practical kabbalists, the sorcerers, bore the title Ba&rsquo;al Shem, meaning &lsquo;master of the divine name.&rsquo;&quot;</p>
-<p>&ldquo;The machine language of the world,&rdquo; Hiro says.</p>
-<p>&ldquo;Is this another analogy?&rdquo;</p>
-<p>&ldquo;Computers speak machine language,&rdquo; Hiro says.  &ldquo;It&rsquo;s written in ones and zeroes - binary code.  At the lowest level, all computers are programmed with strings of ones and zeroes.  When you program in machine language, you are controlling the computer at its brainstem, the root of its existence.  It&rsquo;s the tongue of Eden.  But it&rsquo;s very difficult to work in machine language because you go crazy after a while, working at such a minute level.  So a whole Babel of computer languages has been created for programmers: FORTRAN, BASIC, COBOL, LISP, Pascal, C, PROLOG, FORTH.  You talk to the computer in one of these languages, and a piece of software called a compiler converts it into machine language.  But you never can tell exactly what the compiler is doing.  It doesn&rsquo;t always come out the way you want.  Like a dusty pane or warped mirror. A really advanced hacker comes to understand the true inner workings of the machine – he sees through the language he&rsquo;s working in and glimpses the secret functioning of the binary code – becomes a Ba&rsquo;al Shem of sorts.&rdquo;</p>
-</p>
-  <footer>
-    <strong>Hiro Protagonist and The Librarian</strong>
-    
-      
-        
-          <cite>
-            Snow Crash by Neal Stephenson</a>
-          </cite>
-        
-      
-    
-  </footer>
-</blockquote>
-
-<p>This a beautiful quote, one that I think truly captures the relationship between
+<!doctype html><html xmlns=http://www.w3.org/1999/xhtml xml:lang=en lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,minimum-scale=1,maximum-scale=1"><link href=/css/fonts.css rel=stylesheet type=text/css><title>Let's Write Some X86-64</title><link rel=stylesheet href=/css/hugo-octopress.css><link rel=stylesheet href=https://nickdesaulniers.github.io/css/custom.css><link rel=stylesheet href=/css/fork-awesome.min.css><link href=https://nickdesaulniers.github.io/favicon.png rel=icon><meta name=description content><meta name=keywords content><meta name=author content="Nick Desaulniers"><meta name=generator content="Hugo 0.109.0"></head><body><header role=banner><hgroup><h1><a href=https://nickdesaulniers.github.io/>Nick Desaulniers</a></h1><h2>The enemy's gate is down</h2></hgroup></header><nav role=navigation><fieldset class=mobile-nav><select onchange="location=this.value"><option value>Navigate…</option><option value=https://nickdesaulniers.github.io/about/>» About</option><option value=https://nickdesaulniers.github.io/blog/archives/>» Archives</option><option value=https://nickdesaulniers.github.io/>» Blog</option><option value=https://nickdesaulniers.github.io/publications/>» Publications</option><option value=https://nickdesaulniers.github.io/talks/>» Talks</option></select></fieldset><ul class=main-navigation><li><a href=https://nickdesaulniers.github.io/about/ title=About rel="noopener noreferrer">About</a></li><li><a href=https://nickdesaulniers.github.io/blog/archives/ title=Archives rel="noopener noreferrer">Archives</a></li><li><a href=https://nickdesaulniers.github.io/ title=Blog>Blog</a></li><li><a href=https://nickdesaulniers.github.io/publications/ title=Publications rel="noopener noreferrer">Publications</a></li><li><a href=https://nickdesaulniers.github.io/talks/ title=Talks rel="noopener noreferrer">Talks</a></li></ul><ul class=subscription><a href=https://nickdesaulniers.github.io/index.xml target=_blank type=application/rss+xml title=RSS rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a></ul><form action=https://www.google.com/search method=get target=_blank rel="noopener noreferrer"><fieldset role=search><input class=search type=text name=q results=0 placeholder=Search>
+<input type=hidden name=q value=site:https://nickdesaulniers.github.io/></fieldset></form></nav><div id=main><div id=content><div><article class=hentry role=article><header><p class=meta>Apr 18, 2014
+- 22 minute read
+- <a href=https://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/#disqus_thread>Comments</a>
+- <a class=label href=https://nickdesaulniers.github.io/categories/asm/>asm </a><a class=label href=https://nickdesaulniers.github.io/categories/x86/>x86</a></p><h1 class=entry-title>Let's Write Some X86-64</h1></header><div class=entry-content><blockquote><p><p>&mldr;"&lsquo;Our speech interposes itself between apprehension and truth like a dusty pane or warped mirror. The tongue of Eden was like a flawless glass; a light of total understanding streamed through it. Thus Babel was a second Fall.&rsquo; And Isaac the Blind, an early Kabbalist, said that, to quote Gershom Scholem&rsquo;s translation, &lsquo;The speech of men is connected with divine speech and all language whether heavenly or human derives from one source: the Divine Name.&rsquo; The practical kabbalists, the sorcerers, bore the title Ba&rsquo;al Shem, meaning &lsquo;master of the divine name.&rsquo;"</p><p>&ldquo;The machine language of the world,&rdquo; Hiro says.</p><p>&ldquo;Is this another analogy?&rdquo;</p><p>&ldquo;Computers speak machine language,&rdquo; Hiro says. &ldquo;It&rsquo;s written in ones and zeroes - binary code. At the lowest level, all computers are programmed with strings of ones and zeroes. When you program in machine language, you are controlling the computer at its brainstem, the root of its existence. It&rsquo;s the tongue of Eden. But it&rsquo;s very difficult to work in machine language because you go crazy after a while, working at such a minute level. So a whole Babel of computer languages has been created for programmers: FORTRAN, BASIC, COBOL, LISP, Pascal, C, PROLOG, FORTH. You talk to the computer in one of these languages, and a piece of software called a compiler converts it into machine language. But you never can tell exactly what the compiler is doing. It doesn&rsquo;t always come out the way you want. Like a dusty pane or warped mirror. A really advanced hacker comes to understand the true inner workings of the machine – he sees through the language he&rsquo;s working in and glimpses the secret functioning of the binary code – becomes a Ba&rsquo;al Shem of sorts.&rdquo;</p></p><footer><strong>Hiro Protagonist and The Librarian</strong>
+<cite>Snow Crash by Neal Stephenson</a></cite></footer></blockquote><p>This a beautiful quote, one that I think truly captures the relationship between
 higher level languages and the Instruction Set Architecture (ISA)&rsquo;s machine
 code, though this is from the angle of controlling the machine with its
 implementation specific quirks which can detract from what you&rsquo;re actually
-trying to do.</p>
-<p>This blog is meant for those who don&rsquo;t know x86-64 assembly, but maybe know a
-little C, and are curious about code generation.  Or maybe if you&rsquo;ve ever tried
+trying to do.</p><p>This blog is meant for those who don&rsquo;t know x86-64 assembly, but maybe know a
+little C, and are curious about code generation. Or maybe if you&rsquo;ve ever tried
 to hand write x86-64 assembly, and got stuck trying to understand the tooling or
-seemingly random segfaults from what appears to be valid instructions.</p>
-<p>I really enjoy writing code in CoffeeScript
+seemingly random segfaults from what appears to be valid instructions.</p><p>I really enjoy writing code in CoffeeScript
 and C, so I have a quick anecdote about CoffeeScript though you don&rsquo;t need to
-know the language.  When writing CoffeeScript, I find myself frequently using a
-
-<a href="https://github.com/kchmck/vim-coffee-script" target="_blank" rel="noopener">vim plugin</a>
-to view the emitted JavaScript.  I
-<strong>know</strong> when CoffeeScript emits less than optimal JavaScript.  For example in
-the code:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-coffeescript" data-lang="coffeescript"><span style="display:flex;"><span><span style="color:#268bd2">nick = </span><span style="color:#268bd2">-&gt;</span> console.log x <span style="color:#719e07">for</span> x <span style="color:#719e07">in</span> [<span style="color:#2aa198">0</span>..<span style="color:#2aa198">100</span>]
+know the language. When writing CoffeeScript, I find myself frequently using a
+<a href=https://github.com/kchmck/vim-coffee-script target=_blank rel=noopener>vim plugin</a>
+to view the emitted JavaScript. I
+<strong>know</strong> when CoffeeScript emits less than optimal JavaScript. For example in
+the code:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-coffeescript data-lang=coffeescript><span style=display:flex><span><span style=color:#268bd2>nick = </span><span style=color:#268bd2>-&gt;</span> console.log x <span style=color:#719e07>for</span> x <span style=color:#719e07>in</span> [<span style=color:#2aa198>0</span>..<span style=color:#2aa198>100</span>]
 </span></span></code></pre></div><p>I know that CoffeeScript is going to push the results of the call to
 <code>console.log</code> into an array
 and return that, because of the implicit return of the final expression in a
 function body, which in this case happens to be a for loop (array comprehension
-being treated itself as an expression).  The emitted JavaScript looks like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">var</span> nick;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>nick <span style="color:#719e07">=</span> <span style="color:#268bd2">function</span>() {
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">var</span> x, _i, _results;
-</span></span><span style="display:flex;"><span>  _results <span style="color:#719e07">=</span> [];
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">for</span> (x <span style="color:#719e07">=</span> _i <span style="color:#719e07">=</span> <span style="color:#2aa198">0</span>; _i <span style="color:#719e07">&lt;=</span> <span style="color:#2aa198">100</span>; x <span style="color:#719e07">=</span> <span style="color:#719e07">++</span>_i) {
-</span></span><span style="display:flex;"><span>    _results.push(console.log(x));
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">return</span> _results;
-</span></span><span style="display:flex;"><span>};
+being treated itself as an expression). The emitted JavaScript looks like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#268bd2>var</span> nick;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>nick <span style=color:#719e07>=</span> <span style=color:#268bd2>function</span>() {
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>var</span> x, _i, _results;
+</span></span><span style=display:flex><span>  _results <span style=color:#719e07>=</span> [];
+</span></span><span style=display:flex><span>  <span style=color:#719e07>for</span> (x <span style=color:#719e07>=</span> _i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; _i <span style=color:#719e07>&lt;=</span> <span style=color:#2aa198>100</span>; x <span style=color:#719e07>=</span> <span style=color:#719e07>++</span>_i) {
+</span></span><span style=display:flex><span>    _results.push(console.log(x));
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#719e07>return</span> _results;
+</span></span><span style=display:flex><span>};
 </span></span></code></pre></div><p>By putting a seemingly meaningless undefined statement as the final statement in
 the function body, we can significantly reduce what the function is doing and
-decrease the number of allocations:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-coffeescript" data-lang="coffeescript"><span style="display:flex;"><span><span style="color:#268bd2">nick = </span><span style="color:#268bd2">-&gt;</span>
-</span></span><span style="display:flex;"><span>  console.log x <span style="color:#719e07">for</span> x <span style="color:#719e07">in</span> [<span style="color:#2aa198">0</span>..<span style="color:#2aa198">100</span>]
-</span></span><span style="display:flex;"><span>  <span style="color:#cb4b16">undefined</span>
-</span></span></code></pre></div><p>emits:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span>nick <span style="color:#719e07">=</span> <span style="color:#268bd2">function</span>() {
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">var</span> x, _i;
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">for</span> (x <span style="color:#719e07">=</span> _i <span style="color:#719e07">=</span> <span style="color:#2aa198">0</span>; _i <span style="color:#719e07">&lt;=</span> <span style="color:#2aa198">100</span>; x <span style="color:#719e07">=</span> <span style="color:#719e07">++</span>_i) {
-</span></span><span style="display:flex;"><span>    console.log(x);
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">return</span> <span style="color:#719e07">void</span> <span style="color:#2aa198">0</span>;
-</span></span><span style="display:flex;"><span>};
+decrease the number of allocations:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-coffeescript data-lang=coffeescript><span style=display:flex><span><span style=color:#268bd2>nick = </span><span style=color:#268bd2>-&gt;</span>
+</span></span><span style=display:flex><span>  console.log x <span style=color:#719e07>for</span> x <span style=color:#719e07>in</span> [<span style=color:#2aa198>0</span>..<span style=color:#2aa198>100</span>]
+</span></span><span style=display:flex><span>  <span style=color:#cb4b16>undefined</span>
+</span></span></code></pre></div><p>emits:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span>nick <span style=color:#719e07>=</span> <span style=color:#268bd2>function</span>() {
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>var</span> x, _i;
+</span></span><span style=display:flex><span>  <span style=color:#719e07>for</span> (x <span style=color:#719e07>=</span> _i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; _i <span style=color:#719e07>&lt;=</span> <span style=color:#2aa198>100</span>; x <span style=color:#719e07>=</span> <span style=color:#719e07>++</span>_i) {
+</span></span><span style=display:flex><span>    console.log(x);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#719e07>return</span> <span style=color:#719e07>void</span> <span style=color:#2aa198>0</span>;
+</span></span><span style=display:flex><span>};
 </span></span></code></pre></div><p>That <code>return void 0</code> may seem odd, but functions in JavaScript without an
 explicit return value return <code>undefined</code>, but since the <code>undefined</code> identifier
 can be reassigned to, the expression <code>void 0</code>
-
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void" target="_blank" rel="noopener">evaluates to the value</a>
-<code>undefined</code>.</p>
-<p>You can see that making the CoffeeScript function body slightly longer and
+<a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void target=_blank rel=noopener>evaluates to the value</a>
+<code>undefined</code>.</p><p>You can see that making the CoffeeScript function body slightly longer and
 adding a seemingly meaningless lone undefined statement at the end of the
 function body, the emitted JavaScript does not allocate an array or waste time
 pushing the results of <code>console.log</code>, which would be <code>undefined</code>, into that
-array a hundred times.  This reminds me of how seemingly meaningless noop
+array a hundred times. This reminds me of how seemingly meaningless noop
 instructions can keep a processor&rsquo;s pipeline full by preventing stalls, though
 a pipeline stall doesn&rsquo;t change the correctness of a program, so it&rsquo;s an
-imperfect analogy.</p>
-<p>Now I&rsquo;m not saying that you should be thinking about these kinds of
+imperfect analogy.</p><p>Now I&rsquo;m not saying that you should be thinking about these kinds of
 optimizations when programming at such a high level, as they might be premature.
 I shared with you this example because while writing C code, and reading
-
-<a href="http://www.drdobbs.com/parallel/graphics-programming-black-book/184404919" target="_blank" rel="noopener">Michael Abrash&rsquo;s Graphics Programming Black Book</a>,
+<a href=http://www.drdobbs.com/parallel/graphics-programming-black-book/184404919 target=_blank rel=noopener>Michael Abrash&rsquo;s Graphics Programming Black Book</a>,
 <em>I wondered to myself if hardcore C
 programmers also would know the equivalent assembly instructions that would be
 emitted from their higher level C code</em> (before optimizing compilers even
-existed).</p>
-<p>In college, I was taught 68k and MIPS ISAs.
+existed).</p><p>In college, I was taught 68k and MIPS ISAs.
 To understand x86-64 we need to be able to write and run it.
-Unfortunately, I did not have the training to know how to do so.  My 68k code
+Unfortunately, I did not have the training to know how to do so. My 68k code
 was run on a MCU from a FreeScale IDE in Windows, so the process might as well
-have been indistinguishable from magic to me.  I understood that you&rsquo;d start
+have been indistinguishable from magic to me. I understood that you&rsquo;d start
 with low level source, in (somewhat) human readable instructions that would be
-converted to binary representing op codes.  The assembler would then translate
+converted to binary representing op codes. The assembler would then translate
 the assembly into non-executable object files that contained binary code that
-had placeholders for sections of code defined in other object files.  The linker
+had placeholders for sections of code defined in other object files. The linker
 would then be used to replace the placeholders with the now combined binary
-code&rsquo;s relative positions and then converted into an executable.  But how do I
-do this from my x86-64 machine itself?  The goto book I&rsquo;ve been recommended many
+code&rsquo;s relative positions and then converted into an executable. But how do I
+do this from my x86-64 machine itself? The goto book I&rsquo;ve been recommended many
 times is
-
-<a href="http://www.wrox.com/WileyCDA/WroxTitle/productCd-0764579010.html" target="_blank" rel="noopener">Professional Assembly Language by Richard Blum</a>,
+<a href=http://www.wrox.com/WileyCDA/WroxTitle/productCd-0764579010.html target=_blank rel=noopener>Professional Assembly Language by Richard Blum</a>,
 but this book only
-covers x86, not x86-64.  There&rsquo;s been some very big changes to the ABI between
-x86 and x86-64.  You may be familiar with Application Programmer Interfaces
+covers x86, not x86-64. There&rsquo;s been some very big changes to the ABI between
+x86 and x86-64. You may be familiar with Application Programmer Interfaces
 (
-<a href="http://en.wikipedia.org/wiki/Api" target="_blank" rel="noopener">APIs</a>),
+<a href=http://en.wikipedia.org/wiki/Api target=_blank rel=noopener>APIs</a>),
 but what is an
-
-<a href="http://en.wikipedia.org/wiki/Application_binary_interface" target="_blank" rel="noopener">Application Binary Interface</a>?
+<a href=http://en.wikipedia.org/wiki/Application_binary_interface target=_blank rel=noopener>Application Binary Interface</a>?
 I think of an ABI as how
 two pieces of native code interact with one another, such as calling convention
-(how arguments are passed to functions at the ISA level).</p>
-<p>I&rsquo;m very lucky to have the privilege to work with a compiler engineer, Dan Gohman,
-who has worked on a variety of compilers.  I was citing a
-
-<a href="http://lists.cs.uiuc.edu/pipermail/llvmdev/2011-October/043719.html" target="_blank" rel="noopener">particular email of Dan</a>&rsquo;s
+(how arguments are passed to functions at the ISA level).</p><p>I&rsquo;m very lucky to have the privilege to work with a compiler engineer, Dan Gohman,
+who has worked on a variety of compilers. I was citing a
+<a href=http://lists.cs.uiuc.edu/pipermail/llvmdev/2011-October/043719.html target=_blank rel=noopener>particular email of Dan</a>&rsquo;s
 for some time before he came to work with us, when I
 would talk about how the naming of LLVM gives the imagery of a virtual machine,
-though it&rsquo;s more so a compiler intermediate representation.  Dan is an amazing
+though it&rsquo;s more so a compiler intermediate representation. Dan is an amazing
 and patient resource who has helped me learn more about the
-subtleties of the x86-64 ABI.  Throughout this blog, I&rsquo;ll copy some responses to
-questions I&rsquo;ve had answered by Dan.</p>
-<p>Our first goal is to write an x86-64 program that does nothing, but that we can
-build.  Assembly files typically have the .s file extension, so let&rsquo;s fire up
-our text editor and get started.  I&rsquo;ll be doing my coding from OSX 10.8.5, but
-most examples will work from Linux.  All of my symbol names, like _main, _exit,
+subtleties of the x86-64 ABI. Throughout this blog, I&rsquo;ll copy some responses to
+questions I&rsquo;ve had answered by Dan.</p><p>Our first goal is to write an x86-64 program that does nothing, but that we can
+build. Assembly files typically have the .s file extension, so let&rsquo;s fire up
+our text editor and get started. I&rsquo;ll be doing my coding from OSX 10.8.5, but
+most examples will work from Linux. All of my symbol names, like _main, _exit,
 and _printf, are prefixed with
 underscores, as Darwin requires. Most Linux systems don&rsquo;t require this, so
-Linux users should omit the leading underscores from all such names.  Unfortunately,
+Linux users should omit the leading underscores from all such names. Unfortunately,
 I cannot figure out how to link with ld in Linux, so I recommend trying to
 understand what <code>gcc -v your_obj_file.o</code> is doing, and
-
-<a href="http://www.lisha.ufsc.br/teaching/os/exercise/hello.html" target="_blank" rel="noopener">this might help</a>.
+<a href=http://www.lisha.ufsc.br/teaching/os/exercise/hello.html target=_blank rel=noopener>this might help</a>.
 Let me know in the comments if there&rsquo;s an easy way to use ld when linking your
-object files from linux and I&rsquo;ll be happy to post an edit.</p>
-<p>Let&rsquo;s start with this fragment and get it building, then I&rsquo;ll cover what it&rsquo;s
-doing.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-gas" data-lang="gas"><span style="display:flex;"><span>.text
-</span></span><span style="display:flex;"><span>.globl <span style="color:#cb4b16">_main</span>
-</span></span><span style="display:flex;"><span>_main:
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">subq</span> <span style="color:#cb4b16">$8</span>, <span style="color:#268bd2">%rsp</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movq</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%rdi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">call</span> <span style="color:#cb4b16">_exit</span>
-</span></span></code></pre></div><p>Let&rsquo;s use OSX&rsquo;s built in assembler (as) and linker (ld).</p>
-<pre tabindex="0"><code>as nothing.s -o nothing.o
+object files from linux and I&rsquo;ll be happy to post an edit.</p><p>Let&rsquo;s start with this fragment and get it building, then I&rsquo;ll cover what it&rsquo;s
+doing.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-gas data-lang=gas><span style=display:flex><span>.text
+</span></span><span style=display:flex><span>.globl <span style=color:#cb4b16>_main</span>
+</span></span><span style=display:flex><span>_main:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>subq</span> <span style=color:#cb4b16>$8</span>, <span style=color:#268bd2>%rsp</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movq</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%rdi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>call</span> <span style=color:#cb4b16>_exit</span>
+</span></span></code></pre></div><p>Let&rsquo;s use OSX&rsquo;s built in assembler (as) and linker (ld).</p><pre tabindex=0><code>as nothing.s -o nothing.o
 ld -lc -macosx_version_min 10.8.5 nothing.o -o nothing
-</code></pre><p>We should now be able to run <code>./nothing</code> without any segfaults.  Without
-<code>-macosx_version_min 10.8.5</code> I get a warning and my executable segfaults.</p>
-<p>Now let&rsquo;s create a basic generic Makefile to help us automate these steps.
-Watch your step; archaic syntax ahead.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-make" data-lang="make"><span style="display:flex;"><span><span style="color:#268bd2">SOURCES</span> <span style="color:#719e07">=</span> <span style="color:#719e07">$(</span>wildcard *.s<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">OBJECTS</span> <span style="color:#719e07">=</span> <span style="color:#719e07">$(</span>SOURCES:.s<span style="color:#719e07">=</span>.o<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">EXECUTABLES</span> <span style="color:#719e07">=</span> <span style="color:#719e07">$(</span>OBJECTS:.o<span style="color:#719e07">=</span><span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#586e75"># Generic rule
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"># $&lt; is the first dependency name
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"># $@ is the target filename
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span><span style="color:#268bd2">%.o</span><span style="color:#719e07">:</span> %.s
-</span></span><span style="display:flex;"><span>  as $&lt; -o <span style="color:#268bd2">$@</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">default</span><span style="color:#719e07">:</span> <span style="color:#719e07">$(</span><span style="color:#268bd2">OBJECTS</span><span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">for</span> exe in <span style="color:#719e07">$(</span>EXECUTABLES<span style="color:#719e07">)</span> ; <span style="color:#719e07">do</span> <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>    ld -lc -macosx_version_min 10.8.5 <span style="color:#268bd2">$$</span>exe.o -o <span style="color:#268bd2">$$</span>exe ; <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  <span style="color:#719e07">done</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">.PHONY</span><span style="color:#719e07">:</span> clean
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">clean</span><span style="color:#719e07">:</span>
-</span></span><span style="display:flex;"><span>  rm *.o
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">for</span> exe in <span style="color:#719e07">$(</span>EXECUTABLES<span style="color:#719e07">)</span> ; <span style="color:#719e07">do</span> <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>    rm <span style="color:#268bd2">$$</span>exe ; <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  <span style="color:#719e07">done</span>
+</code></pre><p>We should now be able to run <code>./nothing</code> without any segfaults. Without
+<code>-macosx_version_min 10.8.5</code> I get a warning and my executable segfaults.</p><p>Now let&rsquo;s create a basic generic Makefile to help us automate these steps.
+Watch your step; archaic syntax ahead.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-make data-lang=make><span style=display:flex><span><span style=color:#268bd2>SOURCES</span> <span style=color:#719e07>=</span> <span style=color:#719e07>$(</span>wildcard *.s<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>OBJECTS</span> <span style=color:#719e07>=</span> <span style=color:#719e07>$(</span>SOURCES:.s<span style=color:#719e07>=</span>.o<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>EXECUTABLES</span> <span style=color:#719e07>=</span> <span style=color:#719e07>$(</span>OBJECTS:.o<span style=color:#719e07>=</span><span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75># Generic rule
+</span></span></span><span style=display:flex><span><span style=color:#586e75># $&lt; is the first dependency name
+</span></span></span><span style=display:flex><span><span style=color:#586e75># $@ is the target filename
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#268bd2>%.o</span><span style=color:#719e07>:</span> %.s
+</span></span><span style=display:flex><span>  as $&lt; -o <span style=color:#268bd2>$@</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>default</span><span style=color:#719e07>:</span> <span style=color:#719e07>$(</span><span style=color:#268bd2>OBJECTS</span><span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>for</span> exe in <span style=color:#719e07>$(</span>EXECUTABLES<span style=color:#719e07>)</span> ; <span style=color:#719e07>do</span> <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>    ld -lc -macosx_version_min 10.8.5 <span style=color:#268bd2>$$</span>exe.o -o <span style=color:#268bd2>$$</span>exe ; <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  <span style=color:#719e07>done</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>.PHONY</span><span style=color:#719e07>:</span> clean
+</span></span><span style=display:flex><span><span style=color:#268bd2>clean</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>  rm *.o
+</span></span><span style=display:flex><span>  <span style=color:#719e07>for</span> exe in <span style=color:#719e07>$(</span>EXECUTABLES<span style=color:#719e07>)</span> ; <span style=color:#719e07>do</span> <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>    rm <span style=color:#268bd2>$$</span>exe ; <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  <span style=color:#719e07>done</span>
 </span></span></code></pre></div><p>By the time you read this, I&rsquo;ve already forgotten how half of that code works.
 But, this will allow us to run <code>make</code> to assemble and link all of our .s files
 individually, and <code>make clean</code> to remove our object and executable files.
-Surely you can whip up a better build script?  Let me know in the comments
-below.</p>
-<p>So now let&rsquo;s go back to our assembly file and go over it line by line.  Again,
-it looks like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-gas" data-lang="gas"><span style="display:flex;"><span>.text
-</span></span><span style="display:flex;"><span>.globl <span style="color:#cb4b16">_main</span>
-</span></span><span style="display:flex;"><span>_main:
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">subq</span> <span style="color:#cb4b16">$8</span>, <span style="color:#268bd2">%rsp</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movq</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%rdi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">call</span> <span style="color:#cb4b16">_exit</span>
-</span></span></code></pre></div><p><code>.text</code> is the text section.  This section defines the instructions that the
-processor will execute.  There can be other sections as well.  We&rsquo;ll see more
+Surely you can whip up a better build script? Let me know in the comments
+below.</p><p>So now let&rsquo;s go back to our assembly file and go over it line by line. Again,
+it looks like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-gas data-lang=gas><span style=display:flex><span>.text
+</span></span><span style=display:flex><span>.globl <span style=color:#cb4b16>_main</span>
+</span></span><span style=display:flex><span>_main:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>subq</span> <span style=color:#cb4b16>$8</span>, <span style=color:#268bd2>%rsp</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movq</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%rdi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>call</span> <span style=color:#cb4b16>_exit</span>
+</span></span></code></pre></div><p><code>.text</code> is the text section. This section defines the instructions that the
+processor will execute. There can be other sections as well. We&rsquo;ll see more
 later, but the &ldquo;data&rdquo; section
 typically has static variables that have been initialized with non null (and non
-zero) values, where as &ldquo;bss&rdquo; will have static but non initialized values.  Also,
+zero) values, where as &ldquo;bss&rdquo; will have static but non initialized values. Also,
 there will be a heap and a stack although you don&rsquo;t declare them as you would
-for text or data.</p>
-<p>Next up is the global directive.  The global directive tells the linker that
+for text or data.</p><p>Next up is the global directive. The global directive tells the linker that
 there will be a section named _main that it may call into, making the _main
-section visible to other sections.  You may be
-
-<a href="http://stackoverflow.com/a/5908708/1027966" target="_blank" rel="noopener">wondering</a>
-why directives and sections both begin with a dot.</p>
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  
-  
-
-
-
-
-
-  
-
-
-<blockquote>
-  <p><p>&lsquo;.&rsquo;&rsquo; isn&rsquo;t a valid identifier character in C, so way back when it became common to use &lsquo;.&rsquo;&rsquo; as a prefix in the assembler and linker in order to avoid clashing with C symbol names. This unfortunately was used for both section names and directives, because both can appear in contexts where a simple parser wouldn&rsquo;t be able to disambiguate otherwise.</p>
-<p>I don&rsquo;t know why they used the same convention for directives and section names, but they did, and it&rsquo;s not practical to change it now.</p>
-</p>
-  <footer>
-    <strong>Dan Gohman</strong>
-    
-      
-        
-      
-    
-  </footer>
-</blockquote>
-
-<p>Ok now the subtraction instruction.  We&rsquo;ve got a bit to go over with just this
-one line.  The first is the instruction itself.  The sub instruction has
-numerous suffixes that specify how many bytes to operate on.  The typical
+section visible to other sections. You may be
+<a href=http://stackoverflow.com/a/5908708/1027966 target=_blank rel=noopener>wondering</a>
+why directives and sections both begin with a dot.</p><blockquote><p><p>&lsquo;.&rsquo;&rsquo; isn&rsquo;t a valid identifier character in C, so way back when it became common to use &lsquo;.&rsquo;&rsquo; as a prefix in the assembler and linker in order to avoid clashing with C symbol names. This unfortunately was used for both section names and directives, because both can appear in contexts where a simple parser wouldn&rsquo;t be able to disambiguate otherwise.</p><p>I don&rsquo;t know why they used the same convention for directives and section names, but they did, and it&rsquo;s not practical to change it now.</p></p><footer><strong>Dan Gohman</strong></footer></blockquote><p>Ok now the subtraction instruction. We&rsquo;ve got a bit to go over with just this
+one line. The first is the instruction itself. The sub instruction has
+numerous suffixes that specify how many bytes to operate on. The typical
 convention for numerous instructions is to have a suffix of b for 1 byte
 (8 bits), w for a word (2 bytes, 16 bits), l for a long or
 double word (4 bytes, 32 bits), and q for a quad word (8 bytes, 64 bits).
 Leaving off the suffix, the assembler will try and guess based off of the
-operands, which can lead to obscure bugs.  So subq operates on 64 bits.
+operands, which can lead to obscure bugs. So subq operates on 64 bits.
 Extending this we should be able to recognize that subb operates on 8 bits, subw
 operates on 16 bits, subl operates on 32 bits, and subq operates on 64 bits.
 What&rsquo;s important to understand is that instruction suffix is dictated by the
-inputs and destination size.  See Figure 3-3 of the
-
-<a href="http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2012/10/24592_APM_v11.pdf" target="_blank" rel="noopener">AMD64 ABI</a>.</p>
-<p>Ok now let&rsquo;s look at the full instruction <code>subq $8, %rsp</code>.  The current order of
-the operands is known as the AT&amp;T syntax, where the destination is specified
+inputs and destination size. See Figure 3-3 of the
+<a href=http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2012/10/24592_APM_v11.pdf target=_blank rel=noopener>AMD64 ABI</a>.</p><p>Ok now let&rsquo;s look at the full instruction <code>subq $8, %rsp</code>. The current order of
+the operands is known as the AT&T syntax, where the destination is specified
 last
 (
-<a href="http://stackoverflow.com/q/972602/1027966" target="_blank" rel="noopener">as opposed to the Intel syntax</a>,
-where the destination follows the instruction name ex. <code>subq rsp, 8</code>).</p>
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  
-  
-
-
-
-
-
-  
-
-
-<blockquote>
-  <p>I&rsquo;m biased towards AT&amp;T-syntax because GCC, LLVM, and icc (at least on Unix-like platforms) all use it, so it&rsquo;s what I&rsquo;m used to by necessity. People familiar with assembly languages on other platforms sometimes find it feels backwards from what they&rsquo;re used to, but it is learnable.</p>
-  <footer>
-    <strong>Dan Gohman</strong>
-    
-      
-        
-      
-    
-  </footer>
-</blockquote>
-
-<p>I&rsquo;m writing my examples in AT&amp;T syntax simply because when I compile my C code
-from clang with the -S flag, or run my object files through gobjdump, I get AT&amp;T
-syntax by default (though I&rsquo;m sure there are flags for either AT&amp;T or Intel
-syntaxes).  Also, the ABI
-docs are in AT&amp;T.  What are your thoughts on the two different syntaxes?  Let me
-know in the comments below.</p>
-<p>So when we say <code>subq $8, %rsp</code>, we&rsquo;re subtracting the immediate value of 8 from
-the stack pointer (the register %rsp contains our stack pointer).  But
-why are we doing this?  This is something that is left out from some of the
-basic hello world assembly programs I&rsquo;ve seen.  This is the first ABI point I
-want to make:</p>
-<h2 id="x86-64-abi-point-1-function-calls-need-the-stack-pointer-to-be-aligned-by-a-multiple-of-16-bytes">x86-64 ABI point 1: function calls need the stack pointer to be aligned by a multiple of 16 bytes.</h2>
-<p>By default, they are off by 8 on function entry.  See
+<a href=http://stackoverflow.com/q/972602/1027966 target=_blank rel=noopener>as opposed to the Intel syntax</a>,
+where the destination follows the instruction name ex. <code>subq rsp, 8</code>).</p><blockquote><p>I&rsquo;m biased towards AT&T-syntax because GCC, LLVM, and icc (at least on Unix-like platforms) all use it, so it&rsquo;s what I&rsquo;m used to by necessity. People familiar with assembly languages on other platforms sometimes find it feels backwards from what they&rsquo;re used to, but it is learnable.</p><footer><strong>Dan Gohman</strong></footer></blockquote><p>I&rsquo;m writing my examples in AT&T syntax simply because when I compile my C code
+from clang with the -S flag, or run my object files through gobjdump, I get AT&T
+syntax by default (though I&rsquo;m sure there are flags for either AT&T or Intel
+syntaxes). Also, the ABI
+docs are in AT&T. What are your thoughts on the two different syntaxes? Let me
+know in the comments below.</p><p>So when we say <code>subq $8, %rsp</code>, we&rsquo;re subtracting the immediate value of 8 from
+the stack pointer (the register %rsp contains our stack pointer). But
+why are we doing this? This is something that is left out from some of the
+basic hello world assembly programs I&rsquo;ve seen. This is the first ABI point I
+want to make:</p><h2 id=x86-64-abi-point-1-function-calls-need-the-stack-pointer-to-be-aligned-by-a-multiple-of-16-bytes>x86-64 ABI point 1: function calls need the stack pointer to be aligned by a multiple of 16 bytes.</h2><p>By default, they are off by 8 on function entry. See
 Section 3.2.2 page 16 of the
-
-<a href="https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf" target="_blank" rel="noopener">ABI</a>.</p>
-<p>Why is the stack pointer misaligned by 8 bytes on function entry?  I&rsquo;m going to
-punt on the answer to that for a bit, but I promise I&rsquo;ll come back to it.  The
+<a href=https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf target=_blank rel=noopener>ABI</a>.</p><p>Why is the stack pointer misaligned by 8 bytes on function entry? I&rsquo;m going to
+punt on the answer to that for a bit, but I promise I&rsquo;ll come back to it. The
 most important thing is that that call instruction later on will fail unless we
-align our stack pointer, which started out misaligned.  If we comment it out
+align our stack pointer, which started out misaligned. If we comment it out
 (pound signs, #, comment out the rest of the line) and make our executable,
-we&rsquo;ll get a segfault.  You could even add 8 bytes to the stack pointer and our
+we&rsquo;ll get a segfault. You could even add 8 bytes to the stack pointer and our
 basic example would work (we just need a multiple of 16 remember), but when we
 learn later (I promise) about how the stack works in x86-64, we&rsquo;ll see we can
-mess things up by adding rather than subtracting.</p>
-<p>Next up we&rsquo;re moving the immediate value 0x0 into %rdi.  You may have heard that
+mess things up by adding rather than subtracting.</p><p>Next up we&rsquo;re moving the immediate value 0x0 into %rdi. You may have heard that
 arguments to functions are pushed on the stack in reverse order, but that&rsquo;s an
-old x86 convention.  With the addition of 8 more general purpose registers, we
+old x86 convention. With the addition of 8 more general purpose registers, we
 now pass up to the first 6 arguments in registers (then push the rest, if any,
-on the stack in reverse order).  The convention (in OSX and Linux) is our second
-ABI point:</p>
-<h2 id="x86-64-abi-point-2-the-calling-conventions-for-function-invocations-require-passing-integer-arguments-in-the-following-sequence-of-registers-rdi-rsi-rdx-rcx-r8-r9-then-pushing-the-rest-on-the-stack-in-reverse-order">x86-64 ABI point 2: The calling conventions for function invocations require passing integer arguments in the following sequence of registers: %rdi, %rsi, %rdx, %rcx, %r8, %r9, then pushing the rest on the stack in reverse order.</h2>
-<p>See 
-<a href="https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf" target="_blank" rel="noopener">section 3.2.3</a>
-under &ldquo;Passing&rdquo;.  Warning:
-
-<a href="http://msdn.microsoft.com/en-us/library/ms235286.aspx" target="_blank" rel="noopener">Microsoft has a different calling convention</a>.
+on the stack in reverse order). The convention (in OSX and Linux) is our second
+ABI point:</p><h2 id=x86-64-abi-point-2-the-calling-conventions-for-function-invocations-require-passing-integer-arguments-in-the-following-sequence-of-registers-rdi-rsi-rdx-rcx-r8-r9-then-pushing-the-rest-on-the-stack-in-reverse-order>x86-64 ABI point 2: The calling conventions for function invocations require passing integer arguments in the following sequence of registers: %rdi, %rsi, %rdx, %rcx, %r8, %r9, then pushing the rest on the stack in reverse order.</h2><p>See
+<a href=https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf target=_blank rel=noopener>section 3.2.3</a>
+under &ldquo;Passing&rdquo;. Warning:
+<a href=http://msdn.microsoft.com/en-us/library/ms235286.aspx target=_blank rel=noopener>Microsoft has a different calling convention</a>.
 This is quite troubling to me, because I assumed that Instruction Set
 Architectures were created so that the same code could run on two different
 machines with the same microarchitecture, but because the ISA does not define
 how arguments would be passed, this ambiguity is left up to the OS implementor
-to decide.  Thus the same code may not run on two different machines with the
+to decide. Thus the same code may not run on two different machines with the
 same microarchitecture if their operating systems are incompatible at the ABI
-layer.</p>
-<p><em>UPDATE</em>: Further, I just learned that 
-<a href="http://nelhagedebugsshit.tumblr.com/post/84342207533/things-i-learned-writing-a-jit-in-go" target="_blank" rel="noopener">Go, and C code compiled by 6c don’t use
-the &ldquo;normal&rdquo; SysV ABI and calling convention, but have their own.</a></p>
-<p>What our goal is is to call <code>exit(0);</code> where exit is defined in libc, which we
-link against during the linking phase with with flag <code>-lc</code>.  This is another
-punt on system calls.  So to invoke exit with the first integer argument of 0,
-we first need to move the immediate value of 0x0 into %rdi.  Now if you run your
+layer.</p><p><em>UPDATE</em>: Further, I just learned that
+<a href=http://nelhagedebugsshit.tumblr.com/post/84342207533/things-i-learned-writing-a-jit-in-go target=_blank rel=noopener>Go, and C code compiled by 6c don’t use
+the &ldquo;normal&rdquo; SysV ABI and calling convention, but have their own.</a></p><p>What our goal is is to call <code>exit(0);</code> where exit is defined in libc, which we
+link against during the linking phase with with flag <code>-lc</code>. This is another
+punt on system calls. So to invoke exit with the first integer argument of 0,
+we first need to move the immediate value of 0x0 into %rdi. Now if you run your
 executable from your shell, then <code>echo $?</code>, you should see that the previous
-command&rsquo;s exit code was 0.  Try changing the exit code to 42 and verify that it
-works successfully.</p>
-<p>Ok, well a program that does nothing is more boring than hello world.  Now that
-we have our build setup out of the way, let&rsquo;s make a hello world program.  If
+command&rsquo;s exit code was 0. Try changing the exit code to 42 and verify that it
+works successfully.</p><p>Ok, well a program that does nothing is more boring than hello world. Now that
+we have our build setup out of the way, let&rsquo;s make a hello world program. If
 you&rsquo;re familiar with ASCII tables, we can use putchar from libc since we&rsquo;re
-already linking to it.  Use <code>man putchar</code> to look at its signature and
-
-<a href="http://www.asciitable.com/" target="_blank" rel="noopener">this ASCII table</a> to move immediate values into a
+already linking to it. Use <code>man putchar</code> to look at its signature and
+<a href=http://www.asciitable.com/ target=_blank rel=noopener>this ASCII table</a> to move immediate values into a
 certain register (remember the
 calling convention, point #2) and make sure you setup the stack pointer before
-any calls and exit after all other calls.</p>
-<p>I&rsquo;ll leave that up to an exercise for the reader.  Let&rsquo;s use a string and
-printf.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-gas" data-lang="gas"><span style="display:flex;"><span>.data
-</span></span><span style="display:flex;"><span>_hello:
-</span></span><span style="display:flex;"><span>  .asciz <span style="color:#2aa198">&#34;hello world\n&#34;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>.text
-</span></span><span style="display:flex;"><span>.globl <span style="color:#cb4b16">_main</span>
-</span></span><span style="display:flex;"><span>_main:
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">subq</span> <span style="color:#cb4b16">$8</span>, <span style="color:#268bd2">%rsp</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movb</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%al</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">leaq</span> <span style="color:#cb4b16">_hello</span>(<span style="color:#268bd2">%rip</span>), <span style="color:#268bd2">%rdi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">call</span> <span style="color:#cb4b16">_printf</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movq</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%rdi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">call</span> <span style="color:#cb4b16">_exit</span>
-</span></span></code></pre></div><p>First up is our data section <code>.data</code>.  I previously mentioned the data section
-contains global non null and non 0 variables.  You can see here that the string
+any calls and exit after all other calls.</p><p>I&rsquo;ll leave that up to an exercise for the reader. Let&rsquo;s use a string and
+printf.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-gas data-lang=gas><span style=display:flex><span>.data
+</span></span><span style=display:flex><span>_hello:
+</span></span><span style=display:flex><span>  .asciz <span style=color:#2aa198>&#34;hello world\n&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>.text
+</span></span><span style=display:flex><span>.globl <span style=color:#cb4b16>_main</span>
+</span></span><span style=display:flex><span>_main:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>subq</span> <span style=color:#cb4b16>$8</span>, <span style=color:#268bd2>%rsp</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movb</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%al</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>leaq</span> <span style=color:#cb4b16>_hello</span>(<span style=color:#268bd2>%rip</span>), <span style=color:#268bd2>%rdi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>call</span> <span style=color:#cb4b16>_printf</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movq</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%rdi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>call</span> <span style=color:#cb4b16>_exit</span>
+</span></span></code></pre></div><p>First up is our data section <code>.data</code>. I previously mentioned the data section
+contains global non null and non 0 variables. You can see here that the string
 itself becomes part of the binary by using the unix command <code>strings</code> and
-passing your executable as the first argument.  Further, if you pass your
-executable to hexdump you can even see the ASCII codes in hex:</p>
-<pre tabindex="0"><code>0001020 68 65 6c 6c 6f 20 77 6f 72 6c 64 0a 00 00 00 00
-</code></pre><p>Also, we can run our binary through objdump as well and see the string:</p>
-<pre tabindex="0"><code>gobjdump -j .data -s hello_world
+passing your executable as the first argument. Further, if you pass your
+executable to hexdump you can even see the ASCII codes in hex:</p><pre tabindex=0><code>0001020 68 65 6c 6c 6f 20 77 6f 72 6c 64 0a 00 00 00 00
+</code></pre><p>Also, we can run our binary through objdump as well and see the string:</p><pre tabindex=0><code>gobjdump -j .data -s hello_world
 ...
 Contents of section .data:
  2020 68656c6c 6f20776f 726c640a 00        hello world..
-</code></pre><p>Ok so now we&rsquo;re moving an immediate value of 0x0 to %al.  %al is 1 byte wide, so
-we use the b suffix on the mov instruction.  The next important point of the ABI
+</code></pre><p>Ok so now we&rsquo;re moving an immediate value of 0x0 to %al. %al is 1 byte wide, so
+we use the b suffix on the mov instruction. The next important point of the ABI
 has to do with functions that use a variable number of arguments (varargs), like
-printf does:</p>
-<h2 id="x86-64-abi-point-3-variadic-functions-need-to-have-the-number-of-vector-arguments-specified-in-al">x86-64 ABI point 3: Variadic functions need to have the number of vector arguments specified in %al.</h2>
-<p>This will make printf debugging hard without.  Also in
-
-<a href="https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf" target="_blank" rel="noopener">section 3.2.3 under passing</a>.</p>
-<p>If you don&rsquo;t know what vector arguments are, no worries!  I&rsquo;m not going to cover
-them.  Just know that without this, the contents of %al may work in a basic
+printf does:</p><h2 id=x86-64-abi-point-3-variadic-functions-need-to-have-the-number-of-vector-arguments-specified-in-al>x86-64 ABI point 3: Variadic functions need to have the number of vector arguments specified in %al.</h2><p>This will make printf debugging hard without. Also in
+<a href=https://software.intel.com/sites/default/files/article/402129/mpx-linux64-abi.pdf target=_blank rel=noopener>section 3.2.3 under passing</a>.</p><p>If you don&rsquo;t know what vector arguments are, no worries! I&rsquo;m not going to cover
+them. Just know that without this, the contents of %al may work in a basic
 example, where we haven&rsquo;t touched %al, %ax, %eax, or %rax yet, but we shouldn&rsquo;t
-bank on it being 0x0.  In fact we shouldn&rsquo;t bank on most registers being
-preserved after a function call.  Now&rsquo;s a good time to talk about volatility:</p>
-<h2 id="x86-64-abi-point-4-most-registers-are-not-preserved-across-function-calls">x86-64 ABI point 4: Most registers are not preserved across function calls.</h2>
-<p>Only %rbx, %rsp, %rbp, and %r12-%r15 (and some others) are.  These are called
-&ldquo;call saved&rdquo; or &ldquo;non volatile&rdquo; registers.  The rest should be considered &ldquo;call
-clobbered&rdquo; or &ldquo;volatile.&rdquo;  That means every time we invoke a call like printf,
+bank on it being 0x0. In fact we shouldn&rsquo;t bank on most registers being
+preserved after a function call. Now&rsquo;s a good time to talk about volatility:</p><h2 id=x86-64-abi-point-4-most-registers-are-not-preserved-across-function-calls>x86-64 ABI point 4: Most registers are not preserved across function calls.</h2><p>Only %rbx, %rsp, %rbp, and %r12-%r15 (and some others) are. These are called
+&ldquo;call saved&rdquo; or &ldquo;non volatile&rdquo; registers. The rest should be considered &ldquo;call
+clobbered&rdquo; or &ldquo;volatile.&rdquo; That means every time we invoke a call like printf,
 we need to reset %al, since it is the lower 8 bits of %rax which is the 1st
-return register, so it is always clobbered.</p>
-<p>The next instruction loads the effective address of the string relative to the
+return register, so it is always clobbered.</p><p>The next instruction loads the effective address of the string relative to the
 current instruction pointer into %rdi, the first argument for printf.
-
-<a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Reference/Assembler/040-Assembler_Directives/asm_directives.html" target="_blank" rel="noopener">The .asciz directive</a> appends the null byte for us, since C strings are null
-terminated.</p>
-<p>With this knowledge, can you modify hello world to print &ldquo;hello world 42&rdquo;,
-without putting 42 into the string in the data section?  Hint: you&rsquo;ll need a
+<a href=https://developer.apple.com/library/mac/documentation/DeveloperTools/Reference/Assembler/040-Assembler_Directives/asm_directives.html target=_blank rel=noopener>The .asciz directive</a> appends the null byte for us, since C strings are null
+terminated.</p><p>With this knowledge, can you modify hello world to print &ldquo;hello world 42&rdquo;,
+without putting 42 into the string in the data section? Hint: you&rsquo;ll need a
 placeholder in your string and need to know the x86-64 calling convention to
-pass an additional argument to printf.</p>
-<p>Finally, let&rsquo;s talk about the stack.  When we create automatic variables in C,
-they are created in the segment called the stack.  On x86-64 the stack starts
+pass an additional argument to printf.</p><p>Finally, let&rsquo;s talk about the stack. When we create automatic variables in C,
+they are created in the segment called the stack. On x86-64 the stack starts
 at some arbitrary address (virtual memory backed by physical memory) and &ldquo;grows&rdquo;
-downwards.  That is why we subtracted 8 bytes, rather than add 8 bytes to the
+downwards. That is why we subtracted 8 bytes, rather than add 8 bytes to the
 stack for alignment earlier.
-
-<a href="http://eli.thegreenplace.net/2011/02/04/where-the-top-of-the-stack-is-on-x86/" target="_blank" rel="noopener">The metaphor of a stack of plates is kinda upside-down</a>
+<a href=http://eli.thegreenplace.net/2011/02/04/where-the-top-of-the-stack-is-on-x86/ target=_blank rel=noopener>The metaphor of a stack of plates is kinda upside-down</a>
 as additional plates (variables) are going underneath the current
-bottom plate if you can imagine, in this case.  The stack grows towards the
+bottom plate if you can imagine, in this case. The stack grows towards the
 heap, and it is possible for them to collide if you don&rsquo;t ask the OS to expand
-your data segment (sbrk).</p>
-<p><img src="/images/stack.png" alt="stack"> 
-<a href="http://mcfunley.com/the-debugger-extension-part-6-scanning-threads" target="_blank" rel="noopener">credit</a></p>
-<p>Let&rsquo;s say we want to call something like memset, which from <code>man memset</code> we can
-see takes an address, a value to fill, and a number of bytes to fill.  The
-equivalent of say this C code:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#719e07">#include</span> <span style="color:#719e07">&lt;stdio.h&gt;</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07">#include</span> <span style="color:#719e07">&lt;string.h&gt;</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07">#include</span> <span style="color:#719e07">&lt;inttypes.h&gt;</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07"></span><span style="color:#dc322f">int</span> <span style="color:#268bd2">main</span> () {
-</span></span><span style="display:flex;"><span>  <span style="color:#dc322f">int8_t</span> array [<span style="color:#2aa198">16</span>];
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">memset</span>(<span style="color:#719e07">&amp;</span>array, <span style="color:#2aa198">42</span>, <span style="color:#2aa198">16</span>);
-</span></span><span style="display:flex;"><span>  <span style="color:#dc322f">int8_t</span><span style="color:#719e07">*</span> ptr <span style="color:#719e07">=</span> array;
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">printf</span>(<span style="color:#2aa198">&#34;Current byte: %&#34;</span> PRId8 <span style="color:#2aa198">&#34;</span><span style="color:#cb4b16">\n</span><span style="color:#2aa198">&#34;</span>, <span style="color:#719e07">*</span>ptr);
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">++</span>(<span style="color:#719e07">*</span>ptr);
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">printf</span>(<span style="color:#2aa198">&#34;Current byte: %&#34;</span> PRId8 <span style="color:#2aa198">&#34;</span><span style="color:#cb4b16">\n</span><span style="color:#2aa198">&#34;</span>, <span style="color:#719e07">*</span>ptr);
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">++</span>ptr;
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">printf</span>(<span style="color:#2aa198">&#34;Current byte: %&#34;</span> PRId8 <span style="color:#2aa198">&#34;</span><span style="color:#cb4b16">\n</span><span style="color:#2aa198">&#34;</span>, <span style="color:#719e07">*</span>ptr);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Well, that might look like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-gas" data-lang="gas"><span style="display:flex;"><span>.data
-</span></span><span style="display:flex;"><span>_answer:
-</span></span><span style="display:flex;"><span>  .asciz <span style="color:#2aa198">&#34;Current byte: %d\n&#34;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>.text
-</span></span><span style="display:flex;"><span>.globl <span style="color:#cb4b16">_main</span>
-</span></span><span style="display:flex;"><span>_main:
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">subq</span> <span style="color:#cb4b16">$8</span>, <span style="color:#268bd2">%rsp</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">subq</span> <span style="color:#cb4b16">$16</span>, <span style="color:#268bd2">%rsp</span> <span style="color:#586e75"># allocate 16B
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#268bd2">leaq</span> (<span style="color:#268bd2">%rsp</span>), <span style="color:#268bd2">%rdi</span> <span style="color:#586e75"># first arg, &amp;array
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#268bd2">movq</span> <span style="color:#cb4b16">$42</span>, <span style="color:#268bd2">%rsi</span> <span style="color:#586e75"># second arg, 42
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#268bd2">movq</span> <span style="color:#cb4b16">$16</span>, <span style="color:#268bd2">%rdx</span>, <span style="color:#586e75"># third arg, 16B
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#268bd2">call</span> <span style="color:#cb4b16">_memset</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">leaq</span> <span style="color:#cb4b16">_answer</span>(<span style="color:#268bd2">%rip</span>), <span style="color:#268bd2">%rdi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movq</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%rsi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movb</span> (<span style="color:#268bd2">%rsp</span>), <span style="color:#268bd2">%sil</span> <span style="color:#586e75"># these two are equavlent to movzql (%rsp), %esi
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#268bd2">movb</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%al</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">call</span> <span style="color:#cb4b16">_printf</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">incq</span> (<span style="color:#268bd2">%rsp</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">leaq</span> <span style="color:#cb4b16">_answer</span>(<span style="color:#268bd2">%rip</span>), <span style="color:#268bd2">%rdi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movq</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%rsi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movb</span> (<span style="color:#268bd2">%rsp</span>), <span style="color:#268bd2">%sil</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movb</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%al</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">call</span> <span style="color:#cb4b16">_printf</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">leaq</span> <span style="color:#cb4b16">_answer</span>(<span style="color:#268bd2">%rip</span>), <span style="color:#268bd2">%rdi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movq</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%rsi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movb</span> <span style="color:#2aa198">1</span>(<span style="color:#268bd2">%rsp</span>), <span style="color:#268bd2">%sil</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movb</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%al</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">call</span> <span style="color:#cb4b16">_printf</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">addq</span> <span style="color:#cb4b16">$16</span>, <span style="color:#268bd2">%rsp</span> <span style="color:#586e75"># clean up stack
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movq</span> <span style="color:#cb4b16">$0</span>, <span style="color:#268bd2">%rdi</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">call</span> <span style="color:#cb4b16">_exit</span>
+your data segment (sbrk).</p><p><img src=/images/stack.png alt=stack>
+<a href=http://mcfunley.com/the-debugger-extension-part-6-scanning-threads target=_blank rel=noopener>credit</a></p><p>Let&rsquo;s say we want to call something like memset, which from <code>man memset</code> we can
+see takes an address, a value to fill, and a number of bytes to fill. The
+equivalent of say this C code:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;stdio.h&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;string.h&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;inttypes.h&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span> () {
+</span></span><span style=display:flex><span>  <span style=color:#dc322f>int8_t</span> array [<span style=color:#2aa198>16</span>];
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>memset</span>(<span style=color:#719e07>&amp;</span>array, <span style=color:#2aa198>42</span>, <span style=color:#2aa198>16</span>);
+</span></span><span style=display:flex><span>  <span style=color:#dc322f>int8_t</span><span style=color:#719e07>*</span> ptr <span style=color:#719e07>=</span> array;
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;Current byte: %&#34;</span> PRId8 <span style=color:#2aa198>&#34;</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, <span style=color:#719e07>*</span>ptr);
+</span></span><span style=display:flex><span>  <span style=color:#719e07>++</span>(<span style=color:#719e07>*</span>ptr);
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;Current byte: %&#34;</span> PRId8 <span style=color:#2aa198>&#34;</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, <span style=color:#719e07>*</span>ptr);
+</span></span><span style=display:flex><span>  <span style=color:#719e07>++</span>ptr;
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;Current byte: %&#34;</span> PRId8 <span style=color:#2aa198>&#34;</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, <span style=color:#719e07>*</span>ptr);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Well, that might look like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-gas data-lang=gas><span style=display:flex><span>.data
+</span></span><span style=display:flex><span>_answer:
+</span></span><span style=display:flex><span>  .asciz <span style=color:#2aa198>&#34;Current byte: %d\n&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>.text
+</span></span><span style=display:flex><span>.globl <span style=color:#cb4b16>_main</span>
+</span></span><span style=display:flex><span>_main:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>subq</span> <span style=color:#cb4b16>$8</span>, <span style=color:#268bd2>%rsp</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>subq</span> <span style=color:#cb4b16>$16</span>, <span style=color:#268bd2>%rsp</span> <span style=color:#586e75># allocate 16B
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>leaq</span> (<span style=color:#268bd2>%rsp</span>), <span style=color:#268bd2>%rdi</span> <span style=color:#586e75># first arg, &amp;array
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>movq</span> <span style=color:#cb4b16>$42</span>, <span style=color:#268bd2>%rsi</span> <span style=color:#586e75># second arg, 42
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>movq</span> <span style=color:#cb4b16>$16</span>, <span style=color:#268bd2>%rdx</span>, <span style=color:#586e75># third arg, 16B
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>call</span> <span style=color:#cb4b16>_memset</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>leaq</span> <span style=color:#cb4b16>_answer</span>(<span style=color:#268bd2>%rip</span>), <span style=color:#268bd2>%rdi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movq</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%rsi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movb</span> (<span style=color:#268bd2>%rsp</span>), <span style=color:#268bd2>%sil</span> <span style=color:#586e75># these two are equavlent to movzql (%rsp), %esi
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>movb</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%al</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>call</span> <span style=color:#cb4b16>_printf</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>incq</span> (<span style=color:#268bd2>%rsp</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>leaq</span> <span style=color:#cb4b16>_answer</span>(<span style=color:#268bd2>%rip</span>), <span style=color:#268bd2>%rdi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movq</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%rsi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movb</span> (<span style=color:#268bd2>%rsp</span>), <span style=color:#268bd2>%sil</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movb</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%al</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>call</span> <span style=color:#cb4b16>_printf</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>leaq</span> <span style=color:#cb4b16>_answer</span>(<span style=color:#268bd2>%rip</span>), <span style=color:#268bd2>%rdi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movq</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%rsi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movb</span> <span style=color:#2aa198>1</span>(<span style=color:#268bd2>%rsp</span>), <span style=color:#268bd2>%sil</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movb</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%al</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>call</span> <span style=color:#cb4b16>_printf</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>addq</span> <span style=color:#cb4b16>$16</span>, <span style=color:#268bd2>%rsp</span> <span style=color:#586e75># clean up stack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movq</span> <span style=color:#cb4b16>$0</span>, <span style=color:#268bd2>%rdi</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>call</span> <span style=color:#cb4b16>_exit</span>
 </span></span></code></pre></div><p>This isn&rsquo;t a perfect example because I&rsquo;m not allocating space for the ptr on the
-stack.  Instead, I&rsquo;m using the %rsp register to keep track of the address I&rsquo;m
-working with.</p>
-<p>What we&rsquo;re doing is allocating 16B on the stack.  Remember we need to keep %rsp
-aligned on 16B boundaries, making it a multiple of 16B.  If we needed a non 16B
+stack. Instead, I&rsquo;m using the %rsp register to keep track of the address I&rsquo;m
+working with.</p><p>What we&rsquo;re doing is allocating 16B on the stack. Remember we need to keep %rsp
+aligned on 16B boundaries, making it a multiple of 16B. If we needed a non 16B
 multiple, we could allocate more than needed on the stack, and then do some
-arithmetic later when access our automatic variables.</p>
-<p>For memset, we need to pass the address of our first argument.  In x86-64, the
+arithmetic later when access our automatic variables.</p><p>For memset, we need to pass the address of our first argument. In x86-64, the
 stack grows downwards, but our variables &ldquo;point&rdquo; upwards, so %rsp and the higher
 16B is the memory addresses of our array, with %rsp currently pointing to the
-front.  The rest you should recognize by now as part of the calling convention.</p>
-<p>In the next grouping of instructions, we want to verify that memset set every
-byte to 42 (0x2A).  So what we&rsquo;ll do is copy the first byte from our array,
-currently pointed to by %rsp, to the lower 8b of %rsi which is named %sil.  It&rsquo;s
+front. The rest you should recognize by now as part of the calling convention.</p><p>In the next grouping of instructions, we want to verify that memset set every
+byte to 42 (0x2A). So what we&rsquo;ll do is copy the first byte from our array,
+currently pointed to by %rsp, to the lower 8b of %rsi which is named %sil. It&rsquo;s
 important to zero out the 64b contents of %rsi first, since it may have been
-clobbered by our previous call to memset.</p>
-<p>Then we dereference and increment the value pointed to by our array pointer,
-<code>++(*ptr)</code> or <code>++array[0]</code>.  Now <code>array[0]</code> is <code>43</code>, not <code>42</code>.</p>
-<p>In the next grouping of instructions, we print the second byte of our array,
-<code>array[1]</code>, and get <code>42</code> from memset.  Now we could try to increment the stack
+clobbered by our previous call to memset.</p><p>Then we dereference and increment the value pointed to by our array pointer,
+<code>++(*ptr)</code> or <code>++array[0]</code>. Now <code>array[0]</code> is <code>43</code>, not <code>42</code>.</p><p>In the next grouping of instructions, we print the second byte of our array,
+<code>array[1]</code>, and get <code>42</code> from memset. Now we could try to increment the stack
 pointer itself by one, but then the call to printf will fail, so instead when we
 load the value of <code>array[1]</code>, we do some pointer arithmetic
-<code> movb 1(%rsp), %sil</code>.
+<code>movb 1(%rsp), %sil</code>.
 This is relative addressing, though you&rsquo;ve already seen this with loading the
-strings.  You might wonder why I&rsquo;m not loading the byte in the other
-&ldquo;direction,&rdquo; say <code>movb -1(%rsp), %sil</code>.  Well, that goes back to my point that
+strings. You might wonder why I&rsquo;m not loading the byte in the other
+&ldquo;direction,&rdquo; say <code>movb -1(%rsp), %sil</code>. Well, that goes back to my point that
 while the stack pointer moves down as we allocate automatic variables, their
-address and memory they take up &ldquo;points up.&rdquo;</p>
-<p>Finally, we clean up our automatic variable&rsquo;s allocated space on the stack.
-Note that we do not zero out that memory.  A preceding function call might
+address and memory they take up &ldquo;points up.&rdquo;</p><p>Finally, we clean up our automatic variable&rsquo;s allocated space on the stack.
+Note that we do not zero out that memory. A preceding function call might
 overwrite that data on the stack, but until it does or unless we explicitly zero
-it out, a buffer overrun could accidentally read that data a la Heartbleed.</p>
-<p>Now I did promise I would talk about why the stack pointer is misaligned by 8
-bytes on function entry.  That is because unoptimized functions typically have a
-function prolog and epilog.  Typically, besides creating
+it out, a buffer overrun could accidentally read that data a la Heartbleed.</p><p>Now I did promise I would talk about why the stack pointer is misaligned by 8
+bytes on function entry. That is because unoptimized functions typically have a
+function prolog and epilog. Typically, besides creating
 room on the stack for automatic variables at the beginning of a function, we
-typically want to save the frame AKA base pointer, %rbp, on the stack.  Since
+typically want to save the frame AKA base pointer, %rbp, on the stack. Since
 %rbp is 64b or 8B and the push instruction will decrement the stack pointer by
-8b, this will align the misaligned stack to a 16B multiple.  So
-in function bodies, you&rsquo;ll typically see:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-gas" data-lang="gas"><span style="display:flex;"><span>my_func:
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">push</span> <span style="color:#268bd2">%rbp</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">movq</span> <span style="color:#268bd2">%rsp</span>, <span style="color:#268bd2">%rbp</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#586e75"># your code here...
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#268bd2">popq</span> <span style="color:#268bd2">%rbp</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">ret</span>
-</span></span></code></pre></div><p>
-<a href="http://www.yosefk.com/blog/getting-the-call-stack-without-a-frame-pointer.html" target="_blank" rel="noopener">This great article</a>
+8b, this will align the misaligned stack to a 16B multiple. So
+in function bodies, you&rsquo;ll typically see:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-gas data-lang=gas><span style=display:flex><span>my_func:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>push</span> <span style=color:#268bd2>%rbp</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>movq</span> <span style=color:#268bd2>%rsp</span>, <span style=color:#268bd2>%rbp</span>
+</span></span><span style=display:flex><span>  <span style=color:#586e75># your code here...
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>popq</span> <span style=color:#268bd2>%rbp</span>
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>ret</span>
+</span></span></code></pre></div><p><a href=http://www.yosefk.com/blog/getting-the-call-stack-without-a-frame-pointer.html target=_blank rel=noopener>This great article</a>
 explains that you may want to profile your running
 application, or look at the call stack in a debugger, and by having a linked
 list of stack frames of the function that invoked yours and it&rsquo;s caller and so
 on in a dedicated register makes it trivial to know the call stack at any given
-point in runtime.  Since we&rsquo;re always pushing %rbp immediately thereby saving it
+point in runtime. Since we&rsquo;re always pushing %rbp immediately thereby saving it
 on the stack and putting our stack pointer (%rsp) in the base pointer (%rbp)
 (later restoring it, %rbp is call saved), we can
 keep popping %rbp then moving our stack pointer to that value
 to see that quux was called by bar was called by foo
-(<code>foo(bar(quux()));</code>).  Now you saw that I was able to write code that clearly
+(<code>foo(bar(quux()));</code>). Now you saw that I was able to write code that clearly
 worked without the three additonal instructions in the prolog and epilog, and
 indeed that&rsquo;s what happens with <em>optimized</em> code emitted from your compiler.
 And since GDB uses something called DWARF (adds symbols to your objects)
-anyways, it isn&rsquo;t a huge issue to remove the prolog and epilog.</p>
-<p>So, I think I&rsquo;ve shown you enough to get started hand writing assembly.  To
+anyways, it isn&rsquo;t a huge issue to remove the prolog and epilog.</p><p>So, I think I&rsquo;ve shown you enough to get started hand writing assembly. To
 learn more, you should write the higher level C code for what you&rsquo;re trying to
 do and then
-
-<a href="http://www.expobrain.net/2013/06/16/disassembly-c-code-for-fun-part-1/" target="_blank" rel="noopener">study the emitted assembly</a>
-by compiling with the -S flag.  With
+<a href=http://www.expobrain.net/2013/06/16/disassembly-c-code-for-fun-part-1/ target=_blank rel=noopener>study the emitted assembly</a>
+by compiling with the -S flag. With
 clang, you&rsquo;ll probably see a bunch of stack check guards for each frame, but
-those just prevent stack buffer overflows.  Try compiling simple conditionals
+those just prevent stack buffer overflows. Try compiling simple conditionals
 (jump forwards), then simple loops (jump backwards) without optimizations.
 Jumping to sections and calling your own functions should be pretty
-easy to figure out.  Hint: don&rsquo;t duplicate section names, but the assembler will
-catch this and warn you pretty explicitly.</p>
-<p>Don&rsquo;t let people discourage from learning assembly because &ldquo;compilers will
-always beat you.&rdquo;  &ldquo;Just use LLVM or libjit or whatever for codegen.&rdquo;  Well,
-existing solutions aren&rsquo;t perfect solutions in every scenario.  Someday you
+easy to figure out. Hint: don&rsquo;t duplicate section names, but the assembler will
+catch this and warn you pretty explicitly.</p><p>Don&rsquo;t let people discourage from learning assembly because &ldquo;compilers will
+always beat you.&rdquo; &ldquo;Just use LLVM or libjit or whatever for codegen.&rdquo; Well,
+existing solutions aren&rsquo;t perfect solutions in every scenario. Someday you
 might be tasked with doing codegen because LLVM is not optimal under certain
-constraints.  You&rsquo;ll never know if
+constraints. You&rsquo;ll never know if
 you can beat them unless you try; those most comfortable are those most
 vulnerable.
 I&rsquo;m afraid that if enough people are turned away from
 learning the lower levels of programming because the higher level is
 unquestionably
 better, then assembly will ultimately be forgotten and the computer becomes a
-black box again.  This is something that troubles me and that I see occurring
+black box again. This is something that troubles me and that I see occurring
 around me frequently; a lot of devs new to web
-development conflate jquery with JavaScript, and Three.js with WebGL.  If you&rsquo;re
+development conflate jquery with JavaScript, and Three.js with WebGL. If you&rsquo;re
 around the Bay Area, I&rsquo;ll be giving a talk at
-
-<a href="http://html5devconf.com/" target="_blank" rel="noopener">HTML5DevConf</a>
-on May 22 demystifying Raw WebGL.  You should come and check it out.</p>
-<p>In summary, remember:</p>
-<ul>
-<li>The stack pointer needs to be aligned by 16B multiples when calling another function.</li>
-<li>Calling convention dictates passing arguments in %rdi, %rsi, %rdx, %rcx, %r8, %r9, then stack.</li>
-<li>%al needs the number of vector arguments for variadic functions.</li>
-<li>Know which registers are call saved (%rbx, %rsp, %rbp, and %r12-%r15 (and some others)) and call clobbered.</li>
-</ul>
-<p>Closing thoughts by Dan:</p>
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  
-  
-
-
-
-
-
-  
-
-
-<blockquote>
-  <p><p>To me, machine code doesn&rsquo;t feel analogous to this concept of the divine name. I certainly wouldn&rsquo;t describe it as &ldquo;like a flawless glass; a light of total understanding streamed through it&rdquo;. Even if you strip away all the accidental complexity, machine code is still permeated by mundane implementation-oriented concerns. Also, the abstractions which we use to organize and &ldquo;understand&rdquo; the program are gone; information is lost.</p>
-<p>My imagination of a divine language looks a lot more like an idealized and cleaned-up LISP. It&rsquo;d be capable of representing all known means of abstraction and combination (in the SICP sense), it might be thought of as a kind of super-language of which all of our real-world languages are just messy subsets.</p>
-</p>
-  <footer>
-    <strong>Dan Gohman</strong>
-    
-      
-        
-      
-    
-  </footer>
-</blockquote>
-
-
-        </div>
-        
-
-<footer>
-  <p class="meta">
-    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-    
-    <time>Apr 18, 2014</time>
-    
-    </span>
-  </p>
-
-  
-
-  <p class="meta">
-    
-        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/" title="Write a Test Case">Write a Test Case</a>
-    
-
-    
-      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/" title="Writing My First Technical Book Chapter">Writing My First Technical Book Chapter</a>
-    
-  </p>
-  
-    
-      <div id="disqus_thread"></div>
-<script type="application/javascript">
-    window.disqus_config = function () {
-    
-    
-    
-    };
-    (function() {
-        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
-            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
-            return;
-        }
-        var d = document, s = d.createElement('script'); s.async = true;
-        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-    
-  
-</footer>
-
-      </article>
-    </div>
-    
-
-<aside class="sidebar thirds">
-  <section class="first odd">
-
-    
-
-    <p>
-      
-    </p>
-  </section>
-
-  
-  
-
-
-
-<ul class="sidebar-nav">
-  <li class="sidebar-nav-item">
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
-    
-    
-    
-    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
-    
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
-    
-    
-
-  
-  
-  </li>
-</ul>
-
-  
-
-  
-
-  
-  
-  
-    
-      <section class="even">
-        <h1>Recent Posts</h1>
-        <ul id="recent_posts">
-          
-          
-            
-              <li class="post">
-                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-              </li>
-            
-          
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-              </li>
-            
-          
-        </ul>
-      </section>
-    
-  
-</aside>
-
-  </div>
-</div>
-
-    <footer role="contentinfo">
-      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
-        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
-      </p>
-    </footer>
-
-    
-    
-
-
-
-    
-    
-    
-
-    
-      <script>
-        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
-        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-        s.parentNode.insertBefore(g,s)}(document,'script'));
-      </script>
-    
-  </body>
-</html>
-
+<a href=http://html5devconf.com/ target=_blank rel=noopener>HTML5DevConf</a>
+on May 22 demystifying Raw WebGL. You should come and check it out.</p><p>In summary, remember:</p><ul><li>The stack pointer needs to be aligned by 16B multiples when calling another function.</li><li>Calling convention dictates passing arguments in %rdi, %rsi, %rdx, %rcx, %r8, %r9, then stack.</li><li>%al needs the number of vector arguments for variadic functions.</li><li>Know which registers are call saved (%rbx, %rsp, %rbp, and %r12-%r15 (and some others)) and call clobbered.</li></ul><p>Closing thoughts by Dan:</p><blockquote><p><p>To me, machine code doesn&rsquo;t feel analogous to this concept of the divine name. I certainly wouldn&rsquo;t describe it as &ldquo;like a flawless glass; a light of total understanding streamed through it&rdquo;. Even if you strip away all the accidental complexity, machine code is still permeated by mundane implementation-oriented concerns. Also, the abstractions which we use to organize and &ldquo;understand&rdquo; the program are gone; information is lost.</p><p>My imagination of a divine language looks a lot more like an idealized and cleaned-up LISP. It&rsquo;d be capable of representing all known means of abstraction and combination (in the SICP sense), it might be thought of as a kind of super-language of which all of our real-world languages are just messy subsets.</p></p><footer><strong>Dan Gohman</strong></footer></blockquote></div><footer><p class=meta><span class="byline author vcard">Posted by <span class=fn>Nick Desaulniers</span></span>
+<time>Apr 18, 2014</time></span></p><p class=meta><a class="basic-alignment left" href=https://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/ title="Write a Test Case">Write a Test Case</a>
+<a class="basic-alignment right" href=https://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/ title="Writing My First Technical Book Chapter">Writing My First Technical Book Chapter</a></p><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//wangstabill.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></footer></article></div><aside class="sidebar thirds"><section class="first odd"><p></p></section><ul class=sidebar-nav><li class=sidebar-nav-item><a target=_blank rel="noopener noreferrer" href=https://github.com/nickdesaulniers title=https://github.com/nickdesaulniers><i class="fa fa-github fa-3x"></i></a>
+<a target=_blank rel="me noopener noreferrer" href=https://fosstodon.org/@llvm title=https://fosstodon.org/@llvm><i class="fa fa-mastodon fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.linkedin.com/in/nick-desaulniers-75520334 title=https://www.linkedin.com/in/nick-desaulniers-75520334><i class="fa fa-linkedin fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ title=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ><i class="fa fa-youtube fa-3x"></i></a></li></ul><section class=even><h1>Recent Posts</h1><ul id=recent_posts><li class=post><a href=/blog/2020/04/06/off-by-two/>Off by Two</a></li><li class=post><a href=/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/>f() vs f(void) in C vs C++</a></li><li class=post><a href=/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/>Finding Compiler Bugs With C-Reduce</a></li><li class=post><a href=/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a></li></ul></section></aside></div></div><footer role=contentinfo><p>Copyright &copy; 2023 Nick Desaulniers - <a href=https://nickdesaulniers.github.io/license/>License</a> -
+<span class=credit>Powered by <a target=_blank href=https://gohugo.io rel="noopener noreferrer">Hugo</a> and <a target=_blank href=https://github.com/parsiya/hugo-octopress/ rel="noopener noreferrer">Hugo-Octopress</a> theme.</p></footer><script>var _gaq=[["_setAccount","UA-36993986-1"],["_trackPageview"]];(function(e,t){var n=e.createElement(t),s=e.getElementsByTagName(t)[0];n.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js",s.parentNode.insertBefore(n,s)})(document,"script")</script></body></html>

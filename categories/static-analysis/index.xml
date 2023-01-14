@@ -1,21 +1,2 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>static analysis on Nick Desaulniers</title>
-    <link>https://nickdesaulniers.github.io/categories/static-analysis/</link>
-    <description>Recent content in static analysis on Nick Desaulniers</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Wed, 31 May 2017 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/static-analysis/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Running Clang-Tidy on the Linux Kernel</title>
-      <link>https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/</link>
-      <pubDate>Wed, 31 May 2017 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/</guid>
-      <description>Clang-Tidy is a linter from the LLVM ecosystem. I wanted to try to run it on the Linux kernel to see what kind of bugs it would find. The false positive rate seems pretty high (a persistent bane to static analysis), but some patching in both the tooling and the source can likely help bring this rate down.
-The most straightforward way to invoke Clang-Tidy is with a compilation database, which is a json based file that for each translation unit records</description>
-    </item>
-    
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>static analysis on Nick Desaulniers</title><link>https://nickdesaulniers.github.io/categories/static-analysis/</link><description>Recent content in static analysis on Nick Desaulniers</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 31 May 2017 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/static-analysis/index.xml" rel="self" type="application/rss+xml"/><item><title>Running Clang-Tidy on the Linux Kernel</title><link>https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/</link><pubDate>Wed, 31 May 2017 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/</guid><description>Clang-Tidy is a linter from the LLVM ecosystem. I wanted to try to run it on the Linux kernel to see what kind of bugs it would find. The false positive rate seems pretty high (a persistent bane to static analysis), but some patching in both the tooling and the source can likely help bring this rate down.
+The most straightforward way to invoke Clang-Tidy is with a compilation database, which is a json based file that for each translation unit records</description></item></channel></rss>

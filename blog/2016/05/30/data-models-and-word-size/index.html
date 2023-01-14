@@ -1,507 +1,101 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-  
-  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-
-  
-    
-    
-      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
-    
-  
-
-  
-  <title>Data Models and Word Size</title>
-
-  
-  
-  <link rel="stylesheet" href="/css/hugo-octopress.css">
-
-  
-  
-    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
-  
-
-  
-    <link rel="stylesheet" href="/css/fork-awesome.min.css">
-  
-
-  
-  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
-
-  
-  
-
-  <meta name="description" content="" />
-  <meta name="keywords" content="">
-  <meta name="author" content="Nick Desaulniers">
-
-  
-  <meta name="generator" content="Hugo 0.109.0">
-
-  
-  
-
-  
-  
-
-  
-  
-
-
-
-</head>
-<body>
-
-
-<header role="banner">
-<hgroup>
-  
-  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
-    <h2>The enemy&#39;s gate is down</h2>
-</hgroup></header>
-
-
-<nav role="navigation">
-<fieldset class="mobile-nav">
-  
-  <select onchange="location = this.value;">
-    <option value="">Navigate…</option>
-      
-        <option value="https://nickdesaulniers.github.io/about/">» About</option>
-      
-        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
-      
-        <option value="https://nickdesaulniers.github.io/">» Blog</option>
-      
-        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
-      
-        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
-      
-  </select>
-</fieldset>
-
-
-<ul class="main-navigation">
-  
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
-    
-  
-</ul>
-
-<ul class="subscription">
-  
-    
-        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
-    
-  
-</ul>
-
-
-  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
-    <fieldset role="search">
-      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
-    </fieldset>
-  </form>
-
-</nav>
-
-
-<div id="main">
-  <div id="content">
-    <div>
-      <article class="hentry" role="article">
-
-        
-        
-
-<header>
-  <p class="meta">May 30, 2016
-     - 6 minute read 
-     - <a href="https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/#disqus_thread">Comments</a>
-
-    
-    
-      - <a class="label" href="https://nickdesaulniers.github.io/categories/c/">C </a><a class="label" href="https://nickdesaulniers.github.io/categories/data-model/">data model </a>
-    
-  </p>
-  <h1 class="entry-title">
-     Data Models and Word Size 
-  </h1>
-</header>
-
-
-        <div class="entry-content">
-          
-          
-          
-          <p><em>This post is a follow up to
-
-<a href="/blog/2016/05/15/whats-in-a-word/">my previous blog post about word size</a>.</em></p>
-<p>Three C/C++ programmers walk into a bar.  One argues that sizeof(void*) is
+<!doctype html><html xmlns=http://www.w3.org/1999/xhtml xml:lang=en lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,minimum-scale=1,maximum-scale=1"><link href=/css/fonts.css rel=stylesheet type=text/css><title>Data Models and Word Size</title><link rel=stylesheet href=/css/hugo-octopress.css><link rel=stylesheet href=https://nickdesaulniers.github.io/css/custom.css><link rel=stylesheet href=/css/fork-awesome.min.css><link href=https://nickdesaulniers.github.io/favicon.png rel=icon><meta name=description content><meta name=keywords content><meta name=author content="Nick Desaulniers"><meta name=generator content="Hugo 0.109.0"></head><body><header role=banner><hgroup><h1><a href=https://nickdesaulniers.github.io/>Nick Desaulniers</a></h1><h2>The enemy's gate is down</h2></hgroup></header><nav role=navigation><fieldset class=mobile-nav><select onchange="location=this.value"><option value>Navigate…</option><option value=https://nickdesaulniers.github.io/about/>» About</option><option value=https://nickdesaulniers.github.io/blog/archives/>» Archives</option><option value=https://nickdesaulniers.github.io/>» Blog</option><option value=https://nickdesaulniers.github.io/publications/>» Publications</option><option value=https://nickdesaulniers.github.io/talks/>» Talks</option></select></fieldset><ul class=main-navigation><li><a href=https://nickdesaulniers.github.io/about/ title=About rel="noopener noreferrer">About</a></li><li><a href=https://nickdesaulniers.github.io/blog/archives/ title=Archives rel="noopener noreferrer">Archives</a></li><li><a href=https://nickdesaulniers.github.io/ title=Blog>Blog</a></li><li><a href=https://nickdesaulniers.github.io/publications/ title=Publications rel="noopener noreferrer">Publications</a></li><li><a href=https://nickdesaulniers.github.io/talks/ title=Talks rel="noopener noreferrer">Talks</a></li></ul><ul class=subscription><a href=https://nickdesaulniers.github.io/index.xml target=_blank type=application/rss+xml title=RSS rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a></ul><form action=https://www.google.com/search method=get target=_blank rel="noopener noreferrer"><fieldset role=search><input class=search type=text name=q results=0 placeholder=Search>
+<input type=hidden name=q value=site:https://nickdesaulniers.github.io/></fieldset></form></nav><div id=main><div id=content><div><article class=hentry role=article><header><p class=meta>May 30, 2016
+- 6 minute read
+- <a href=https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/#disqus_thread>Comments</a>
+- <a class=label href=https://nickdesaulniers.github.io/categories/c/>C </a><a class=label href=https://nickdesaulniers.github.io/categories/data-model/>data model</a></p><h1 class=entry-title>Data Models and Word Size</h1></header><div class=entry-content><p><em>This post is a follow up to
+<a href=/blog/2016/05/15/whats-in-a-word/>my previous blog post about word size</a>.</em></p><p>Three C/C++ programmers walk into a bar. One argues that sizeof(void*) is
 equivalent to sizeof(long), one argues that sizeof(void*) is equivalent to
-sizeof(int), and the third argues it’s sizeof(long long).  Simultaneously,
+sizeof(int), and the third argues it’s sizeof(long long). Simultaneously,
 they’re all right, but they’re also all wrong (and need a lesson about portable
-C code).  What the hell is going on?</p>
-<p>One of the first few programs a programmer might write after hello world is
-something like this:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#719e07">#include</span> <span style="color:#719e07">&lt;stdio.h&gt;</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07"></span><span style="color:#dc322f">int</span> <span style="color:#268bd2">main</span> () {
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">printf</span>(<span style="color:#2aa198">&#34;sizeof(int): %zu</span><span style="color:#cb4b16">\n</span><span style="color:#2aa198">&#34;</span>, <span style="color:#719e07">sizeof</span>(<span style="color:#dc322f">int</span>));
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">printf</span>(<span style="color:#2aa198">&#34;sizeof(long): %zu</span><span style="color:#cb4b16">\n</span><span style="color:#2aa198">&#34;</span>, <span style="color:#719e07">sizeof</span>(<span style="color:#dc322f">long</span>));
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">printf</span>(<span style="color:#2aa198">&#34;sizeof(long long): %zu</span><span style="color:#cb4b16">\n</span><span style="color:#2aa198">&#34;</span>, <span style="color:#719e07">sizeof</span>(<span style="color:#dc322f">long</span> <span style="color:#dc322f">long</span>));
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">printf</span>(<span style="color:#2aa198">&#34;sizeof(void*): %zu</span><span style="color:#cb4b16">\n</span><span style="color:#2aa198">&#34;</span>, <span style="color:#719e07">sizeof</span>(<span style="color:#dc322f">void</span><span style="color:#719e07">*</span>));
-</span></span><span style="display:flex;"><span>}
+C code). What the hell is going on?</p><p>One of the first few programs a programmer might write after hello world is
+something like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;stdio.h&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span> () {
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;sizeof(int): %zu</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, <span style=color:#719e07>sizeof</span>(<span style=color:#dc322f>int</span>));
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;sizeof(long): %zu</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, <span style=color:#719e07>sizeof</span>(<span style=color:#dc322f>long</span>));
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;sizeof(long long): %zu</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, <span style=color:#719e07>sizeof</span>(<span style=color:#dc322f>long</span> <span style=color:#dc322f>long</span>));
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;sizeof(void*): %zu</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, <span style=color:#719e07>sizeof</span>(<span style=color:#dc322f>void</span><span style=color:#719e07>*</span>));
+</span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p><em>Note the use of the %zu format specifier, a C99 addition that isn’t portable to
-older compilers!  (This post is more about considerations when porting older
+older compilers! (This post is more about considerations when porting older
 code to newer machines, not about porting newer code to run on older machines.
 Not having a standards compliant C compiler makes writing more portable C code
-even trickier, and is a subject for another blog post).</em></p>
-<p>When I run that code on my x86-64 OSX machine, I get the following output:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sizeof<span style="color:#719e07">(</span>int<span style="color:#719e07">)</span>: <span style="color:#2aa198">4</span>
-</span></span><span style="display:flex;"><span>sizeof<span style="color:#719e07">(</span>long<span style="color:#719e07">)</span>: <span style="color:#2aa198">8</span>
-</span></span><span style="display:flex;"><span>sizeof<span style="color:#719e07">(</span>long long<span style="color:#719e07">)</span>: <span style="color:#2aa198">8</span>
-</span></span><span style="display:flex;"><span>sizeof<span style="color:#719e07">(</span>void*<span style="color:#719e07">)</span>: <span style="color:#2aa198">8</span>
+even trickier, and is a subject for another blog post).</em></p><p>When I run that code on my x86-64 OSX machine, I get the following output:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>sizeof<span style=color:#719e07>(</span>int<span style=color:#719e07>)</span>: <span style=color:#2aa198>4</span>
+</span></span><span style=display:flex><span>sizeof<span style=color:#719e07>(</span>long<span style=color:#719e07>)</span>: <span style=color:#2aa198>8</span>
+</span></span><span style=display:flex><span>sizeof<span style=color:#719e07>(</span>long long<span style=color:#719e07>)</span>: <span style=color:#2aa198>8</span>
+</span></span><span style=display:flex><span>sizeof<span style=color:#719e07>(</span>void*<span style=color:#719e07>)</span>: <span style=color:#2aa198>8</span>
 </span></span></code></pre></div><p>So it looks like I would be the first programmer in the story in the first
 paragraph, since on my machine, it looks like sizeof(long) == sizeof(void*).
-Also note how sizeof(long long) is equivalent as well.</p>
-<p>But what would happen if I compiled my code on a 32 bit machine?  Luckily, my
+Also note how sizeof(long long) is equivalent as well.</p><p>But what would happen if I compiled my code on a 32 bit machine? Luckily, my
 processor has backwards compatibility with 32b binaries, so I can cross compile
-it locally and still run it. Ex:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>➜  clang sizeof.c -Wall -Wextra -Wpedantic
-</span></span><span style="display:flex;"><span>➜  file a.out
-</span></span><span style="display:flex;"><span>a.out: Mach-O 64-bit executable x86_64
-</span></span><span style="display:flex;"><span>➜  clang sizeof.c -Wall -Wextra -Wpedantic -m32
-</span></span><span style="display:flex;"><span>➜  file a.out
-</span></span><span style="display:flex;"><span>a.out: Mach-O executable i386
-</span></span><span style="display:flex;"><span>➜  ./a.out
-</span></span><span style="display:flex;"><span>sizeof<span style="color:#719e07">(</span>int<span style="color:#719e07">)</span>: <span style="color:#2aa198">4</span>
-</span></span><span style="display:flex;"><span>sizeof<span style="color:#719e07">(</span>long<span style="color:#719e07">)</span>: <span style="color:#2aa198">4</span>
-</span></span><span style="display:flex;"><span>sizeof<span style="color:#719e07">(</span>long long<span style="color:#719e07">)</span>: <span style="color:#2aa198">8</span>
-</span></span><span style="display:flex;"><span>sizeof<span style="color:#719e07">(</span>void*<span style="color:#719e07">)</span>: <span style="color:#2aa198">4</span>
-</span></span></code></pre></div><p>Huh, suddenly sizeof(void*) == sizeof(int) == sizeof(long)!  This seems
-to be the case of the second programmer from the story.</p>
-<p>Both programmer 1 and programmer 2 might agree that the size of a pointer is
+it locally and still run it. Ex:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>➜  clang sizeof.c -Wall -Wextra -Wpedantic
+</span></span><span style=display:flex><span>➜  file a.out
+</span></span><span style=display:flex><span>a.out: Mach-O 64-bit executable x86_64
+</span></span><span style=display:flex><span>➜  clang sizeof.c -Wall -Wextra -Wpedantic -m32
+</span></span><span style=display:flex><span>➜  file a.out
+</span></span><span style=display:flex><span>a.out: Mach-O executable i386
+</span></span><span style=display:flex><span>➜  ./a.out
+</span></span><span style=display:flex><span>sizeof<span style=color:#719e07>(</span>int<span style=color:#719e07>)</span>: <span style=color:#2aa198>4</span>
+</span></span><span style=display:flex><span>sizeof<span style=color:#719e07>(</span>long<span style=color:#719e07>)</span>: <span style=color:#2aa198>4</span>
+</span></span><span style=display:flex><span>sizeof<span style=color:#719e07>(</span>long long<span style=color:#719e07>)</span>: <span style=color:#2aa198>8</span>
+</span></span><span style=display:flex><span>sizeof<span style=color:#719e07>(</span>void*<span style=color:#719e07>)</span>: <span style=color:#2aa198>4</span>
+</span></span></code></pre></div><p>Huh, suddenly sizeof(void*) == sizeof(int) == sizeof(long)! This seems
+to be the case of the second programmer from the story.</p><p>Both programmer 1 and programmer 2 might agree that the size of a pointer is
 equivalent to their machine’s respective
-
-<a href="/blog/2016/05/15/whats-in-a-word/">word size</a>,
-but that too would be an incorrect assumption for portable C/C++ code!</p>
-<p>Programmer 3 goes through the hellscape that is installing a working compiler
+<a href=/blog/2016/05/15/whats-in-a-word/>word size</a>,
+but that too would be an incorrect assumption for portable C/C++ code!</p><p>Programmer 3 goes through the hellscape that is installing a working compiler
 for Windows and building a 64b command line application (to be fair, installing
 command line tools for OSX is worse; installing a compiler for most OS’ leaves
-much to be desired).  When they run that program, they see:</p>
-<pre tabindex="0"><code>sizeof(int): 4
+much to be desired). When they run that program, they see:</p><pre tabindex=0><code>sizeof(int): 4
 sizeof(long): 4
 sizeof(long long): 8
 sizeof(void*): 8
-</code></pre><p>This is yet a third case (the third programmer from the story).  In this case,
-only sizeof(long long) is equivalent to sizeof(void*).</p>
-<h3 id="data-models">Data Models</h3>
-<p>What these programmers are seeing is known as data models.  Programmer 1 one on
+</code></pre><p>This is yet a third case (the third programmer from the story). In this case,
+only sizeof(long long) is equivalent to sizeof(void*).</p><h3 id=data-models>Data Models</h3><p>What these programmers are seeing is known as data models. Programmer 1 one on
 a 64b x86-64 OSX machine had an LP64 data model where longs (L), (larger long
-longs,) and pointers (P) are 64b, but ints were 32b.  Programmer 2 on a 32b x86
+longs,) and pointers (P) are 64b, but ints were 32b. Programmer 2 on a 32b x86
 OSX machine had an ILP32 data model where ints (I), longs (L), and pointers (P)
-were 32b, but long longs were 64b.  Programmer 3 on a 64b x86-64 Windows
+were 32b, but long longs were 64b. Programmer 3 on a 64b x86-64 Windows
 machine had a LLP64 data model, where only long longs (LL) and pointers (P)
-were 64b, ints and longs being 32b.</p>
-<table>
-<thead>
-<tr>
-<th><strong>Data model</strong></th>
-<th><strong>sizeof(int)</strong></th>
-<th><strong>sizeof(long)</strong></th>
-<th><strong>sizeof(long long)</strong></th>
-<th><strong>sizeof(void*)</strong></th>
-<th><strong>example</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>ILP32</td>
-<td>32b</td>
-<td>32b</td>
-<td>64b</td>
-<td>32b</td>
-<td>Win32, i386 OSX &amp; Linux</td>
-</tr>
-<tr>
-<td>LP64</td>
-<td>32b</td>
-<td>64b</td>
-<td>64b</td>
-<td>64b</td>
-<td>x86-64 OSX &amp; Linux</td>
-</tr>
-<tr>
-<td>LLP64</td>
-<td>32b</td>
-<td>32b</td>
-<td>64b</td>
-<td>64b</td>
-<td>Win64</td>
-</tr>
-</tbody>
-</table>
-<p>There are older data models such as LP32 (Windows 3.1, Macintosh, where ints
-are 16b), and more exotic ones like ILP64, and SILP64.  Knowing the data model
-thus is important for portable C/C++ code.</p>
-<h3 id="historical-perspective">Historical Perspective</h3>
-<p>Running out of address space is and will continue to be tradition in computing.
+were 64b, ints and longs being 32b.</p><table><thead><tr><th><strong>Data model</strong></th><th><strong>sizeof(int)</strong></th><th><strong>sizeof(long)</strong></th><th><strong>sizeof(long long)</strong></th><th><strong>sizeof(void*)</strong></th><th><strong>example</strong></th></tr></thead><tbody><tr><td>ILP32</td><td>32b</td><td>32b</td><td>64b</td><td>32b</td><td>Win32, i386 OSX & Linux</td></tr><tr><td>LP64</td><td>32b</td><td>64b</td><td>64b</td><td>64b</td><td>x86-64 OSX & Linux</td></tr><tr><td>LLP64</td><td>32b</td><td>32b</td><td>64b</td><td>64b</td><td>Win64</td></tr></tbody></table><p>There are older data models such as LP32 (Windows 3.1, Macintosh, where ints
+are 16b), and more exotic ones like ILP64, and SILP64. Knowing the data model
+thus is important for portable C/C++ code.</p><h3 id=historical-perspective>Historical Perspective</h3><p>Running out of address space is and will continue to be tradition in computing.
 Applications become bigger as computer power and memory gets cheaper.
 Companies want to sell chips that have larger word sizes to address more
 memory, but early adopters don’t want to buy a computer where there favorite
-application hasn’t been compiled and thus doesn’t exist on yet.  <strong>Someone from
-the back shouts <em>virtual machines</em> then ducks as a chair is thrown.</strong></p>
-<p>
-<a href="http://www.unix.org/version2/whatsnew/lp64_wp.html" target="_blank" rel="noopener">This document</a>
+application hasn’t been compiled and thus doesn’t exist on yet. <strong>Someone from
+the back shouts <em>virtual machines</em> then ducks as a chair is thrown.</strong></p><p><a href=http://www.unix.org/version2/whatsnew/lp64_wp.html target=_blank rel=noopener>This document</a>
 highlights some reasons why LP64 is preferred to ILP64: ILP64
 made portable C code that only needed 32b of precision harder to maintain (on
-ILP64 an int was 64b, but a short was 16b!).  It mentions how for data
+ILP64 an int was 64b, but a short was 16b!). It mentions how for data
 structures that did not contain pointers, their size would be the same on LLP64
-as ILP32, which is the direction Microsoft went.  LLP64 was essentially the
-ILP32 model with 64b pointers.</p>
-<p><em>Linux also supports an ABI called
-
-<a href="https://en.wikipedia.org/wiki/X32_ABI" target="_blank" rel="noopener">x32</a>
+as ILP32, which is the direction Microsoft went. LLP64 was essentially the
+ILP32 model with 64b pointers.</p><p><em>Linux also supports an ABI called
+<a href=https://en.wikipedia.org/wiki/X32_ABI target=_blank rel=noopener>x32</a>
 which can use x86-64 ISA improvements but uses 32b pointers to reduce the size
-of data structures that would otherwise have 64b pointers.</em></p>
-<p>For a great historical perspective on the evolution of word size and data
+of data structures that would otherwise have 64b pointers.</em></p><p>For a great historical perspective on the evolution of word size and data
 models, as well as the &ldquo;toil and trouble&rdquo; caused,
-
-<a href="https://queue.acm.org/detail.cfm?id=1165766" target="_blank" rel="noopener">this paper</a>
-was an excellent reference.  It describes Microsoft finally abandoning support
-for 16b data models in Windows XP 64.  It mentions that the industry was pretty
+<a href="https://queue.acm.org/detail.cfm?id=1165766" target=_blank rel=noopener>this paper</a>
+was an excellent reference. It describes Microsoft finally abandoning support
+for 16b data models in Windows XP 64. It mentions that the industry was pretty
 split between LP64, LLP64, and ILP64 as porting code from the good old days of
-ILP32 would break in different ways.  That the use of long was more prevalent
-in Windows applications vs the use of int in unix applications.  It also makes
+ILP32 would break in different ways. That the use of long was more prevalent
+in Windows applications vs the use of int in unix applications. It also makes
 the key point that a lot of programmers from the ILP32 era made assumptions
 that sizeof(int) == sizeof(long) == sizeof(void*) which would not hold true
-for the LP64/LLP64 era.</p>
-<p>One important point the paper makes makes that’s easily missed is that typedef
+for the LP64/LLP64 era.</p><p>One important point the paper makes makes that’s easily missed is that typedef
 wasn’t added to C until 1977 when hardware manufactures still couldn’t agree on
 how many bits were in a char (CHAR_BITS) and some machines were using 24b
-addressing schemes.  stdint.h and inttypes.h did not exist yet.</p>
-<p>
-<a href="/blog/2016/05/15/whats-in-a-word/">This article</a>
+addressing schemes. stdint.h and inttypes.h did not exist yet.</p><p><a href=/blog/2016/05/15/whats-in-a-word/>This article</a>
 talks about two main categories of effects of switching from ILP32 to LP64 and
-has excellent examples of problematic code.  That section near the end is worth
-the read alone and makes excellent points to look for during code review.</p>
-<h3 id="conclusion">Conclusion</h3>
-<p>Word size or ISA doesn’t tell you anything about sizeof(int), sizeof(long), or
-sizeof(long long).  We also saw that one machine can support multiple different
-data models (when I compiled and ran the same code with the -m32 flag).</p>
-<p>The C standard tells you minimum guaranteed sizes for these types, but the data
+has excellent examples of problematic code. That section near the end is worth
+the read alone and makes excellent points to look for during code review.</p><h3 id=conclusion>Conclusion</h3><p>Word size or ISA doesn’t tell you anything about sizeof(int), sizeof(long), or
+sizeof(long long). We also saw that one machine can support multiple different
+data models (when I compiled and ran the same code with the -m32 flag).</p><p>The C standard tells you minimum guaranteed sizes for these types, but the data
 model (part of the ABI, external to but abiding by the C standard) is what
-tells you about the specifics sizes of standard integers and pointers.</p>
-<h3 id="further-reading">Further Reading</h3>
-<ul>
-<li>
-<a href="http://www.unix.org/version2/whatsnew/lp64_wp.html" target="_blank" rel="noopener">64-Bit Programming Models: Why LP64?</a></li>
-<li>
-<a href="https://queue.acm.org/detail.cfm?id=1165766" target="_blank" rel="noopener">The Long Road to 64 Bits</a></li>
-<li>
-<a href="http://www.unix.org/whitepapers/64bit.html" target="_blank" rel="noopener">The UNIX System &ndash; 64bit and Data Size Neutrality</a></li>
-<li>
-<a href="https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models" target="_blank" rel="noopener">64-bit data models</a></li>
-<li>
-<a href="https://docs.oracle.com/cd/E19620-01/805-3024/lp64-1/index.html" target="_blank" rel="noopener">C Language Data Type Models: LP64 and ILP32</a></li>
-<li>
-<a href="https://blogs.oracle.com/nike/entry/ilp64_lp64_llp64" target="_blank" rel="noopener">ILP64, LP64, LLP64</a></li>
-<li>
-<a href="https://en.wikipedia.org/wiki/X32_ABI" target="_blank" rel="noopener">x32 ABI</a></li>
-<li>
-<a href="http://stackoverflow.com/a/9162072" target="_blank" rel="noopener">difference between stdint.h and inttypes.h</a></li>
-<li>
-<a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384083%28v=vs.85%29.aspx" target="_blank" rel="noopener">Abstract Data Models</a></li>
-<li>
-<a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384264%28v=vs.85%29.aspx" target="_blank" rel="noopener">The New Data Types</a></li>
-<li>
-<a href="http://stackoverflow.com/a/13413892" target="_blank" rel="noopener">Is there any reason not to use fixed width integer types (e.g. uint8_t)?</a></li>
-<li>
-<a href="https://blogs.msdn.microsoft.com/oldnewthing/20050131-00/?p=36563/" target="_blank" rel="noopener">Why did the Win64 team choose the LLP64 model?</a></li>
-</ul>
-
-        </div>
-        
-
-<footer>
-  <p class="meta">
-    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-    
-    <time>May 30, 2016</time>
-    
-    </span>
-  </p>
-
-  
-
-  <p class="meta">
-    
-        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/" title="What&#39;s in a Word?">What&#39;s in a Word?</a>
-    
-
-    
-      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/" title="Setting up mutt with gmail on Ubuntu">Setting up mutt with gmail on Ubuntu</a>
-    
-  </p>
-  
-    
-      <div id="disqus_thread"></div>
-<script type="application/javascript">
-    window.disqus_config = function () {
-    
-    
-    
-    };
-    (function() {
-        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
-            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
-            return;
-        }
-        var d = document, s = d.createElement('script'); s.async = true;
-        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-    
-  
-</footer>
-
-      </article>
-    </div>
-    
-
-<aside class="sidebar thirds">
-  <section class="first odd">
-
-    
-
-    <p>
-      
-    </p>
-  </section>
-
-  
-  
-
-
-
-<ul class="sidebar-nav">
-  <li class="sidebar-nav-item">
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
-    
-    
-    
-    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
-    
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
-    
-    
-
-  
-  
-  </li>
-</ul>
-
-  
-
-  
-
-  
-  
-  
-    
-      <section class="even">
-        <h1>Recent Posts</h1>
-        <ul id="recent_posts">
-          
-          
-            
-              <li class="post">
-                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-              </li>
-            
-          
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-              </li>
-            
-          
-        </ul>
-      </section>
-    
-  
-</aside>
-
-  </div>
-</div>
-
-    <footer role="contentinfo">
-      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
-        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
-      </p>
-    </footer>
-
-    
-    
-
-
-
-    
-    
-    
-
-    
-      <script>
-        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
-        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-        s.parentNode.insertBefore(g,s)}(document,'script'));
-      </script>
-    
-  </body>
-</html>
-
+tells you about the specifics sizes of standard integers and pointers.</p><h3 id=further-reading>Further Reading</h3><ul><li><a href=http://www.unix.org/version2/whatsnew/lp64_wp.html target=_blank rel=noopener>64-Bit Programming Models: Why LP64?</a></li><li><a href="https://queue.acm.org/detail.cfm?id=1165766" target=_blank rel=noopener>The Long Road to 64 Bits</a></li><li><a href=http://www.unix.org/whitepapers/64bit.html target=_blank rel=noopener>The UNIX System &ndash; 64bit and Data Size Neutrality</a></li><li><a href=https://en.wikipedia.org/wiki/64-bit_computing#64-bit_data_models target=_blank rel=noopener>64-bit data models</a></li><li><a href=https://docs.oracle.com/cd/E19620-01/805-3024/lp64-1/index.html target=_blank rel=noopener>C Language Data Type Models: LP64 and ILP32</a></li><li><a href=https://blogs.oracle.com/nike/entry/ilp64_lp64_llp64 target=_blank rel=noopener>ILP64, LP64, LLP64</a></li><li><a href=https://en.wikipedia.org/wiki/X32_ABI target=_blank rel=noopener>x32 ABI</a></li><li><a href=http://stackoverflow.com/a/9162072 target=_blank rel=noopener>difference between stdint.h and inttypes.h</a></li><li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384083%28v=vs.85%29.aspx" target=_blank rel=noopener>Abstract Data Models</a></li><li><a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa384264%28v=vs.85%29.aspx" target=_blank rel=noopener>The New Data Types</a></li><li><a href=http://stackoverflow.com/a/13413892 target=_blank rel=noopener>Is there any reason not to use fixed width integer types (e.g. uint8_t)?</a></li><li><a href="https://blogs.msdn.microsoft.com/oldnewthing/20050131-00/?p=36563/" target=_blank rel=noopener>Why did the Win64 team choose the LLP64 model?</a></li></ul></div><footer><p class=meta><span class="byline author vcard">Posted by <span class=fn>Nick Desaulniers</span></span>
+<time>May 30, 2016</time></span></p><p class=meta><a class="basic-alignment left" href=https://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/ title="What's in a Word?">What's in a Word?</a>
+<a class="basic-alignment right" href=https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/ title="Setting up mutt with gmail on Ubuntu">Setting up mutt with gmail on Ubuntu</a></p><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//wangstabill.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></footer></article></div><aside class="sidebar thirds"><section class="first odd"><p></p></section><ul class=sidebar-nav><li class=sidebar-nav-item><a target=_blank rel="noopener noreferrer" href=https://github.com/nickdesaulniers title=https://github.com/nickdesaulniers><i class="fa fa-github fa-3x"></i></a>
+<a target=_blank rel="me noopener noreferrer" href=https://fosstodon.org/@llvm title=https://fosstodon.org/@llvm><i class="fa fa-mastodon fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.linkedin.com/in/nick-desaulniers-75520334 title=https://www.linkedin.com/in/nick-desaulniers-75520334><i class="fa fa-linkedin fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ title=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ><i class="fa fa-youtube fa-3x"></i></a></li></ul><section class=even><h1>Recent Posts</h1><ul id=recent_posts><li class=post><a href=/blog/2020/04/06/off-by-two/>Off by Two</a></li><li class=post><a href=/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/>f() vs f(void) in C vs C++</a></li><li class=post><a href=/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/>Finding Compiler Bugs With C-Reduce</a></li><li class=post><a href=/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a></li></ul></section></aside></div></div><footer role=contentinfo><p>Copyright &copy; 2023 Nick Desaulniers - <a href=https://nickdesaulniers.github.io/license/>License</a> -
+<span class=credit>Powered by <a target=_blank href=https://gohugo.io rel="noopener noreferrer">Hugo</a> and <a target=_blank href=https://github.com/parsiya/hugo-octopress/ rel="noopener noreferrer">Hugo-Octopress</a> theme.</p></footer><script>var _gaq=[["_setAccount","UA-36993986-1"],["_trackPageview"]];(function(e,t){var n=e.createElement(t),s=e.getElementsByTagName(t)[0];n.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js",s.parentNode.insertBefore(n,s)})(document,"script")</script></body></html>

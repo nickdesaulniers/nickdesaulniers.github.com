@@ -1,433 +1,97 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-  
-  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-
-  
-    
-    
-      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
-    
-  
-
-  
-  <title>Running Clang-Tidy on the Linux Kernel</title>
-
-  
-  
-  <link rel="stylesheet" href="/css/hugo-octopress.css">
-
-  
-  
-    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
-  
-
-  
-    <link rel="stylesheet" href="/css/fork-awesome.min.css">
-  
-
-  
-  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
-
-  
-  
-
-  <meta name="description" content="" />
-  <meta name="keywords" content="">
-  <meta name="author" content="Nick Desaulniers">
-
-  
-  <meta name="generator" content="Hugo 0.109.0">
-
-  
-  
-
-  
-  
-
-  
-  
-
-
-
-</head>
-<body>
-
-
-<header role="banner">
-<hgroup>
-  
-  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
-    <h2>The enemy&#39;s gate is down</h2>
-</hgroup></header>
-
-
-<nav role="navigation">
-<fieldset class="mobile-nav">
-  
-  <select onchange="location = this.value;">
-    <option value="">Navigate…</option>
-      
-        <option value="https://nickdesaulniers.github.io/about/">» About</option>
-      
-        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
-      
-        <option value="https://nickdesaulniers.github.io/">» Blog</option>
-      
-        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
-      
-        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
-      
-  </select>
-</fieldset>
-
-
-<ul class="main-navigation">
-  
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
-    
-  
-</ul>
-
-<ul class="subscription">
-  
-    
-        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
-    
-  
-</ul>
-
-
-  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
-    <fieldset role="search">
-      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
-    </fieldset>
-  </form>
-
-</nav>
-
-
-<div id="main">
-  <div id="content">
-    <div>
-      <article class="hentry" role="article">
-
-        
-        
-
-<header>
-  <p class="meta">May 31, 2017
-     - 3 minute read 
-     - <a href="https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/#disqus_thread">Comments</a>
-
-    
-    
-      - <a class="label" href="https://nickdesaulniers.github.io/categories/static-analysis/">static analysis </a><a class="label" href="https://nickdesaulniers.github.io/categories/clang-tidy/">clang-tidy </a><a class="label" href="https://nickdesaulniers.github.io/categories/linux/">linux </a><a class="label" href="https://nickdesaulniers.github.io/categories/llvm/">llvm </a>
-    
-  </p>
-  <h1 class="entry-title">
-     Running Clang-Tidy on the Linux Kernel 
-  </h1>
-</header>
-
-
-        <div class="entry-content">
-          
-          
-          
-          <p>
-<a href="http://clang.llvm.org/extra/clang-tidy/" target="_blank" rel="noopener">Clang-Tidy</a> is a linter from the LLVM
-ecosystem.  I wanted to try to run it on the Linux kernel to see what kind of
-bugs it would find.  The false positive rate seems pretty high (a persistent
+<!doctype html><html xmlns=http://www.w3.org/1999/xhtml xml:lang=en lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,minimum-scale=1,maximum-scale=1"><link href=/css/fonts.css rel=stylesheet type=text/css><title>Running Clang-Tidy on the Linux Kernel</title><link rel=stylesheet href=/css/hugo-octopress.css><link rel=stylesheet href=https://nickdesaulniers.github.io/css/custom.css><link rel=stylesheet href=/css/fork-awesome.min.css><link href=https://nickdesaulniers.github.io/favicon.png rel=icon><meta name=description content><meta name=keywords content><meta name=author content="Nick Desaulniers"><meta name=generator content="Hugo 0.109.0"></head><body><header role=banner><hgroup><h1><a href=https://nickdesaulniers.github.io/>Nick Desaulniers</a></h1><h2>The enemy's gate is down</h2></hgroup></header><nav role=navigation><fieldset class=mobile-nav><select onchange="location=this.value"><option value>Navigate…</option><option value=https://nickdesaulniers.github.io/about/>» About</option><option value=https://nickdesaulniers.github.io/blog/archives/>» Archives</option><option value=https://nickdesaulniers.github.io/>» Blog</option><option value=https://nickdesaulniers.github.io/publications/>» Publications</option><option value=https://nickdesaulniers.github.io/talks/>» Talks</option></select></fieldset><ul class=main-navigation><li><a href=https://nickdesaulniers.github.io/about/ title=About rel="noopener noreferrer">About</a></li><li><a href=https://nickdesaulniers.github.io/blog/archives/ title=Archives rel="noopener noreferrer">Archives</a></li><li><a href=https://nickdesaulniers.github.io/ title=Blog>Blog</a></li><li><a href=https://nickdesaulniers.github.io/publications/ title=Publications rel="noopener noreferrer">Publications</a></li><li><a href=https://nickdesaulniers.github.io/talks/ title=Talks rel="noopener noreferrer">Talks</a></li></ul><ul class=subscription><a href=https://nickdesaulniers.github.io/index.xml target=_blank type=application/rss+xml title=RSS rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a></ul><form action=https://www.google.com/search method=get target=_blank rel="noopener noreferrer"><fieldset role=search><input class=search type=text name=q results=0 placeholder=Search>
+<input type=hidden name=q value=site:https://nickdesaulniers.github.io/></fieldset></form></nav><div id=main><div id=content><div><article class=hentry role=article><header><p class=meta>May 31, 2017
+- 3 minute read
+- <a href=https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/#disqus_thread>Comments</a>
+- <a class=label href=https://nickdesaulniers.github.io/categories/static-analysis/>static analysis </a><a class=label href=https://nickdesaulniers.github.io/categories/clang-tidy/>clang-tidy </a><a class=label href=https://nickdesaulniers.github.io/categories/linux/>linux </a><a class=label href=https://nickdesaulniers.github.io/categories/llvm/>llvm</a></p><h1 class=entry-title>Running Clang-Tidy on the Linux Kernel</h1></header><div class=entry-content><p><a href=http://clang.llvm.org/extra/clang-tidy/ target=_blank rel=noopener>Clang-Tidy</a> is a linter from the LLVM
+ecosystem. I wanted to try to run it on the Linux kernel to see what kind of
+bugs it would find. The false positive rate seems pretty high (a persistent
 bane to static analysis), but some patching in both the tooling and the source
-can likely help bring this rate down.</p>
-<p>The most straightforward way to invoke Clang-Tidy is with a compilation
-database, which is a json based file that for each translation unit records</p>
-<ol>
-<li>The source file of the translation unit.</li>
-<li>The top level directory of the source.</li>
-<li>The exact arguments passed to the compiler.</li>
-</ol>
-<p>The exact arguments are required because <code>-D</code> and <code>-I</code> flags are necessary to
+can likely help bring this rate down.</p><p>The most straightforward way to invoke Clang-Tidy is with a compilation
+database, which is a json based file that for each translation unit records</p><ol><li>The source file of the translation unit.</li><li>The top level directory of the source.</li><li>The exact arguments passed to the compiler.</li></ol><p>The exact arguments are required because <code>-D</code> and <code>-I</code> flags are necessary to
 reproduce the exact Abstract Syntax Tree (AST) used to compile your code. Given
-a compilation database, it&rsquo;s trivial to parse and recreate a build.  For the
-kernel&rsquo;s KBuild, it&rsquo;s a lot like encoding the output of <code>make V=1</code>.</p>
-<p>In order to generate a compilation database, we can use an awesome tool called
-
-<a href="https://github.com/rizsotto/Bear" target="_blank" rel="noopener">BEAR</a>. BEAR will
-
-<a href="https://github.com/rizsotto/Bear/blob/6b07f5044f30a3070d1dc39801bcdd94395d673e/libear/ear.c#L21" target="_blank" rel="noopener">hook</a>
+a compilation database, it&rsquo;s trivial to parse and recreate a build. For the
+kernel&rsquo;s KBuild, it&rsquo;s a lot like encoding the output of <code>make V=1</code>.</p><p>In order to generate a compilation database, we can use an awesome tool called
+<a href=https://github.com/rizsotto/Bear target=_blank rel=noopener>BEAR</a>. BEAR will
+<a href=https://github.com/rizsotto/Bear/blob/6b07f5044f30a3070d1dc39801bcdd94395d673e/libear/ear.c#L21 target=_blank rel=noopener>hook</a>
 calls to
-
-<a href="https://linux.die.net/man/3/exec" target="_blank" rel="noopener">exec</a>
-and family, then write out the compilation database (compile_commands.json).</p>
-<p>With BEAR installed, we can invoke the kernel&rsquo;s build with <code>bear make -j</code>. When
-we&rsquo;re done:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>➜  linux git:<span style="color:#719e07">(</span>nick<span style="color:#719e07">)</span> ✗ du -h compile_commands.json
-</span></span><span style="display:flex;"><span>11M compile_commands.json
-</span></span><span style="display:flex;"><span>➜  linux git:<span style="color:#719e07">(</span>nick<span style="color:#719e07">)</span> ✗ wc -l compile_commands.json
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">330296</span> compile_commands.json
-</span></span><span style="display:flex;"><span>➜  linux git:<span style="color:#719e07">(</span>nick<span style="color:#719e07">)</span> ✗ head -n <span style="color:#2aa198">26</span> compile_commands.json
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#719e07">{</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#2aa198">&#34;arguments&#34;</span>: <span style="color:#719e07">[</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;cc&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-c&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-Wp,-MD,arch/x86/boot/tools/.build.d&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-Wall&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-Wmissing-prototypes&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-Wstrict-prototypes&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-O2&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-fomit-frame-pointer&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-std=gnu89&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-Wno-unused-value&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-Wno-unused-parameter&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-Wno-missing-field-initializers&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-I./tools/include&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-include&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;include/generated/autoconf.h&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-D__EXPORTED_HEADERS__&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;-o&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;arch/x86/boot/tools/build&#34;</span>,
-</span></span><span style="display:flex;"><span>            <span style="color:#2aa198">&#34;arch/x86/boot/tools/build.c&#34;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#719e07">]</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#2aa198">&#34;directory&#34;</span>: <span style="color:#2aa198">&#34;/home/nick/linux&#34;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#2aa198">&#34;file&#34;</span>: <span style="color:#2aa198">&#34;arch/x86/boot/tools/build.c&#34;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#719e07">}</span>,
+<a href=https://linux.die.net/man/3/exec target=_blank rel=noopener>exec</a>
+and family, then write out the compilation database (compile_commands.json).</p><p>With BEAR installed, we can invoke the kernel&rsquo;s build with <code>bear make -j</code>. When
+we&rsquo;re done:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>➜  linux git:<span style=color:#719e07>(</span>nick<span style=color:#719e07>)</span> ✗ du -h compile_commands.json
+</span></span><span style=display:flex><span>11M compile_commands.json
+</span></span><span style=display:flex><span>➜  linux git:<span style=color:#719e07>(</span>nick<span style=color:#719e07>)</span> ✗ wc -l compile_commands.json
+</span></span><span style=display:flex><span><span style=color:#2aa198>330296</span> compile_commands.json
+</span></span><span style=display:flex><span>➜  linux git:<span style=color:#719e07>(</span>nick<span style=color:#719e07>)</span> ✗ head -n <span style=color:#2aa198>26</span> compile_commands.json
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>{</span>
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>&#34;arguments&#34;</span>: <span style=color:#719e07>[</span>
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;cc&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-c&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-Wp,-MD,arch/x86/boot/tools/.build.d&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-Wall&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-Wmissing-prototypes&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-Wstrict-prototypes&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-O2&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-fomit-frame-pointer&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-std=gnu89&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-Wno-unused-value&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-Wno-unused-parameter&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-Wno-missing-field-initializers&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-I./tools/include&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-include&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;include/generated/autoconf.h&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-D__EXPORTED_HEADERS__&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;-o&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;arch/x86/boot/tools/build&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#2aa198>&#34;arch/x86/boot/tools/build.c&#34;</span>
+</span></span><span style=display:flex><span>        <span style=color:#719e07>]</span>,
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>&#34;directory&#34;</span>: <span style=color:#2aa198>&#34;/home/nick/linux&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>&#34;file&#34;</span>: <span style=color:#2aa198>&#34;arch/x86/boot/tools/build.c&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>}</span>,
 </span></span></code></pre></div><p>Now with Clang-Tidy (probably worthwhile to build from source, but it&rsquo;s also
 available off <code>apt</code>), we want to grab
-
-<a href="https://github.com/llvm-mirror/clang-tools-extra/blob/master/clang-tidy/tool/run-clang-tidy.py" target="_blank" rel="noopener">this helper script, run-clang-tidy.py</a>
-to help analyze all this code.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>curl -O https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py
-</span></span></code></pre></div><p>Then we can run it from the same directory as compile_commands.json:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>python run-clang-tidy.py <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  -clang-tidy-binary /usr/bin/clang-tidy-4.0 <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  &gt; clang_tidy_output.txt
-</span></span></code></pre></div><p>This took about 1hr12min on my box. Let&rsquo;s see what the damage is:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>➜  linux git:<span style="color:#719e07">(</span>nick<span style="color:#719e07">)</span> ✗ cat clang_tidy_output.txt <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  | grep warning: | grep -oE <span style="color:#2aa198">&#39;[^ ]+$&#39;</span> | sort | uniq -c
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>     <span style="color:#2aa198">76</span> <span style="color:#719e07">[</span>clang-analyzer-core.CallAndMessage<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#2aa198">15</span> <span style="color:#719e07">[</span>clang-analyzer-core.DivideZero<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#2aa198">1</span> <span style="color:#719e07">[</span>clang-analyzer-core.NonNullParamChecker<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#2aa198">316</span> <span style="color:#719e07">[</span>clang-analyzer-core.NullDereference<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#2aa198">90</span> <span style="color:#719e07">[</span>clang-analyzer-core.UndefinedBinaryOperatorResult<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#2aa198">1</span> <span style="color:#719e07">[</span>clang-analyzer-core.uninitialized.ArraySubscript<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>   <span style="color:#2aa198">1410</span> <span style="color:#719e07">[</span>clang-analyzer-core.uninitialized.Assign<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#2aa198">10</span> <span style="color:#719e07">[</span>clang-analyzer-core.uninitialized.Branch<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#2aa198">5</span> <span style="color:#719e07">[</span>clang-analyzer-core.uninitialized.UndefReturn<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#2aa198">11</span> <span style="color:#719e07">[</span>clang-analyzer-cplusplus.NewDeleteLeaks<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#2aa198">694</span> <span style="color:#719e07">[</span>clang-analyzer-deadcode.DeadStores<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#2aa198">342</span> <span style="color:#719e07">[</span>clang-analyzer-security.insecureAPI.strcpy<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#2aa198">2</span> <span style="color:#719e07">[</span>clang-analyzer-unix.API<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#2aa198">11</span> <span style="color:#719e07">[</span>clang-analyzer-unix.Malloc<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#2aa198">4</span> <span style="color:#719e07">[</span>clang-diagnostic-address-of-packed-member<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#2aa198">2</span> <span style="color:#719e07">[</span>clang-diagnostic-duplicate-decl-specifier<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#2aa198">98</span> <span style="color:#719e07">[</span>clang-diagnostic-implicit-int<span style="color:#719e07">]</span>
+<a href=https://github.com/llvm-mirror/clang-tools-extra/blob/master/clang-tidy/tool/run-clang-tidy.py target=_blank rel=noopener>this helper script, run-clang-tidy.py</a>
+to help analyze all this code.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>curl -O https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py
+</span></span></code></pre></div><p>Then we can run it from the same directory as compile_commands.json:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>python run-clang-tidy.py <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  -clang-tidy-binary /usr/bin/clang-tidy-4.0 <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  &gt; clang_tidy_output.txt
+</span></span></code></pre></div><p>This took about 1hr12min on my box. Let&rsquo;s see what the damage is:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>➜  linux git:<span style=color:#719e07>(</span>nick<span style=color:#719e07>)</span> ✗ cat clang_tidy_output.txt <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  | grep warning: | grep -oE <span style=color:#2aa198>&#39;[^ ]+$&#39;</span> | sort | uniq -c
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>     <span style=color:#2aa198>76</span> <span style=color:#719e07>[</span>clang-analyzer-core.CallAndMessage<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>     <span style=color:#2aa198>15</span> <span style=color:#719e07>[</span>clang-analyzer-core.DivideZero<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>      <span style=color:#2aa198>1</span> <span style=color:#719e07>[</span>clang-analyzer-core.NonNullParamChecker<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>316</span> <span style=color:#719e07>[</span>clang-analyzer-core.NullDereference<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>     <span style=color:#2aa198>90</span> <span style=color:#719e07>[</span>clang-analyzer-core.UndefinedBinaryOperatorResult<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>      <span style=color:#2aa198>1</span> <span style=color:#719e07>[</span>clang-analyzer-core.uninitialized.ArraySubscript<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>   <span style=color:#2aa198>1410</span> <span style=color:#719e07>[</span>clang-analyzer-core.uninitialized.Assign<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>     <span style=color:#2aa198>10</span> <span style=color:#719e07>[</span>clang-analyzer-core.uninitialized.Branch<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>      <span style=color:#2aa198>5</span> <span style=color:#719e07>[</span>clang-analyzer-core.uninitialized.UndefReturn<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>     <span style=color:#2aa198>11</span> <span style=color:#719e07>[</span>clang-analyzer-cplusplus.NewDeleteLeaks<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>694</span> <span style=color:#719e07>[</span>clang-analyzer-deadcode.DeadStores<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>342</span> <span style=color:#719e07>[</span>clang-analyzer-security.insecureAPI.strcpy<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>      <span style=color:#2aa198>2</span> <span style=color:#719e07>[</span>clang-analyzer-unix.API<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>     <span style=color:#2aa198>11</span> <span style=color:#719e07>[</span>clang-analyzer-unix.Malloc<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>      <span style=color:#2aa198>4</span> <span style=color:#719e07>[</span>clang-diagnostic-address-of-packed-member<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>      <span style=color:#2aa198>2</span> <span style=color:#719e07>[</span>clang-diagnostic-duplicate-decl-specifier<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>     <span style=color:#2aa198>98</span> <span style=color:#719e07>[</span>clang-diagnostic-implicit-int<span style=color:#719e07>]</span>
 </span></span></code></pre></div><p>Looking through the output, there&rsquo;s seems to be almost nothing but false
-positives, but who knows, maybe there&rsquo;s an actual bug or two in there.  Likely
+positives, but who knows, maybe there&rsquo;s an actual bug or two in there. Likely
 possible patches to LLVM, its checkers, or the Linux kernel could lower the
-false positive ratio.</p>
-<p>If you&rsquo;re interested in seeing the kinds of warnings/outputs, I&rsquo;ve uploaded my
+false positive ratio.</p><p>If you&rsquo;re interested in seeing the kinds of warnings/outputs, I&rsquo;ve uploaded my
 results run on a 4.12-rc3 based kernel that may or may not have been compiled
 with Clang to
-
-<a href="https://github.com/nickdesaulniers/linux/blob/clang_tidy/clang_tidy_output.txt.v2" target="_blank" rel="noopener">my clang_tidy branch of the kernel on GitHub</a>.
+<a href=https://github.com/nickdesaulniers/linux/blob/clang_tidy/clang_tidy_output.txt.v2 target=_blank rel=noopener>my clang_tidy branch of the kernel on GitHub</a>.
 As in my sorted output, I find it handy to <code>grep</code> for <code>warning:</code>. Maybe you can
 find yourself a good first bug to
-
-<a href="blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/">contribute a fix to the kernel</a>?</p>
-<p>There&rsquo;s likely also
-
-<a href="http://clang.llvm.org/extra/clang-tidy/checks/list.html" target="_blank" rel="noopener">some checks that make sense to disable or enable</a>.
+<a href=blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/>contribute a fix to the kernel</a>?</p><p>There&rsquo;s likely also
+<a href=http://clang.llvm.org/extra/clang-tidy/checks/list.html target=_blank rel=noopener>some checks that make sense to disable or enable</a>.
 Clang-Tidy also allows you to
-
-<a href="http://clang.llvm.org/extra/clang-tidy/#writing-a-clang-tidy-check" target="_blank" rel="noopener">write and use your own checkers</a>.
+<a href=http://clang.llvm.org/extra/clang-tidy/#writing-a-clang-tidy-check target=_blank rel=noopener>write and use your own checkers</a>.
 Who knows, someone may just end up writing static
-analyses tailored to the Linux kernel.</p>
-
-        </div>
-        
-
-<footer>
-  <p class="meta">
-    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-    
-    <time>May 31, 2017</time>
-    
-    </span>
-  </p>
-
-  
-
-  <p class="meta">
-    
-        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/" title="Submitting Your First Patch to the Linux Kernel and Responding to Feedback">Submitting Your First Patch to the Linux Kernel and Responding to Feedback</a>
-    
-
-    
-      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/" title="GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts">GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts</a>
-    
-  </p>
-  
-    
-      <div id="disqus_thread"></div>
-<script type="application/javascript">
-    window.disqus_config = function () {
-    
-    
-    
-    };
-    (function() {
-        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
-            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
-            return;
-        }
-        var d = document, s = d.createElement('script'); s.async = true;
-        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-    
-  
-</footer>
-
-      </article>
-    </div>
-    
-
-<aside class="sidebar thirds">
-  <section class="first odd">
-
-    
-
-    <p>
-      
-    </p>
-  </section>
-
-  
-  
-
-
-
-<ul class="sidebar-nav">
-  <li class="sidebar-nav-item">
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
-    
-    
-    
-    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
-    
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
-    
-    
-
-  
-  
-  </li>
-</ul>
-
-  
-
-  
-
-  
-  
-  
-    
-      <section class="even">
-        <h1>Recent Posts</h1>
-        <ul id="recent_posts">
-          
-          
-            
-              <li class="post">
-                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-              </li>
-            
-          
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-              </li>
-            
-          
-        </ul>
-      </section>
-    
-  
-</aside>
-
-  </div>
-</div>
-
-    <footer role="contentinfo">
-      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
-        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
-      </p>
-    </footer>
-
-    
-    
-
-
-
-    
-    
-    
-
-    
-      <script>
-        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
-        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-        s.parentNode.insertBefore(g,s)}(document,'script'));
-      </script>
-    
-  </body>
-</html>
-
+analyses tailored to the Linux kernel.</p></div><footer><p class=meta><span class="byline author vcard">Posted by <span class=fn>Nick Desaulniers</span></span>
+<time>May 31, 2017</time></span></p><p class=meta><a class="basic-alignment left" href=https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/ title="Submitting Your First Patch to the Linux Kernel and Responding to Feedback">Submitting Your First Patch to the Linux Kernel and Responding to Feedback</a>
+<a class="basic-alignment right" href=https://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/ title="GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts">GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts</a></p><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//wangstabill.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></footer></article></div><aside class="sidebar thirds"><section class="first odd"><p></p></section><ul class=sidebar-nav><li class=sidebar-nav-item><a target=_blank rel="noopener noreferrer" href=https://github.com/nickdesaulniers title=https://github.com/nickdesaulniers><i class="fa fa-github fa-3x"></i></a>
+<a target=_blank rel="me noopener noreferrer" href=https://fosstodon.org/@llvm title=https://fosstodon.org/@llvm><i class="fa fa-mastodon fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.linkedin.com/in/nick-desaulniers-75520334 title=https://www.linkedin.com/in/nick-desaulniers-75520334><i class="fa fa-linkedin fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ title=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ><i class="fa fa-youtube fa-3x"></i></a></li></ul><section class=even><h1>Recent Posts</h1><ul id=recent_posts><li class=post><a href=/blog/2020/04/06/off-by-two/>Off by Two</a></li><li class=post><a href=/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/>f() vs f(void) in C vs C++</a></li><li class=post><a href=/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/>Finding Compiler Bugs With C-Reduce</a></li><li class=post><a href=/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a></li></ul></section></aside></div></div><footer role=contentinfo><p>Copyright &copy; 2023 Nick Desaulniers - <a href=https://nickdesaulniers.github.io/license/>License</a> -
+<span class=credit>Powered by <a target=_blank href=https://gohugo.io rel="noopener noreferrer">Hugo</a> and <a target=_blank href=https://github.com/parsiya/hugo-octopress/ rel="noopener noreferrer">Hugo-Octopress</a> theme.</p></footer><script>var _gaq=[["_setAccount","UA-36993986-1"],["_trackPageview"]];(function(e,t){var n=e.createElement(t),s=e.getElementsByTagName(t)[0];n.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js",s.parentNode.insertBefore(n,s)})(document,"script")</script></body></html>

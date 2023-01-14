@@ -1,276 +1,101 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-  
-  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-
-  
-    
-    
-      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
-    
-  
-
-  
-  <title>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</title>
-
-  
-  
-  <link rel="stylesheet" href="/css/hugo-octopress.css">
-
-  
-  
-    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
-  
-
-  
-    <link rel="stylesheet" href="/css/fork-awesome.min.css">
-  
-
-  
-  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
-
-  
-  
-
-  <meta name="description" content="" />
-  <meta name="keywords" content="">
-  <meta name="author" content="Nick Desaulniers">
-
-  
-  <meta name="generator" content="Hugo 0.109.0">
-
-  
-  
-
-  
-  
-
-  
-  
-
-
-
-</head>
-<body>
-
-
-<header role="banner">
-<hgroup>
-  
-  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
-    <h2>The enemy&#39;s gate is down</h2>
-</hgroup></header>
-
-
-<nav role="navigation">
-<fieldset class="mobile-nav">
-  
-  <select onchange="location = this.value;">
-    <option value="">Navigate…</option>
-      
-        <option value="https://nickdesaulniers.github.io/about/">» About</option>
-      
-        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
-      
-        <option value="https://nickdesaulniers.github.io/">» Blog</option>
-      
-        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
-      
-        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
-      
-  </select>
-</fieldset>
-
-
-<ul class="main-navigation">
-  
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
-    
-  
-</ul>
-
-<ul class="subscription">
-  
-    
-        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
-    
-  
-</ul>
-
-
-  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
-    <fieldset role="search">
-      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
-    </fieldset>
-  </form>
-
-</nav>
-
-
-<div id="main">
-  <div id="content">
-    <div>
-      <article class="hentry" role="article">
-
-        
-        
-
-<header>
-  <p class="meta">Oct 24, 2018
-     - 6 minute read 
-     - <a href="https://nickdesaulniers.github.io/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/#disqus_thread">Comments</a>
-
-    
-    
-      - <a class="label" href="https://nickdesaulniers.github.io/categories/gdb/">gdb </a><a class="label" href="https://nickdesaulniers.github.io/categories/linux/">linux </a><a class="label" href="https://nickdesaulniers.github.io/categories/qemu/">qemu </a><a class="label" href="https://nickdesaulniers.github.io/categories/vm/">vm </a><a class="label" href="https://nickdesaulniers.github.io/categories/debugging/">debugging </a>
-    
-  </p>
-  <h1 class="entry-title">
-     Booting a Custom Linux Kernel in QEMU and Debugging It With GDB 
-  </h1>
-</header>
-
-
-        <div class="entry-content">
-          
-          
-          
-          <p>Typically, when we modify a program, we’d like to run it to verify our changes.
+<!doctype html><html xmlns=http://www.w3.org/1999/xhtml xml:lang=en lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,minimum-scale=1,maximum-scale=1"><link href=/css/fonts.css rel=stylesheet type=text/css><title>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</title><link rel=stylesheet href=/css/hugo-octopress.css><link rel=stylesheet href=https://nickdesaulniers.github.io/css/custom.css><link rel=stylesheet href=/css/fork-awesome.min.css><link href=https://nickdesaulniers.github.io/favicon.png rel=icon><meta name=description content><meta name=keywords content><meta name=author content="Nick Desaulniers"><meta name=generator content="Hugo 0.109.0"></head><body><header role=banner><hgroup><h1><a href=https://nickdesaulniers.github.io/>Nick Desaulniers</a></h1><h2>The enemy's gate is down</h2></hgroup></header><nav role=navigation><fieldset class=mobile-nav><select onchange="location=this.value"><option value>Navigate…</option><option value=https://nickdesaulniers.github.io/about/>» About</option><option value=https://nickdesaulniers.github.io/blog/archives/>» Archives</option><option value=https://nickdesaulniers.github.io/>» Blog</option><option value=https://nickdesaulniers.github.io/publications/>» Publications</option><option value=https://nickdesaulniers.github.io/talks/>» Talks</option></select></fieldset><ul class=main-navigation><li><a href=https://nickdesaulniers.github.io/about/ title=About rel="noopener noreferrer">About</a></li><li><a href=https://nickdesaulniers.github.io/blog/archives/ title=Archives rel="noopener noreferrer">Archives</a></li><li><a href=https://nickdesaulniers.github.io/ title=Blog>Blog</a></li><li><a href=https://nickdesaulniers.github.io/publications/ title=Publications rel="noopener noreferrer">Publications</a></li><li><a href=https://nickdesaulniers.github.io/talks/ title=Talks rel="noopener noreferrer">Talks</a></li></ul><ul class=subscription><a href=https://nickdesaulniers.github.io/index.xml target=_blank type=application/rss+xml title=RSS rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a></ul><form action=https://www.google.com/search method=get target=_blank rel="noopener noreferrer"><fieldset role=search><input class=search type=text name=q results=0 placeholder=Search>
+<input type=hidden name=q value=site:https://nickdesaulniers.github.io/></fieldset></form></nav><div id=main><div id=content><div><article class=hentry role=article><header><p class=meta>Oct 24, 2018
+- 6 minute read
+- <a href=https://nickdesaulniers.github.io/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/#disqus_thread>Comments</a>
+- <a class=label href=https://nickdesaulniers.github.io/categories/gdb/>gdb </a><a class=label href=https://nickdesaulniers.github.io/categories/linux/>linux </a><a class=label href=https://nickdesaulniers.github.io/categories/qemu/>qemu </a><a class=label href=https://nickdesaulniers.github.io/categories/vm/>vm </a><a class=label href=https://nickdesaulniers.github.io/categories/debugging/>debugging</a></p><h1 class=entry-title>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</h1></header><div class=entry-content><p>Typically, when we modify a program, we’d like to run it to verify our changes.
 Before booting a compiled Linux kernel image on actual hardware, it can save us
 time and potential headache to do a quick boot in a virtual machine like
-
-<a href="https://www.qemu.org/" target="_blank" rel="noopener">QEMU</a>
-as a sanity check.  If your kernel boots in QEMU, it’s not a guarantee it will
+<a href=https://www.qemu.org/ target=_blank rel=noopener>QEMU</a>
+as a sanity check. If your kernel boots in QEMU, it’s not a guarantee it will
 boot on metal, but it is a quick assurance that the kernel image is not
-completely busted.  Since I finally got this working, I figured I’d post the
+completely busted. Since I finally got this working, I figured I’d post the
 built up command line arguments (and error messages observed) for future
-travelers.  Also, QEMU has more flags than virtually any other binary I’ve ever
+travelers. Also, QEMU has more flags than virtually any other binary I’ve ever
 seen (other than a google3 binary; shots fired), and simply getting it to print
-to the terminal is 3/4 the battle.  If I don’t write it down now, or lose my
-shell history, I’ll probably forget how to do this.</p>
-<p>TL;DR:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#586e75"># one time setup</span>
-</span></span><span style="display:flex;"><span>$ mkinitramfs -o ramdisk.img
-</span></span><span style="display:flex;"><span>$ <span style="color:#b58900">echo</span> <span style="color:#2aa198">&#34;add-auto-load-safe-path path/to/linux/scripts/gdb/vmlinux-gdb.py&#34;</span> &gt;&gt; ~/.gdbinit
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#586e75"># one time kernel setup</span>
-</span></span><span style="display:flex;"><span>$ <span style="color:#b58900">cd</span> linux
-</span></span><span style="display:flex;"><span>$ ./scripts/config -e DEBUG_INFO -e GDB_SCRIPTS
-</span></span><span style="display:flex;"><span>$ &lt;make kernel image&gt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#586e75"># each debug session run</span>
-</span></span><span style="display:flex;"><span>$ qemu-system-x86_64 <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  -kernel arch/x86_64/boot/bzImage <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  -nographic <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  -append <span style="color:#2aa198">&#34;console=ttyS0 nokaslr&#34;</span> <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  -initrd ramdisk.img <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  -m <span style="color:#2aa198">512</span> <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  --enable-kvm <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  -cpu host <span style="color:#cb4b16">\
-</span></span></span><span style="display:flex;"><span><span style="color:#cb4b16"></span>  -s -S &amp;
-</span></span><span style="display:flex;"><span>$ gdb vmlinux
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>gdb<span style="color:#719e07">)</span> target remote :1234
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>gdb<span style="color:#719e07">)</span> hbreak start_kernel
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>gdb<span style="color:#719e07">)</span> c
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>gdb<span style="color:#719e07">)</span> lx-dmesg
-</span></span></code></pre></div><h2 id="booting-in-qemu">Booting in QEMU</h2>
-<p>We’ll play stupid and see what errors we hit, and how to fix them.  First,
-let’s try just our new kernel:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage
+to the terminal is 3/4 the battle. If I don’t write it down now, or lose my
+shell history, I’ll probably forget how to do this.</p><p>TL;DR:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span><span style=color:#586e75># one time setup</span>
+</span></span><span style=display:flex><span>$ mkinitramfs -o ramdisk.img
+</span></span><span style=display:flex><span>$ <span style=color:#b58900>echo</span> <span style=color:#2aa198>&#34;add-auto-load-safe-path path/to/linux/scripts/gdb/vmlinux-gdb.py&#34;</span> &gt;&gt; ~/.gdbinit
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75># one time kernel setup</span>
+</span></span><span style=display:flex><span>$ <span style=color:#b58900>cd</span> linux
+</span></span><span style=display:flex><span>$ ./scripts/config -e DEBUG_INFO -e GDB_SCRIPTS
+</span></span><span style=display:flex><span>$ &lt;make kernel image&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75># each debug session run</span>
+</span></span><span style=display:flex><span>$ qemu-system-x86_64 <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  -kernel arch/x86_64/boot/bzImage <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  -nographic <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  -append <span style=color:#2aa198>&#34;console=ttyS0 nokaslr&#34;</span> <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  -initrd ramdisk.img <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  -m <span style=color:#2aa198>512</span> <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  --enable-kvm <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  -cpu host <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>  -s -S &amp;
+</span></span><span style=display:flex><span>$ gdb vmlinux
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>gdb<span style=color:#719e07>)</span> target remote :1234
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>gdb<span style=color:#719e07>)</span> hbreak start_kernel
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>gdb<span style=color:#719e07>)</span> c
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>gdb<span style=color:#719e07>)</span> lx-dmesg
+</span></span></code></pre></div><h2 id=booting-in-qemu>Booting in QEMU</h2><p>We’ll play stupid and see what errors we hit, and how to fix them. First,
+let’s try just our new kernel:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage
 </span></span></code></pre></div><p>A new window should open, and we should observe some dmesg output, a panic, and
-your fans might spin up.  I find this window relatively hard to see, so let’s
-get the output (and input) to a terminal:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic
+your fans might spin up. I find this window relatively hard to see, so let’s
+get the output (and input) to a terminal:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic
 </span></span></code></pre></div><p>This is missing an important flag, but it’s important to see what happens when
-we forget it.  It will seem that there’s no output, and QEMU isn’t responding
-to <code>ctrl+c</code>.  And my fans are spinning again.  Try <code>ctrl+a</code>, then <code>c</code>, to get a
-<code>(qemu)</code> prompt.  A simple <code>q</code> will exit.</p>
-<p>Next, We’re going to pass a kernel command line argument.  The kernel accepts
+we forget it. It will seem that there’s no output, and QEMU isn’t responding
+to <code>ctrl+c</code>. And my fans are spinning again. Try <code>ctrl+a</code>, then <code>c</code>, to get a
+<code>(qemu)</code> prompt. A simple <code>q</code> will exit.</p><p>Next, We’re going to pass a kernel command line argument. The kernel accepts
 command line args just like userspace binaries, though usually the bootloader
-sets these up.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span style="color:#2aa198">&#34;console=ttyS0&#34;</span>
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.144348<span style="color:#719e07">]</span> Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block<span style="color:#719e07">(</span>0,0<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.144759<span style="color:#719e07">]</span> CPU: <span style="color:#2aa198">0</span> PID: <span style="color:#2aa198">1</span> Comm: swapper/0 Not tainted 4.18.0-rc6 <span style="color:#586e75">#10</span>
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.144949<span style="color:#719e07">]</span> Hardware name: QEMU Standard PC <span style="color:#719e07">(</span>i440FX + PIIX, 1996<span style="color:#719e07">)</span>, BIOS 1.10.2-1ubuntu1 04/01/2014
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.145269<span style="color:#719e07">]</span> Call Trace:
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.146027<span style="color:#719e07">]</span>  dump_stack+0x5c/0x7b
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.146162<span style="color:#719e07">]</span>  panic+0xe4/0x252
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.146286<span style="color:#719e07">]</span>  mount_block_root+0x1f1/0x2d6
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.146445<span style="color:#719e07">]</span>  prepare_namespace+0x13b/0x171
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.146579<span style="color:#719e07">]</span>  kernel_init_freeable+0x227/0x254
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.146721<span style="color:#719e07">]</span>  ? rest_init+0xb0/0xb0
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.146826<span style="color:#719e07">]</span>  kernel_init+0xa/0x110
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.146931<span style="color:#719e07">]</span>  ret_from_fork+0x35/0x40
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.147412<span style="color:#719e07">]</span> Kernel Offset: 0x1c200000 from 0xffffffff81000000 <span style="color:#719e07">(</span>relocation range: 0xffffffff80000000-0xffffffffbfffffff<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span><span style="color:#719e07">[</span>    1.147901<span style="color:#719e07">]</span> ---<span style="color:#719e07">[</span> end Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block<span style="color:#719e07">(</span>0,0<span style="color:#719e07">)</span> <span style="color:#719e07">]</span>---
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>qemu<span style="color:#719e07">)</span> q
+sets these up.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span style=color:#2aa198>&#34;console=ttyS0&#34;</span>
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.144348<span style=color:#719e07>]</span> Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block<span style=color:#719e07>(</span>0,0<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.144759<span style=color:#719e07>]</span> CPU: <span style=color:#2aa198>0</span> PID: <span style=color:#2aa198>1</span> Comm: swapper/0 Not tainted 4.18.0-rc6 <span style=color:#586e75>#10</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.144949<span style=color:#719e07>]</span> Hardware name: QEMU Standard PC <span style=color:#719e07>(</span>i440FX + PIIX, 1996<span style=color:#719e07>)</span>, BIOS 1.10.2-1ubuntu1 04/01/2014
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.145269<span style=color:#719e07>]</span> Call Trace:
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.146027<span style=color:#719e07>]</span>  dump_stack+0x5c/0x7b
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.146162<span style=color:#719e07>]</span>  panic+0xe4/0x252
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.146286<span style=color:#719e07>]</span>  mount_block_root+0x1f1/0x2d6
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.146445<span style=color:#719e07>]</span>  prepare_namespace+0x13b/0x171
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.146579<span style=color:#719e07>]</span>  kernel_init_freeable+0x227/0x254
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.146721<span style=color:#719e07>]</span>  ? rest_init+0xb0/0xb0
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.146826<span style=color:#719e07>]</span>  kernel_init+0xa/0x110
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.146931<span style=color:#719e07>]</span>  ret_from_fork+0x35/0x40
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.147412<span style=color:#719e07>]</span> Kernel Offset: 0x1c200000 from 0xffffffff81000000 <span style=color:#719e07>(</span>relocation range: 0xffffffff80000000-0xffffffffbfffffff<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>[</span>    1.147901<span style=color:#719e07>]</span> ---<span style=color:#719e07>[</span> end Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block<span style=color:#719e07>(</span>0,0<span style=color:#719e07>)</span> <span style=color:#719e07>]</span>---
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>qemu<span style=color:#719e07>)</span> q
 </span></span></code></pre></div><p>Well at least we’re no longer in the dark (remember, <code>ctrl+a</code>, <code>c</code>, <code>q</code> to
-exit).  Now we’re panicking because there’s no root filesystem, so there’s no
-<code>init</code> binary to run.  Now we could create a custom filesystem image with the
+exit). Now we’re panicking because there’s no root filesystem, so there’s no
+<code>init</code> binary to run. Now we could create a custom filesystem image with the
 bare bones (definitely a post for another day), but creating a ramdisk is the
-most straightforward way, IMO.  Ok, let’s create the ramdisk,
-then add it to QEMU’s parameters:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ mkinitramfs -o ramdisk.img
-</span></span><span style="display:flex;"><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span style="color:#2aa198">&#34;console=ttyS0&#34;</span> -initrd ramdisk.img
+most straightforward way, IMO. Ok, let’s create the ramdisk,
+then add it to QEMU’s parameters:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ mkinitramfs -o ramdisk.img
+</span></span><span style=display:flex><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span style=color:#2aa198>&#34;console=ttyS0&#34;</span> -initrd ramdisk.img
 </span></span></code></pre></div><p>Unfortunately, we’ll (likely) hit the same panic and the panic doesn’t provide
 enough information, but the default maximum memory QEMU will use is too
-limited.  <code>-m 512</code> will give our virtual machine enough memory to boot and get
-a busybox based shell prompt:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span style="color:#2aa198">&#34;console=ttyS0&#34;</span> -initrd ramdisk.img -m <span style="color:#2aa198">512</span>
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>initramfs<span style="color:#719e07">)</span> cat /proc/version
-</span></span><span style="display:flex;"><span>Linux version 4.19.0-rc7+ <span style="color:#719e07">(</span>nick@nick-Blade-Stealth<span style="color:#719e07">)</span> <span style="color:#719e07">(</span>clang version 8.0.0 <span style="color:#719e07">(</span>https://git.llvm.org/git/clang.git/ 60c8c0cc0786c7f6b8dc5c1e3acd7ec98f0a7b6d<span style="color:#719e07">)</span> <span style="color:#719e07">(</span>https://git.llvm.org/git/llvm.git/ 64c3a57bec9dbe3762fa1d80055ba850d6658f5b<span style="color:#719e07">))</span> <span style="color:#586e75">#18 SMP Wed Oct 24 19:29:53 PDT 2018</span>
-</span></span></code></pre></div><p>Enabling kvm seems to help with those fans spinning up:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span style="color:#2aa198">&#34;console=ttyS0&#34;</span> -initrd ramdisk.img -m <span style="color:#2aa198">512</span> --enable-kvm
-</span></span></code></pre></div><p>Finally, we might be seeing a warning when we start QEMU:</p>
-<pre tabindex="0"><code>qemu-system-x86_64: warning: host doesn&#39;t support requested feature: CPUID.80000001H:ECX.svm [bit 2]
-</code></pre><p>Just need to add <code>-cpu host</code> to our invocation of QEMU.  It can be helpful when
+limited. <code>-m 512</code> will give our virtual machine enough memory to boot and get
+a busybox based shell prompt:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span style=color:#2aa198>&#34;console=ttyS0&#34;</span> -initrd ramdisk.img -m <span style=color:#2aa198>512</span>
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>initramfs<span style=color:#719e07>)</span> cat /proc/version
+</span></span><span style=display:flex><span>Linux version 4.19.0-rc7+ <span style=color:#719e07>(</span>nick@nick-Blade-Stealth<span style=color:#719e07>)</span> <span style=color:#719e07>(</span>clang version 8.0.0 <span style=color:#719e07>(</span>https://git.llvm.org/git/clang.git/ 60c8c0cc0786c7f6b8dc5c1e3acd7ec98f0a7b6d<span style=color:#719e07>)</span> <span style=color:#719e07>(</span>https://git.llvm.org/git/llvm.git/ 64c3a57bec9dbe3762fa1d80055ba850d6658f5b<span style=color:#719e07>))</span> <span style=color:#586e75>#18 SMP Wed Oct 24 19:29:53 PDT 2018</span>
+</span></span></code></pre></div><p>Enabling kvm seems to help with those fans spinning up:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ qemu-system-x86_64 -kernel arch/x86_64/boot/bzImage -nographic -append <span style=color:#2aa198>&#34;console=ttyS0&#34;</span> -initrd ramdisk.img -m <span style=color:#2aa198>512</span> --enable-kvm
+</span></span></code></pre></div><p>Finally, we might be seeing a warning when we start QEMU:</p><pre tabindex=0><code>qemu-system-x86_64: warning: host doesn&#39;t support requested feature: CPUID.80000001H:ECX.svm [bit 2]
+</code></pre><p>Just need to add <code>-cpu host</code> to our invocation of QEMU. It can be helpful when
 debugging to disable
-
-<a href="https://lwn.net/Articles/569635/" target="_blank" rel="noopener">KASLR</a>
+<a href=https://lwn.net/Articles/569635/ target=_blank rel=noopener>KASLR</a>
 via <code>nokaslr</code> in the appended kernel command line parameters, or via
-CONFIG_RANDOMIZE_BASE not being set in our kernel configs.</p>
-<p>We can add <code>-s</code> to start a gdbserver on port 1234, and <code>-S</code> to pause the kernel
-until we continue in gdb.</p>
-<h2 id="attaching-gdb-to-qemu">Attaching GDB to QEMU</h2>
-<p>Now that we can boot this kernel image in QEMU, let’s attach gdb to it.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ gdb vmlinux
-</span></span></code></pre></div><p>If you see this on your first run:</p>
-<pre tabindex="0"><code>warning: File &#34;/home/nick/linux/scripts/gdb/vmlinux-gdb.py&#34; auto-loading has been declined by your `auto-load safe-path&#39; set to &#34;$debugdir:$datadir/auto-load&#34;.
+CONFIG_RANDOMIZE_BASE not being set in our kernel configs.</p><p>We can add <code>-s</code> to start a gdbserver on port 1234, and <code>-S</code> to pause the kernel
+until we continue in gdb.</p><h2 id=attaching-gdb-to-qemu>Attaching GDB to QEMU</h2><p>Now that we can boot this kernel image in QEMU, let’s attach gdb to it.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ gdb vmlinux
+</span></span></code></pre></div><p>If you see this on your first run:</p><pre tabindex=0><code>warning: File &#34;/home/nick/linux/scripts/gdb/vmlinux-gdb.py&#34; auto-loading has been declined by your `auto-load safe-path&#39; set to &#34;$debugdir:$datadir/auto-load&#34;.
 To enable execution of this file add
 	add-auto-load-safe-path /path/to/linux/scripts/gdb/vmlinux-gdb.py
 line to your configuration file &#34;/home/&lt;username&gt;/.gdbinit&#34;.
-</code></pre><p>Then you can do this one time fix in order to load the gdb scripts each run:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ <span style="color:#b58900">cd</span> linux
-</span></span><span style="display:flex;"><span>$ <span style="color:#b58900">echo</span> <span style="color:#2aa198">&#34;add-auto-load-safe-path `pwd`/scripts/gdb/vmlinux-gdb.py&#34;</span> &gt;&gt; ~/.gdbinit
+</code></pre><p>Then you can do this one time fix in order to load the gdb scripts each run:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ <span style=color:#b58900>cd</span> linux
+</span></span><span style=display:flex><span>$ <span style=color:#b58900>echo</span> <span style=color:#2aa198>&#34;add-auto-load-safe-path `pwd`/scripts/gdb/vmlinux-gdb.py&#34;</span> &gt;&gt; ~/.gdbinit
 </span></span></code></pre></div><p>Now that QEMU is listening on port 1234 (via <code>-s</code>), let’s connect to it, and
-set a break point early on in the kernel’s initialization.  Note the the use of
+set a break point early on in the kernel’s initialization. Note the the use of
 <code>hbreak</code> (I lost a lot of time just using <code>b start_kernel</code>, only for the
-kernel to continue booting past that function).</p>
-<pre tabindex="0"><code>(gdb) target remote :1234
+kernel to continue booting past that function).</p><pre tabindex=0><code>(gdb) target remote :1234
 Remote debugging using :1234
 0x000000000000fff0 in cpu_hw_events ()
 
@@ -285,13 +110,12 @@ Breakpoint 2, start_kernel () at init/main.c:536
 #0  start_kernel () at init/main.c:536
 #1  0xffffffff810000d4 in secondary_startup_64 () at arch/x86/kernel/head_64.S:243
 #2  0x0000000000000000 in ?? ()
-</code></pre><p>We can start/resume the kernel with <code>c</code>, and pause it with <code>ctrl+c</code>.  The gdb
+</code></pre><p>We can start/resume the kernel with <code>c</code>, and pause it with <code>ctrl+c</code>. The gdb
 scripts provided by the kernel via CONFIG_GDB_SCRIPTS can be viewed with
 <code>apropos lx</code>. <code>lx-dmesg</code> is incredibly handy for viewing the kernel dmesg
 buffer, particularly in the case of a kernel panic before the serial driver has
 been brought up (in which case there’s output from QEMU to stdout, which is
-just as much fun as debugging graphics code (ie. black screen)).</p>
-<pre tabindex="0"><code>(gdb) apropos lx
+just as much fun as debugging graphics code (ie. black screen)).</p><pre tabindex=0><code>(gdb) apropos lx
 function lx_current -- Return current task
 function lx_module -- Find module by name and return the module variable
 function lx_per_cpu -- Return per-cpu variable
@@ -316,173 +140,14 @@ Linux version 4.19.0-rc7+ (nick@nick-Blade-Stealth) (clang version 8.0.0
 (https://git.llvm.org/git/clang.git/ 60c8c0cc0786c7f6b8dc5c1e3acd7ec98f0a7b6d)
 (https://git.llvm.org/git/llvm.git/ 64c3a57bec9dbe3762fa1d80055ba850d6658f5b))
 #18 SMP Wed Oct 24 19:29:53 PDT 2018
-</code></pre><h2 id="where-to-go-from-here">Where to Go From Here</h2>
-<p>Maybe try cross compiling a kernel (you&rsquo;ll need a cross
+</code></pre><h2 id=where-to-go-from-here>Where to Go From Here</h2><p>Maybe try cross compiling a kernel (you&rsquo;ll need a cross
 compiler/assembler/linker/debugger and likely a different <code>console=ttyXXX</code>
 kernel command line parameter), building your own root filesystem with
-
-<a href="https://buildroot.org/" target="_blank" rel="noopener">buildroot</a>,
-or exploring the rest of QEMU&rsquo;s command line options.</p>
-
-        </div>
-        
-
-<footer>
-  <p class="meta">
-    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-    
-    <time>Oct 24, 2018</time>
-    
-    </span>
-  </p>
-
-  
-
-  <p class="meta">
-    
-        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/" title="Speeding Up Linux Kernel Builds With ccache">Speeding Up Linux Kernel Builds With ccache</a>
-    
-
-    
-      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/" title="Finding Compiler Bugs With C-Reduce">Finding Compiler Bugs With C-Reduce</a>
-    
-  </p>
-  
-    
-      <div id="disqus_thread"></div>
-<script type="application/javascript">
-    window.disqus_config = function () {
-    
-    
-    
-    };
-    (function() {
-        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
-            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
-            return;
-        }
-        var d = document, s = d.createElement('script'); s.async = true;
-        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-    
-  
-</footer>
-
-      </article>
-    </div>
-    
-
-<aside class="sidebar thirds">
-  <section class="first odd">
-
-    
-
-    <p>
-      
-    </p>
-  </section>
-
-  
-  
-
-
-
-<ul class="sidebar-nav">
-  <li class="sidebar-nav-item">
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
-    
-    
-    
-    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
-    
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
-    
-    
-
-  
-  
-  </li>
-</ul>
-
-  
-
-  
-
-  
-  
-  
-    
-      <section class="even">
-        <h1>Recent Posts</h1>
-        <ul id="recent_posts">
-          
-          
-            
-              <li class="post">
-                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-              </li>
-            
-          
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-              </li>
-            
-          
-        </ul>
-      </section>
-    
-  
-</aside>
-
-  </div>
-</div>
-
-    <footer role="contentinfo">
-      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
-        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
-      </p>
-    </footer>
-
-    
-    
-
-
-
-    
-    
-    
-
-    
-      <script>
-        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
-        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-        s.parentNode.insertBefore(g,s)}(document,'script'));
-      </script>
-    
-  </body>
-</html>
-
+<a href=https://buildroot.org/ target=_blank rel=noopener>buildroot</a>,
+or exploring the rest of QEMU&rsquo;s command line options.</p></div><footer><p class=meta><span class="byline author vcard">Posted by <span class=fn>Nick Desaulniers</span></span>
+<time>Oct 24, 2018</time></span></p><p class=meta><a class="basic-alignment left" href=https://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/ title="Speeding Up Linux Kernel Builds With ccache">Speeding Up Linux Kernel Builds With ccache</a>
+<a class="basic-alignment right" href=https://nickdesaulniers.github.io/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/ title="Finding Compiler Bugs With C-Reduce">Finding Compiler Bugs With C-Reduce</a></p><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//wangstabill.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></footer></article></div><aside class="sidebar thirds"><section class="first odd"><p></p></section><ul class=sidebar-nav><li class=sidebar-nav-item><a target=_blank rel="noopener noreferrer" href=https://github.com/nickdesaulniers title=https://github.com/nickdesaulniers><i class="fa fa-github fa-3x"></i></a>
+<a target=_blank rel="me noopener noreferrer" href=https://fosstodon.org/@llvm title=https://fosstodon.org/@llvm><i class="fa fa-mastodon fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.linkedin.com/in/nick-desaulniers-75520334 title=https://www.linkedin.com/in/nick-desaulniers-75520334><i class="fa fa-linkedin fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ title=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ><i class="fa fa-youtube fa-3x"></i></a></li></ul><section class=even><h1>Recent Posts</h1><ul id=recent_posts><li class=post><a href=/blog/2020/04/06/off-by-two/>Off by Two</a></li><li class=post><a href=/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/>f() vs f(void) in C vs C++</a></li><li class=post><a href=/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/>Finding Compiler Bugs With C-Reduce</a></li><li class=post><a href=/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a></li></ul></section></aside></div></div><footer role=contentinfo><p>Copyright &copy; 2023 Nick Desaulniers - <a href=https://nickdesaulniers.github.io/license/>License</a> -
+<span class=credit>Powered by <a target=_blank href=https://gohugo.io rel="noopener noreferrer">Hugo</a> and <a target=_blank href=https://github.com/parsiya/hugo-octopress/ rel="noopener noreferrer">Hugo-Octopress</a> theme.</p></footer><script>var _gaq=[["_setAccount","UA-36993986-1"],["_trackPageview"]];(function(e,t){var n=e.createElement(t),s=e.getElementsByTagName(t)[0];n.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js",s.parentNode.insertBefore(n,s)})(document,"script")</script></body></html>

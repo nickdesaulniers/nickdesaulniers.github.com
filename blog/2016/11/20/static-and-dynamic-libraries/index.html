@@ -1,648 +1,284 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-  
-  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-
-  
-    
-    
-      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
-    
-  
-
-  
-  <title>Static and Dynamic Libraries</title>
-
-  
-  
-  <link rel="stylesheet" href="/css/hugo-octopress.css">
-
-  
-  
-    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
-  
-
-  
-    <link rel="stylesheet" href="/css/fork-awesome.min.css">
-  
-
-  
-  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
-
-  
-  
-
-  <meta name="description" content="" />
-  <meta name="keywords" content="">
-  <meta name="author" content="Nick Desaulniers">
-
-  
-  <meta name="generator" content="Hugo 0.109.0">
-
-  
-  
-
-  
-  
-
-  
-  
-
-
-
-</head>
-<body>
-
-
-<header role="banner">
-<hgroup>
-  
-  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
-    <h2>The enemy&#39;s gate is down</h2>
-</hgroup></header>
-
-
-<nav role="navigation">
-<fieldset class="mobile-nav">
-  
-  <select onchange="location = this.value;">
-    <option value="">Navigate…</option>
-      
-        <option value="https://nickdesaulniers.github.io/about/">» About</option>
-      
-        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
-      
-        <option value="https://nickdesaulniers.github.io/">» Blog</option>
-      
-        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
-      
-        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
-      
-  </select>
-</fieldset>
-
-
-<ul class="main-navigation">
-  
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
-    
-  
-</ul>
-
-<ul class="subscription">
-  
-    
-        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
-    
-  
-</ul>
-
-
-  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
-    <fieldset role="search">
-      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
-    </fieldset>
-  </form>
-
-</nav>
-
-
-<div id="main">
-  <div id="content">
-    <div>
-      <article class="hentry" role="article">
-
-        
-        
-
-<header>
-  <p class="meta">Nov 20, 2016
-     - 12 minute read 
-     - <a href="https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/#disqus_thread">Comments</a>
-
-    
-    
-      - <a class="label" href="https://nickdesaulniers.github.io/categories/c/">C </a><a class="label" href="https://nickdesaulniers.github.io/categories/c&#43;&#43;/">C&#43;&#43; </a><a class="label" href="https://nickdesaulniers.github.io/categories/library/">library </a><a class="label" href="https://nickdesaulniers.github.io/categories/linkage/">linkage </a>
-    
-  </p>
-  <h1 class="entry-title">
-    <a href="https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/">Static and Dynamic Libraries</a>
-  </h1>
-</header>
-
-
-        <div class="entry-content">
-          
-          
-          
-          <p>This is the second post in a series on memory segmentation.  It covers working
-with static and dynamic libraries in Linux and OSX.  Make sure to check out the
-
-<a href="/blog/2016/08/13/object-files-and-symbols/">first on object files and symbols</a>.</p>
-<p>Let’s say we wanted to reuse some of the code from our previous project in our
-next one.  We could continue to copy around object files, but let’s say we have
-a bunch and it’s hard to keep track of all of them.  Let’s combine multiple
-object files into an archive or static library.  Similar to a more conventional
+<!doctype html><html xmlns=http://www.w3.org/1999/xhtml xml:lang=en lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,minimum-scale=1,maximum-scale=1"><link href=/css/fonts.css rel=stylesheet type=text/css><title>Static and Dynamic Libraries</title><link rel=stylesheet href=/css/hugo-octopress.css><link rel=stylesheet href=https://nickdesaulniers.github.io/css/custom.css><link rel=stylesheet href=/css/fork-awesome.min.css><link href=https://nickdesaulniers.github.io/favicon.png rel=icon><meta name=description content><meta name=keywords content><meta name=author content="Nick Desaulniers"><meta name=generator content="Hugo 0.109.0"></head><body><header role=banner><hgroup><h1><a href=https://nickdesaulniers.github.io/>Nick Desaulniers</a></h1><h2>The enemy's gate is down</h2></hgroup></header><nav role=navigation><fieldset class=mobile-nav><select onchange="location=this.value"><option value>Navigate…</option><option value=https://nickdesaulniers.github.io/about/>» About</option><option value=https://nickdesaulniers.github.io/blog/archives/>» Archives</option><option value=https://nickdesaulniers.github.io/>» Blog</option><option value=https://nickdesaulniers.github.io/publications/>» Publications</option><option value=https://nickdesaulniers.github.io/talks/>» Talks</option></select></fieldset><ul class=main-navigation><li><a href=https://nickdesaulniers.github.io/about/ title=About rel="noopener noreferrer">About</a></li><li><a href=https://nickdesaulniers.github.io/blog/archives/ title=Archives rel="noopener noreferrer">Archives</a></li><li><a href=https://nickdesaulniers.github.io/ title=Blog>Blog</a></li><li><a href=https://nickdesaulniers.github.io/publications/ title=Publications rel="noopener noreferrer">Publications</a></li><li><a href=https://nickdesaulniers.github.io/talks/ title=Talks rel="noopener noreferrer">Talks</a></li></ul><ul class=subscription><a href=https://nickdesaulniers.github.io/index.xml target=_blank type=application/rss+xml title=RSS rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a></ul><form action=https://www.google.com/search method=get target=_blank rel="noopener noreferrer"><fieldset role=search><input class=search type=text name=q results=0 placeholder=Search>
+<input type=hidden name=q value=site:https://nickdesaulniers.github.io/></fieldset></form></nav><div id=main><div id=content><div><article class=hentry role=article><header><p class=meta>Nov 20, 2016
+- 12 minute read
+- <a href=https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/#disqus_thread>Comments</a>
+- <a class=label href=https://nickdesaulniers.github.io/categories/c/>C </a><a class=label href=https://nickdesaulniers.github.io/categories/c++/>C++ </a><a class=label href=https://nickdesaulniers.github.io/categories/library/>library </a><a class=label href=https://nickdesaulniers.github.io/categories/linkage/>linkage</a></p><h1 class=entry-title>Static and Dynamic Libraries</h1></header><div class=entry-content><p>This is the second post in a series on memory segmentation. It covers working
+with static and dynamic libraries in Linux and OSX. Make sure to check out the
+<a href=/blog/2016/08/13/object-files-and-symbols/>first on object files and symbols</a>.</p><p>Let’s say we wanted to reuse some of the code from our previous project in our
+next one. We could continue to copy around object files, but let’s say we have
+a bunch and it’s hard to keep track of all of them. Let’s combine multiple
+object files into an archive or static library. Similar to a more conventional
 zip file or &ldquo;compressed archive,&rdquo; our static library will be an uncompressed
-archive.</p>
-<p>We can use the <code>ar</code> command to create and manipulate a static archive.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang -c x.c y.c
-</span></span><span style="display:flex;"><span>$ ar -rv libhello.a x.o y.o
+archive.</p><p>We can use the <code>ar</code> command to create and manipulate a static archive.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang -c x.c y.c
+</span></span><span style=display:flex><span>$ ar -rv libhello.a x.o y.o
 </span></span></code></pre></div><p>The <code>-r</code> flag will create the archive named <code>libhello.a</code> and add the files
-<code>x.o</code> and <code>y.o</code> to its index.  I like to add the <code>-v</code> flag for verbose output.
+<code>x.o</code> and <code>y.o</code> to its index. I like to add the <code>-v</code> flag for verbose output.
 Then we can use the familiar <code>nm</code> tool I introduced in the
-
-<a href="/blog/2016/08/13/object-files-and-symbols/">previous post</a>
-to examine the content of the archives and their symbols.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ file libhello.a
-</span></span><span style="display:flex;"><span>libhello.a: current ar archive random library
-</span></span><span style="display:flex;"><span>$ nm libhello.a
-</span></span><span style="display:flex;"><span>libhello.a<span style="color:#719e07">(</span>x.o<span style="color:#719e07">)</span>:
-</span></span><span style="display:flex;"><span>                 U _puts
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000000</span> T _x
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>libhello.a<span style="color:#719e07">(</span>y.o<span style="color:#719e07">)</span>:
-</span></span><span style="display:flex;"><span>                 U _puts
-</span></span><span style="display:flex;"><span><span style="color:#2aa198">0000000000000000</span> T _y
+<a href=/blog/2016/08/13/object-files-and-symbols/>previous post</a>
+to examine the content of the archives and their symbols.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ file libhello.a
+</span></span><span style=display:flex><span>libhello.a: current ar archive random library
+</span></span><span style=display:flex><span>$ nm libhello.a
+</span></span><span style=display:flex><span>libhello.a<span style=color:#719e07>(</span>x.o<span style=color:#719e07>)</span>:
+</span></span><span style=display:flex><span>                 U _puts
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000000</span> T _x
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>libhello.a<span style=color:#719e07>(</span>y.o<span style=color:#719e07>)</span>:
+</span></span><span style=display:flex><span>                 U _puts
+</span></span><span style=display:flex><span><span style=color:#2aa198>0000000000000000</span> T _y
 </span></span></code></pre></div><p>Some other useful flags for <code>ar</code> are <code>-d</code> to delete an object file, ex. <code>ar -d libhello.a y.o</code> and <code>-u</code> to update existing members of the archive when their
-source and object files are updated.  Not only can we run <code>nm</code> on our archive,
-<code>otool</code> and <code>objdump</code> both work.</p>
-<p>Now that we have our static library, we can statically link it to our program
-and see the resulting symbols.  The <code>.a</code> suffix is typical on both OSX and
-Linux for archive files.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang main.o libhello.a
-</span></span><span style="display:flex;"><span>$ nm a.out
-</span></span><span style="display:flex;"><span>0000000100000f30 T _main
-</span></span><span style="display:flex;"><span>                 U _puts
-</span></span><span style="display:flex;"><span>0000000100000f50 T _x
-</span></span><span style="display:flex;"><span>0000000100000f70 T _y
+source and object files are updated. Not only can we run <code>nm</code> on our archive,
+<code>otool</code> and <code>objdump</code> both work.</p><p>Now that we have our static library, we can statically link it to our program
+and see the resulting symbols. The <code>.a</code> suffix is typical on both OSX and
+Linux for archive files.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang main.o libhello.a
+</span></span><span style=display:flex><span>$ nm a.out
+</span></span><span style=display:flex><span>0000000100000f30 T _main
+</span></span><span style=display:flex><span>                 U _puts
+</span></span><span style=display:flex><span>0000000100000f50 T _x
+</span></span><span style=display:flex><span>0000000100000f70 T _y
 </span></span></code></pre></div><p>Our compiler understands how to index into archive files and pull out the
-functions it needs to combine into the final executable.  If we use a static
+functions it needs to combine into the final executable. If we use a static
 library to statically link all functions required, we can have one binary with
-no dependencies.  This can make deployment of binaries simple, but also greatly
-increase their size.  Upgrading large binaries incrementally becomes more
-costly in terms of space.</p>
-<p>While static libraries allowed us to reuse source code, static linkage does not
-allow us to reuse memory for executable code between different processes.  I
+no dependencies. This can make deployment of binaries simple, but also greatly
+increase their size. Upgrading large binaries incrementally becomes more
+costly in terms of space.</p><p>While static libraries allowed us to reuse source code, static linkage does not
+allow us to reuse memory for executable code between different processes. I
 really want to put off talking about memory benefits until the next post, but
-know that the solution to this problem lies in &ldquo;dynamic libraries.&rdquo;</p>
-<p>While having a single binary file keeps things simple, it can really hamper
-memory sharing and incremental relinking.  For example, if you have multiple
+know that the solution to this problem lies in &ldquo;dynamic libraries.&rdquo;</p><p>While having a single binary file keeps things simple, it can really hamper
+memory sharing and incremental relinking. For example, if you have multiple
 executables that are all built with the same static library, unless your OS is
 really smart about copy-on-write page sharing, then you’re likely loading
-multiple copies of the same exact code into memory! What a waste!  Also, when
+multiple copies of the same exact code into memory! What a waste! Also, when
 you want to rebuild or update your binary, you spend time performing relocation
-again and again with static libraries.  What if we could set aside object files
+again and again with static libraries. What if we could set aside object files
 that we could share amongst multiple instances of the same or even different
-processes, and perform relocation at runtime?</p>
-<p>The solution is known as dynamic libraries.  If static libraries and static
+processes, and perform relocation at runtime?</p><p>The solution is known as dynamic libraries. If static libraries and static
 linkage were Atari controllers, dynamic libraries and dynamic linkage are Steel
-Battalion controllers.  We’ll show how to work with them in the rest of this
-post, but I’ll prove how memory is saved in a later post.</p>
-<p>Let’s say we want to created a shared version of libhello.  Dynamic libraries
+Battalion controllers. We’ll show how to work with them in the rest of this
+post, but I’ll prove how memory is saved in a later post.</p><p>Let’s say we want to created a shared version of libhello. Dynamic libraries
 typically have different suffixes per OS since each OS has it’s preferred
-object file format.  On Linux the .so suffix is common, .dylib on OSX, and .dll
-on Windows.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang -shared -fpic x.c y.c -o libhello.dylib
-</span></span><span style="display:flex;"><span>$ file libhello.dylib
-</span></span><span style="display:flex;"><span>libhello.dylib: Mach-O 64-bit dynamically linked shared library x86_64
-</span></span><span style="display:flex;"><span>$ nm libhello.dylib
-</span></span><span style="display:flex;"><span>                 U _puts
-</span></span><span style="display:flex;"><span>0000000000000f50 T _x
-</span></span><span style="display:flex;"><span>0000000000000f70 T _y
+object file format. On Linux the .so suffix is common, .dylib on OSX, and .dll
+on Windows.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang -shared -fpic x.c y.c -o libhello.dylib
+</span></span><span style=display:flex><span>$ file libhello.dylib
+</span></span><span style=display:flex><span>libhello.dylib: Mach-O 64-bit dynamically linked shared library x86_64
+</span></span><span style=display:flex><span>$ nm libhello.dylib
+</span></span><span style=display:flex><span>                 U _puts
+</span></span><span style=display:flex><span>0000000000000f50 T _x
+</span></span><span style=display:flex><span>0000000000000f70 T _y
 </span></span></code></pre></div><p>The <code>-shared</code> flag tells the linker to create a special file called a shared
-library.  The <code>-fpic</code> option converts absolute addresses to relative addresses,
+library. The <code>-fpic</code> option converts absolute addresses to relative addresses,
 which allows for different processes to load the library at different virtual
-addresses and share memory.</p>
-<p>Now that we have our shared library, let’s dynamically link it into our
-executable.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang main.c libhello.dylib
-</span></span><span style="display:flex;"><span>$ ./a.out
-</span></span><span style="display:flex;"><span>x
-</span></span><span style="display:flex;"><span>y
-</span></span></code></pre></div><p>The dynamic linker essential produces an incomplete binary.  You can verify
-with <code>nm</code>.  At runtime, we’ll delay start up to perform some memory mapping
+addresses and share memory.</p><p>Now that we have our shared library, let’s dynamically link it into our
+executable.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang main.c libhello.dylib
+</span></span><span style=display:flex><span>$ ./a.out
+</span></span><span style=display:flex><span>x
+</span></span><span style=display:flex><span>y
+</span></span></code></pre></div><p>The dynamic linker essential produces an incomplete binary. You can verify
+with <code>nm</code>. At runtime, we’ll delay start up to perform some memory mapping
 early on in the process start (performed by the dynamic linker) and pay slight
-costs for trampolining into position independent code.</p>
-<p>Let’s say we want to know what dynamic libraries a binary is using.  You can
+costs for trampolining into position independent code.</p><p>Let’s say we want to know what dynamic libraries a binary is using. You can
 either query the executable (most executable object file formats contain a
 header the dynamic linker will parse and pull in libs) or observe the
-executable while running it.  Because each major OS has its own object file
-format, they each have their own tools for these two checks.  Note that
+executable while running it. Because each major OS has its own object file
+format, they each have their own tools for these two checks. Note that
 statically linked libraries won’t show up here, since their object code has
 already been linked in and thus we’re not able to differentiate between object
-code that came from our first party code vs third party static libraries.</p>
-<p>On OSX, we can use <code>otool -L &lt;bin&gt;</code> to check which .dylibs will get pulled in.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ otool -L a.out
-</span></span><span style="display:flex;"><span>a.out:
-</span></span><span style="display:flex;"><span>           libhello.dylib <span style="color:#719e07">(</span>compatibility version 0.0.0, current version 0.0.0<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>           /usr/lib/libSystem.B.dylib <span style="color:#719e07">(</span>compatibility version 1.0.0, current version 1226.10.1<span style="color:#719e07">)</span>
+code that came from our first party code vs third party static libraries.</p><p>On OSX, we can use <code>otool -L &lt;bin></code> to check which .dylibs will get pulled in.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ otool -L a.out
+</span></span><span style=display:flex><span>a.out:
+</span></span><span style=display:flex><span>           libhello.dylib <span style=color:#719e07>(</span>compatibility version 0.0.0, current version 0.0.0<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>           /usr/lib/libSystem.B.dylib <span style=color:#719e07>(</span>compatibility version 1.0.0, current version 1226.10.1<span style=color:#719e07>)</span>
 </span></span></code></pre></div><p>So we can see that <code>a.out</code> depends on <code>libhello.dylib</code> (and expects to find it
-in the same directory as <code>a.out</code>).  It also depends on shared library called
-libSystem.B.dylib.  If you run <code>otool -L</code> on libSystem itself, you’ll see it
+in the same directory as <code>a.out</code>). It also depends on shared library called
+libSystem.B.dylib. If you run <code>otool -L</code> on libSystem itself, you’ll see it
 depends on a bunch of other libraries including a C runtime, malloc
-implementation, pthreads implementation, and more.  Let’s say you want to find
+implementation, pthreads implementation, and more. Let’s say you want to find
 the final resting place of where a symbol is defined, without digging with <code>nm</code>
-and <code>otool</code>, you can fire up your trusty debugger and ask it.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ lldb a.out
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span><span style="color:#719e07">(</span>lldb<span style="color:#719e07">)</span> image lookup -r -s puts
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>        Summary: libsystem_c.dylib<span style="color:#586e75">`</span>puts        Address: libsystem_c.dylib<span style="color:#719e07">[</span>0x0000000000085c30<span style="color:#719e07">]</span> <span style="color:#719e07">(</span>libsystem_c.dylib.__TEXT.__stubs + 3216<span style="color:#719e07">)</span>
-</span></span></code></pre></div><p>You’ll see a lot of output since <code>puts</code> is treated as a regex.  You’re looking
-for the Summary line that has an address and is <strong>not</strong> a symbol stub.  You can
-then check your work with <code>otool</code> and <code>nm</code>.</p>
-<p>If we want to observe the dynamic linker in action on OSX, we can use <code>dtruss</code>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ sudo dtruss ./a.out
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>stat64<span style="color:#719e07">(</span><span style="color:#2aa198">&#34;libhello.dylib\0&#34;</span>, 0x7FFF50CEAC68, 0x1<span style="color:#719e07">)</span>         <span style="color:#719e07">=</span> <span style="color:#2aa198">0</span> <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>open<span style="color:#719e07">(</span><span style="color:#2aa198">&#34;libhello.dylib\0&#34;</span>, 0x0, 0x0<span style="color:#719e07">)</span>              <span style="color:#719e07">=</span> <span style="color:#2aa198">3</span> <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>mmap<span style="color:#719e07">(</span>0x10EF27000, 0x1000, 0x5, 0x12, 0x3, 0x0<span style="color:#719e07">)</span>          <span style="color:#719e07">=</span> 0x10EF27000 <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>mmap<span style="color:#719e07">(</span>0x10EF28000, 0x1000, 0x3, 0x12, 0x3, 0x1000<span style="color:#719e07">)</span>               <span style="color:#719e07">=</span> 0x10EF28000 <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>mmap<span style="color:#719e07">(</span>0x10EF29000, 0xC0, 0x1, 0x12, 0x3, 0x2000<span style="color:#719e07">)</span>         <span style="color:#719e07">=</span> 0x10EF29000 <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>close<span style="color:#719e07">(</span>0x3<span style="color:#719e07">)</span>              <span style="color:#719e07">=</span> <span style="color:#2aa198">0</span> <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>...
+and <code>otool</code>, you can fire up your trusty debugger and ask it.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ lldb a.out
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span><span style=color:#719e07>(</span>lldb<span style=color:#719e07>)</span> image lookup -r -s puts
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>        Summary: libsystem_c.dylib<span style=color:#586e75>`</span>puts        Address: libsystem_c.dylib<span style=color:#719e07>[</span>0x0000000000085c30<span style=color:#719e07>]</span> <span style=color:#719e07>(</span>libsystem_c.dylib.__TEXT.__stubs + 3216<span style=color:#719e07>)</span>
+</span></span></code></pre></div><p>You’ll see a lot of output since <code>puts</code> is treated as a regex. You’re looking
+for the Summary line that has an address and is <strong>not</strong> a symbol stub. You can
+then check your work with <code>otool</code> and <code>nm</code>.</p><p>If we want to observe the dynamic linker in action on OSX, we can use <code>dtruss</code>:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ sudo dtruss ./a.out
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>stat64<span style=color:#719e07>(</span><span style=color:#2aa198>&#34;libhello.dylib\0&#34;</span>, 0x7FFF50CEAC68, 0x1<span style=color:#719e07>)</span>         <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>open<span style=color:#719e07>(</span><span style=color:#2aa198>&#34;libhello.dylib\0&#34;</span>, 0x0, 0x0<span style=color:#719e07>)</span>              <span style=color:#719e07>=</span> <span style=color:#2aa198>3</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>mmap<span style=color:#719e07>(</span>0x10EF27000, 0x1000, 0x5, 0x12, 0x3, 0x0<span style=color:#719e07>)</span>          <span style=color:#719e07>=</span> 0x10EF27000 <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>mmap<span style=color:#719e07>(</span>0x10EF28000, 0x1000, 0x3, 0x12, 0x3, 0x1000<span style=color:#719e07>)</span>               <span style=color:#719e07>=</span> 0x10EF28000 <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>mmap<span style=color:#719e07>(</span>0x10EF29000, 0xC0, 0x1, 0x12, 0x3, 0x2000<span style=color:#719e07>)</span>         <span style=color:#719e07>=</span> 0x10EF29000 <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>close<span style=color:#719e07>(</span>0x3<span style=color:#719e07>)</span>              <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>...
 </span></span></code></pre></div><p>On Linux, we can simply use <code>ldd</code> or <code>readelf -d</code> to query an executable for a
-list of its dynamic libraries.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang -shared -fpic x.c y.c -o libhello.so
-</span></span><span style="display:flex;"><span>$ clang main.c libhello.so
-</span></span><span style="display:flex;"><span>$ ldd a.out
-</span></span><span style="display:flex;"><span>           linux-vdso.so.1 <span style="color:#719e07">=</span>&gt;  <span style="color:#719e07">(</span>0x00007fff95d43000<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>           libhello.so <span style="color:#719e07">=</span>&gt; not found
-</span></span><span style="display:flex;"><span>           libc.so.6 <span style="color:#719e07">=</span>&gt; /lib/x86_64-linux-gnu/libc.so.6 <span style="color:#719e07">(</span>0x00007fcc98c5f000<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>           /lib64/ld-linux-x86-64.so.2 <span style="color:#719e07">(</span>0x0000555993852000<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>$ readelf -d a.out
-</span></span><span style="display:flex;"><span>Dynamic section at offset 0xe18 contains <span style="color:#2aa198">25</span> entries:
-</span></span><span style="display:flex;"><span>  Tag        Type                         Name/Value
-</span></span><span style="display:flex;"><span> 0x0000000000000001 <span style="color:#719e07">(</span>NEEDED<span style="color:#719e07">)</span>             Shared library: <span style="color:#719e07">[</span>libhello.so<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span> 0x0000000000000001 <span style="color:#719e07">(</span>NEEDED<span style="color:#719e07">)</span>             Shared library: <span style="color:#719e07">[</span>libc.so.6<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>...
-</span></span></code></pre></div><p>We can then use <code>strace</code> to observe the dynamic linker in action on Linux:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ <span style="color:#268bd2">LD_LIBRARY_PATH</span><span style="color:#719e07">=</span>. strace ./a.out
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>open<span style="color:#719e07">(</span><span style="color:#2aa198">&#34;./libhello.so&#34;</span>, O_RDONLY|O_CLOEXEC<span style="color:#719e07">)</span> <span style="color:#719e07">=</span> <span style="color:#2aa198">3</span>
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>read<span style="color:#719e07">(</span>3, <span style="color:#2aa198">&#34;\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0&gt;\0\1\0\0\0\260\5\0\0\0\0\0\0&#34;</span>..., 832<span style="color:#719e07">)</span> <span style="color:#719e07">=</span> <span style="color:#2aa198">832</span>
-</span></span><span style="display:flex;"><span>fstat<span style="color:#719e07">(</span>3, <span style="color:#719e07">{</span><span style="color:#268bd2">st_mode</span><span style="color:#719e07">=</span>S_IFREG|0755, <span style="color:#268bd2">st_size</span><span style="color:#719e07">=</span>8216, ...<span style="color:#719e07">})</span> <span style="color:#719e07">=</span> <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>close<span style="color:#719e07">(</span>3<span style="color:#719e07">)</span>                                <span style="color:#719e07">=</span> <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>...
-</span></span></code></pre></div><p>What’s this <code>LD_LIBRARY_PATH</code> thing?  That’s shell syntax for setting an
+list of its dynamic libraries.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang -shared -fpic x.c y.c -o libhello.so
+</span></span><span style=display:flex><span>$ clang main.c libhello.so
+</span></span><span style=display:flex><span>$ ldd a.out
+</span></span><span style=display:flex><span>           linux-vdso.so.1 <span style=color:#719e07>=</span>&gt;  <span style=color:#719e07>(</span>0x00007fff95d43000<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>           libhello.so <span style=color:#719e07>=</span>&gt; not found
+</span></span><span style=display:flex><span>           libc.so.6 <span style=color:#719e07>=</span>&gt; /lib/x86_64-linux-gnu/libc.so.6 <span style=color:#719e07>(</span>0x00007fcc98c5f000<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>           /lib64/ld-linux-x86-64.so.2 <span style=color:#719e07>(</span>0x0000555993852000<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>$ readelf -d a.out
+</span></span><span style=display:flex><span>Dynamic section at offset 0xe18 contains <span style=color:#2aa198>25</span> entries:
+</span></span><span style=display:flex><span>  Tag        Type                         Name/Value
+</span></span><span style=display:flex><span> 0x0000000000000001 <span style=color:#719e07>(</span>NEEDED<span style=color:#719e07>)</span>             Shared library: <span style=color:#719e07>[</span>libhello.so<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span> 0x0000000000000001 <span style=color:#719e07>(</span>NEEDED<span style=color:#719e07>)</span>             Shared library: <span style=color:#719e07>[</span>libc.so.6<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>We can then use <code>strace</code> to observe the dynamic linker in action on Linux:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ <span style=color:#268bd2>LD_LIBRARY_PATH</span><span style=color:#719e07>=</span>. strace ./a.out
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>open<span style=color:#719e07>(</span><span style=color:#2aa198>&#34;./libhello.so&#34;</span>, O_RDONLY|O_CLOEXEC<span style=color:#719e07>)</span> <span style=color:#719e07>=</span> <span style=color:#2aa198>3</span>
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>read<span style=color:#719e07>(</span>3, <span style=color:#2aa198>&#34;\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0&gt;\0\1\0\0\0\260\5\0\0\0\0\0\0&#34;</span>..., 832<span style=color:#719e07>)</span> <span style=color:#719e07>=</span> <span style=color:#2aa198>832</span>
+</span></span><span style=display:flex><span>fstat<span style=color:#719e07>(</span>3, <span style=color:#719e07>{</span><span style=color:#268bd2>st_mode</span><span style=color:#719e07>=</span>S_IFREG|0755, <span style=color:#268bd2>st_size</span><span style=color:#719e07>=</span>8216, ...<span style=color:#719e07>})</span> <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>close<span style=color:#719e07>(</span>3<span style=color:#719e07>)</span>                                <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>What’s this <code>LD_LIBRARY_PATH</code> thing? That’s shell syntax for setting an
 environmental variable just for the duration of that command (as opposed to
-exporting it so it stays set for multiple commands).  As opposed to OSX’s
+exporting it so it stays set for multiple commands). As opposed to OSX’s
 dynamic linker, which was happy to look in the cwd for libhello.dylib, on Linux
 we must supply the cwd if the dynamic library we want to link in is not in the
-standard search path.</p>
-<p>But what is the standard search path?  Well, there’s another environmental
-variable we can set to see this, <code>LD_DEBUG</code>.  For example, on OSX:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ <span style="color:#268bd2">LD_DEBUG</span><span style="color:#719e07">=</span>libs <span style="color:#268bd2">LD_LIBRARY_PATH</span><span style="color:#719e07">=</span>. ./a.out
-</span></span><span style="display:flex;"><span>     15828:        find <span style="color:#268bd2">library</span><span style="color:#719e07">=</span>libhello.so <span style="color:#719e07">[</span>0<span style="color:#719e07">]</span>; searching
-</span></span><span style="display:flex;"><span>     15828:         search <span style="color:#268bd2">path</span><span style="color:#719e07">=</span>./tls/x86_64:./tls:./x86_64:.             <span style="color:#719e07">(</span>LD_LIBRARY_PATH<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>     15828:          trying <span style="color:#268bd2">file</span><span style="color:#719e07">=</span>./tls/x86_64/libhello.so
-</span></span><span style="display:flex;"><span>     15828:          trying <span style="color:#268bd2">file</span><span style="color:#719e07">=</span>./tls/libhello.so
-</span></span><span style="display:flex;"><span>     15828:          trying <span style="color:#268bd2">file</span><span style="color:#719e07">=</span>./x86_64/libhello.so
-</span></span><span style="display:flex;"><span>     15828:          trying <span style="color:#268bd2">file</span><span style="color:#719e07">=</span>./libhello.so
-</span></span><span style="display:flex;"><span>     15828:
-</span></span><span style="display:flex;"><span>     15828:        find <span style="color:#268bd2">library</span><span style="color:#719e07">=</span>libc.so.6 <span style="color:#719e07">[</span>0<span style="color:#719e07">]</span>; searching
-</span></span><span style="display:flex;"><span>     15828:         search <span style="color:#268bd2">path</span><span style="color:#719e07">=</span>./tls/x86_64:./tls:./x86_64:.             <span style="color:#719e07">(</span>LD_LIBRARY_PATH<span style="color:#719e07">)</span>
-</span></span><span style="display:flex;"><span>     15828:          trying <span style="color:#268bd2">file</span><span style="color:#719e07">=</span>./tls/x86_64/libc.so.6
-</span></span><span style="display:flex;"><span>     1earc:          trying <span style="color:#268bd2">file</span><span style="color:#719e07">=</span>./tls/libc.so.6
-</span></span><span style="display:flex;"><span>     15828:          trying <span style="color:#268bd2">file</span><span style="color:#719e07">=</span>./x86_64/libc.so.6
-</span></span><span style="display:flex;"><span>     15828:          trying <span style="color:#268bd2">file</span><span style="color:#719e07">=</span>./libc.so.6
-</span></span><span style="display:flex;"><span>     15828:         search <span style="color:#268bd2">cache</span><span style="color:#719e07">=</span>/etc/ld.so.cache
-</span></span><span style="display:flex;"><span>     15828:          trying <span style="color:#268bd2">file</span><span style="color:#719e07">=</span>/lib/x86_64-linux-gnu/libc.so.6
-</span></span><span style="display:flex;"><span>     15828:        calling init: /lib/x86_64-linux-gnu/libc.so.6
-</span></span><span style="display:flex;"><span>     15828:        calling init: ./libhello.so
-</span></span><span style="display:flex;"><span>     15828:        initialize program: ./a.out
-</span></span><span style="display:flex;"><span>     15828:        transferring control: ./a.out
-</span></span><span style="display:flex;"><span>x
-</span></span><span style="display:flex;"><span>y
-</span></span><span style="display:flex;"><span>     15828:        calling fini: ./a.out <span style="color:#719e07">[</span>0<span style="color:#719e07">]</span>
-</span></span><span style="display:flex;"><span>     15828:        calling fini: ./libhello.so <span style="color:#719e07">[</span>0<span style="color:#719e07">]</span>
-</span></span></code></pre></div><p><code>LD_DEBUG</code> is pretty useful.  Try:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ <span style="color:#268bd2">LD_DEBUG</span><span style="color:#719e07">=</span><span style="color:#b58900">help</span> ./a.out
-</span></span><span style="display:flex;"><span>Valid options <span style="color:#719e07">for</span> the LD_DEBUG environment variable are:
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  libs        display library search paths
-</span></span><span style="display:flex;"><span>  reloc       display relocation processing
-</span></span><span style="display:flex;"><span>  files       display progress <span style="color:#719e07">for</span> input file
-</span></span><span style="display:flex;"><span>  symbols     display symbol table processing
-</span></span><span style="display:flex;"><span>  bindings    display information about symbol binding
-</span></span><span style="display:flex;"><span>  versions    display version dependencies
-</span></span><span style="display:flex;"><span>  scopes      display scope information
-</span></span><span style="display:flex;"><span>  all         all previous options combined
-</span></span><span style="display:flex;"><span>  statistics  display relocation statistics
-</span></span><span style="display:flex;"><span>  unused      determined unused DSOs
-</span></span><span style="display:flex;"><span>  <span style="color:#b58900">help</span>        display this <span style="color:#b58900">help</span> message and <span style="color:#b58900">exit</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>To direct the debugging output into a file instead of standard output
-</span></span><span style="display:flex;"><span>a filename can be specified using the LD_DEBUG_OUTPUT environment variable.
+standard search path.</p><p>But what is the standard search path? Well, there’s another environmental
+variable we can set to see this, <code>LD_DEBUG</code>. For example, on OSX:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ <span style=color:#268bd2>LD_DEBUG</span><span style=color:#719e07>=</span>libs <span style=color:#268bd2>LD_LIBRARY_PATH</span><span style=color:#719e07>=</span>. ./a.out
+</span></span><span style=display:flex><span>     15828:        find <span style=color:#268bd2>library</span><span style=color:#719e07>=</span>libhello.so <span style=color:#719e07>[</span>0<span style=color:#719e07>]</span>; searching
+</span></span><span style=display:flex><span>     15828:         search <span style=color:#268bd2>path</span><span style=color:#719e07>=</span>./tls/x86_64:./tls:./x86_64:.             <span style=color:#719e07>(</span>LD_LIBRARY_PATH<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>     15828:          trying <span style=color:#268bd2>file</span><span style=color:#719e07>=</span>./tls/x86_64/libhello.so
+</span></span><span style=display:flex><span>     15828:          trying <span style=color:#268bd2>file</span><span style=color:#719e07>=</span>./tls/libhello.so
+</span></span><span style=display:flex><span>     15828:          trying <span style=color:#268bd2>file</span><span style=color:#719e07>=</span>./x86_64/libhello.so
+</span></span><span style=display:flex><span>     15828:          trying <span style=color:#268bd2>file</span><span style=color:#719e07>=</span>./libhello.so
+</span></span><span style=display:flex><span>     15828:
+</span></span><span style=display:flex><span>     15828:        find <span style=color:#268bd2>library</span><span style=color:#719e07>=</span>libc.so.6 <span style=color:#719e07>[</span>0<span style=color:#719e07>]</span>; searching
+</span></span><span style=display:flex><span>     15828:         search <span style=color:#268bd2>path</span><span style=color:#719e07>=</span>./tls/x86_64:./tls:./x86_64:.             <span style=color:#719e07>(</span>LD_LIBRARY_PATH<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>     15828:          trying <span style=color:#268bd2>file</span><span style=color:#719e07>=</span>./tls/x86_64/libc.so.6
+</span></span><span style=display:flex><span>     1earc:          trying <span style=color:#268bd2>file</span><span style=color:#719e07>=</span>./tls/libc.so.6
+</span></span><span style=display:flex><span>     15828:          trying <span style=color:#268bd2>file</span><span style=color:#719e07>=</span>./x86_64/libc.so.6
+</span></span><span style=display:flex><span>     15828:          trying <span style=color:#268bd2>file</span><span style=color:#719e07>=</span>./libc.so.6
+</span></span><span style=display:flex><span>     15828:         search <span style=color:#268bd2>cache</span><span style=color:#719e07>=</span>/etc/ld.so.cache
+</span></span><span style=display:flex><span>     15828:          trying <span style=color:#268bd2>file</span><span style=color:#719e07>=</span>/lib/x86_64-linux-gnu/libc.so.6
+</span></span><span style=display:flex><span>     15828:        calling init: /lib/x86_64-linux-gnu/libc.so.6
+</span></span><span style=display:flex><span>     15828:        calling init: ./libhello.so
+</span></span><span style=display:flex><span>     15828:        initialize program: ./a.out
+</span></span><span style=display:flex><span>     15828:        transferring control: ./a.out
+</span></span><span style=display:flex><span>x
+</span></span><span style=display:flex><span>y
+</span></span><span style=display:flex><span>     15828:        calling fini: ./a.out <span style=color:#719e07>[</span>0<span style=color:#719e07>]</span>
+</span></span><span style=display:flex><span>     15828:        calling fini: ./libhello.so <span style=color:#719e07>[</span>0<span style=color:#719e07>]</span>
+</span></span></code></pre></div><p><code>LD_DEBUG</code> is pretty useful. Try:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ <span style=color:#268bd2>LD_DEBUG</span><span style=color:#719e07>=</span><span style=color:#b58900>help</span> ./a.out
+</span></span><span style=display:flex><span>Valid options <span style=color:#719e07>for</span> the LD_DEBUG environment variable are:
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  libs        display library search paths
+</span></span><span style=display:flex><span>  reloc       display relocation processing
+</span></span><span style=display:flex><span>  files       display progress <span style=color:#719e07>for</span> input file
+</span></span><span style=display:flex><span>  symbols     display symbol table processing
+</span></span><span style=display:flex><span>  bindings    display information about symbol binding
+</span></span><span style=display:flex><span>  versions    display version dependencies
+</span></span><span style=display:flex><span>  scopes      display scope information
+</span></span><span style=display:flex><span>  all         all previous options combined
+</span></span><span style=display:flex><span>  statistics  display relocation statistics
+</span></span><span style=display:flex><span>  unused      determined unused DSOs
+</span></span><span style=display:flex><span>  <span style=color:#b58900>help</span>        display this <span style=color:#b58900>help</span> message and <span style=color:#b58900>exit</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>To direct the debugging output into a file instead of standard output
+</span></span><span style=display:flex><span>a filename can be specified using the LD_DEBUG_OUTPUT environment variable.
 </span></span></code></pre></div><p>For some cool stuff, I recommend checking out <code>LD_DEBUG=symbols</code> and
-<code>LD_DEBUG=statistics</code>.</p>
-<p>Going back to <code>LD_LIBRARY_PATH</code>, usually libraries you create and want to reuse
+<code>LD_DEBUG=statistics</code>.</p><p>Going back to <code>LD_LIBRARY_PATH</code>, usually libraries you create and want to reuse
 between projects go into /usr/local/lib and the headers into
-/usr/local/include.  I think of the convention as:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ tree -L <span style="color:#2aa198">2</span> /usr/
-</span></span><span style="display:flex;"><span>/usr
-</span></span><span style="display:flex;"><span>├── bin <span style="color:#586e75"># system installed binaries like nm, gcc</span>
-</span></span><span style="display:flex;"><span>├── include <span style="color:#586e75"># system installed headers like stdio.h</span>
-</span></span><span style="display:flex;"><span>├── lib <span style="color:#586e75"># system installed libraries, both static and dynamic</span>
-</span></span><span style="display:flex;"><span>└── <span style="color:#b58900">local</span>
-</span></span><span style="display:flex;"><span>    ├── bin <span style="color:#586e75"># user installed binaries like rustc</span>
-</span></span><span style="display:flex;"><span>    ├── include <span style="color:#586e75"># user installed headers</span>
-</span></span><span style="display:flex;"><span>    └── lib <span style="color:#586e75"># user installed</span>
+/usr/local/include. I think of the convention as:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ tree -L <span style=color:#2aa198>2</span> /usr/
+</span></span><span style=display:flex><span>/usr
+</span></span><span style=display:flex><span>├── bin <span style=color:#586e75># system installed binaries like nm, gcc</span>
+</span></span><span style=display:flex><span>├── include <span style=color:#586e75># system installed headers like stdio.h</span>
+</span></span><span style=display:flex><span>├── lib <span style=color:#586e75># system installed libraries, both static and dynamic</span>
+</span></span><span style=display:flex><span>└── <span style=color:#b58900>local</span>
+</span></span><span style=display:flex><span>    ├── bin <span style=color:#586e75># user installed binaries like rustc</span>
+</span></span><span style=display:flex><span>    ├── include <span style=color:#586e75># user installed headers</span>
+</span></span><span style=display:flex><span>    └── lib <span style=color:#586e75># user installed</span>
 </span></span></code></pre></div><p>Unfortunately, it’s a loose convention that’s broken down over the years and
-things are scattered all over the place.  You can also run into dependency and
+things are scattered all over the place. You can also run into dependency and
 versioning issues, that I don’t want to get into here, by placing libraries
 here instead of keeping them in-tree or out-of-tree of the source code of a
-project.  Just know when you see a library like <code>libc.so.6</code> that the numeric
-suffix is a major version number that follows semantic versioning.  For more
+project. Just know when you see a library like <code>libc.so.6</code> that the numeric
+suffix is a major version number that follows semantic versioning. For more
 information, you should read Michael Kerrisk’s excellent book <em>The Linux
-Programming Interface</em>.  This post is based on his chapter’s 41 &amp; 42 (but with
-more info on tooling and OSX).</p>
-<p>If we were to place our libhello.so into /usr/local/lib (on Linux you need to
+Programming Interface</em>. This post is based on his chapter’s 41 & 42 (but with
+more info on tooling and OSX).</p><p>If we were to place our libhello.so into /usr/local/lib (on Linux you need to
 then run <code>sudo ldconfig</code>) and move x.h and y.h to /usr/local/include, then we
-could then compile with:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ clang main.c -lhello
+could then compile with:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ clang main.c -lhello
 </span></span></code></pre></div><p>Note that rather than give a full path to our library, we can use the <code>-l</code> flag
-followed by the name of our library with the lib prefix and .so suffix removed.</p>
-<p>When working with shared libraries and external code, three flags I use pretty
-often:</p>
-<pre tabindex="0"><code>* -l&lt;libname to link, no lib prefix or file extension; ex: -lnanomsg to link libnanomsg.so&gt;
+followed by the name of our library with the lib prefix and .so suffix removed.</p><p>When working with shared libraries and external code, three flags I use pretty
+often:</p><pre tabindex=0><code>* -l&lt;libname to link, no lib prefix or file extension; ex: -lnanomsg to link libnanomsg.so&gt;
 * -L &lt;path to search for lib if in non standard directory&gt;
 * -I &lt;path to headers for that library, if in non standard directory&gt;
 </code></pre><p>For finding specific flags needed for compilation where dynamic linkage is
 required, a tool called <code>pkg-config</code> can be used for finding appropriate flags.
 I’ve had less than stellar experiences with the tool as it puts the onus on the
 library author to maintain the .pc files, and the user to have them installed
-in the right place that <code>pkg-config</code> looks.  When they do exist and are
-installed properly, the tool works well:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ sudo apt-get install libpng12-dev
-</span></span><span style="display:flex;"><span>$ pkg-config --libs --cflags libpng12
-</span></span><span style="display:flex;"><span>-I/usr/include/libpng12  -lpng12
-</span></span><span style="display:flex;"><span>$ clang program.c <span style="color:#586e75">`</span>!!<span style="color:#586e75">`</span>
+in the right place that <code>pkg-config</code> looks. When they do exist and are
+installed properly, the tool works well:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ sudo apt-get install libpng12-dev
+</span></span><span style=display:flex><span>$ pkg-config --libs --cflags libpng12
+</span></span><span style=display:flex><span>-I/usr/include/libpng12  -lpng12
+</span></span><span style=display:flex><span>$ clang program.c <span style=color:#586e75>`</span>!!<span style=color:#586e75>`</span>
 </span></span></code></pre></div><p>Using another neat environmental variable, we can hook into the dynamic linkage
 process and inject our own shared libraries to be linked instead of the
-expected libraries.  Let’s say libgood.so and libmalicous.so both define a
-symbol for a function (the same symbol name and function signature).  We can
+expected libraries. Let’s say libgood.so and libmalicous.so both define a
+symbol for a function (the same symbol name and function signature). We can
 get a binary that links in libgood.so’s function to instead call
-libmalicous.so’s version:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ ./a.out
-</span></span><span style="display:flex;"><span>hello from libgood
-</span></span><span style="display:flex;"><span>$ <span style="color:#268bd2">LD_PRELOAD</span><span style="color:#719e07">=</span>./libmalicious.so ./a.out
-</span></span><span style="display:flex;"><span>hello from libmalicious
+libmalicous.so’s version:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ ./a.out
+</span></span><span style=display:flex><span>hello from libgood
+</span></span><span style=display:flex><span>$ <span style=color:#268bd2>LD_PRELOAD</span><span style=color:#719e07>=</span>./libmalicious.so ./a.out
+</span></span><span style=display:flex><span>hello from libmalicious
 </span></span></code></pre></div><p>LD_PRELOAD is not available on OSX, instead you can use
 <code>DYLD_INSERT_LIBRARIES</code>, <code>DYLD_LIBRARY_PATH</code>, and recompile the original
 executable with <code>-flat_namespace</code>. Having to recompile the original executable
 is less than ideal for hooking an existing binary, but I could not hook libc
-as in the previous libmalicious example.  I would be interested to know if you
-can though!</p>
-<p>Manually invoking the dynamic linker from our code,
-
-<a href="https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs/" target="_blank" rel="noopener">we can even man in the middle library calls (call our hooked function first, then invoke the original target)</a>.
-We’ll see more of this in the next post on using the dynamic linker.</p>
-<p>As you can guess, readjusting the search paths for dynamic libraries is a
+as in the previous libmalicious example. I would be interested to know if you
+can though!</p><p>Manually invoking the dynamic linker from our code,
+<a href=https://rafalcieslak.wordpress.com/2013/04/02/dynamic-linker-tricks-using-ld_preload-to-cheat-inject-features-and-investigate-programs/ target=_blank rel=noopener>we can even man in the middle library calls (call our hooked function first, then invoke the original target)</a>.
+We’ll see more of this in the next post on using the dynamic linker.</p><p>As you can guess, readjusting the search paths for dynamic libraries is a
 security concern as it let’s good and bad folks change the expected execution
-paths.  Guarding against the use of these env vars becomes a rabbit hole that
+paths. Guarding against the use of these env vars becomes a rabbit hole that
 gets pretty tricky to solve without the heavy handed use of statically linking
-dependencies.</p>
-<p>In the the previous post, I alluded to undefined symbols like <code>puts</code>.  <code>puts</code>
+dependencies.</p><p>In the the previous post, I alluded to undefined symbols like <code>puts</code>. <code>puts</code>
 is part of libc, which is probably the most shared dynamic library on most
-computing devices since most every program makes use of the C runtime.  (I
+computing devices since most every program makes use of the C runtime. (I
 think of a “runtime” as implicit code that runs in your program that you didn’t
-necessarily write yourself.  Usually a runtime is provided as a library that
-gets implicitly linked into your executable when you compile.)  You can
+necessarily write yourself. Usually a runtime is provided as a library that
+gets implicitly linked into your executable when you compile.) You can
 statically link against libc with the <code>-static</code> flag, on Linux at least (OSX
 makes this difficult,
-
-<a href="https://developer.apple.com/library/content/qa/qa1118/_index.html" target="_blank" rel="noopener">&ldquo;Apple does not support statically linked binaries on Mac OS X&rdquo;</a>).</p>
-<p>I’m not sure what the benefit would be to mixing static and dynamic linking,
+<a href=https://developer.apple.com/library/content/qa/qa1118/_index.html target=_blank rel=noopener>&ldquo;Apple does not support statically linked binaries on Mac OS X&rdquo;</a>).</p><p>I’m not sure what the benefit would be to mixing static and dynamic linking,
 but after searching the search paths from LD_DEBUG=libs for shared versions of
-a library, if any static ones are found, they will get linked in.</p>
-<p>There’s also an interesting form of library called a &ldquo;virtual dynamic shared
-object&rdquo; on Linux.  I haven’t covered memory mapping yet, but know it exists, is
-usually hidden for libc, and that you can read more about it via <code>man 7 vdso</code>.</p>
-<p>One thing I find interesting and don’t quite understand how to recreate is that
-somehow glibc on Linux is also executable:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ /lib/x86_64-linux-gnu/libc.so.6
-</span></span><span style="display:flex;"><span>GNU C Library <span style="color:#719e07">(</span>Ubuntu GLIBC 2.24-3ubuntu1<span style="color:#719e07">)</span> stable release version 2.24, by Roland McGrath et al.
-</span></span><span style="display:flex;"><span>Copyright <span style="color:#719e07">(</span>C<span style="color:#719e07">)</span> <span style="color:#2aa198">2016</span> Free Software Foundation, Inc.
-</span></span><span style="display:flex;"><span>This is free software; see the <span style="color:#b58900">source</span> <span style="color:#719e07">for</span> copying conditions.
-</span></span><span style="display:flex;"><span>There is NO warranty; not even <span style="color:#719e07">for</span> MERCHANTABILITY or FITNESS FOR A
-</span></span><span style="display:flex;"><span>PARTICULAR PURPOSE.
-</span></span><span style="display:flex;"><span>Compiled by GNU CC version 6.2.0 20161005.
-</span></span><span style="display:flex;"><span>Available extensions:
-</span></span><span style="display:flex;"><span>    crypt add-on version 2.1 by Michael Glad and others
-</span></span><span style="display:flex;"><span>    GNU Libidn by Simon Josefsson
-</span></span><span style="display:flex;"><span>    Native POSIX Threads Library by Ulrich Drepper et al
-</span></span><span style="display:flex;"><span>    BIND-8.2.3-T5B
-</span></span><span style="display:flex;"><span>libc ABIs: UNIQUE IFUNC
-</span></span><span style="display:flex;"><span>For bug reporting instructions, please see:
-</span></span><span style="display:flex;"><span>&lt;https://bugs.launchpad.net/ubuntu/+source/glibc/+bugs&gt;.
+a library, if any static ones are found, they will get linked in.</p><p>There’s also an interesting form of library called a &ldquo;virtual dynamic shared
+object&rdquo; on Linux. I haven’t covered memory mapping yet, but know it exists, is
+usually hidden for libc, and that you can read more about it via <code>man 7 vdso</code>.</p><p>One thing I find interesting and don’t quite understand how to recreate is that
+somehow glibc on Linux is also executable:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>$ /lib/x86_64-linux-gnu/libc.so.6
+</span></span><span style=display:flex><span>GNU C Library <span style=color:#719e07>(</span>Ubuntu GLIBC 2.24-3ubuntu1<span style=color:#719e07>)</span> stable release version 2.24, by Roland McGrath et al.
+</span></span><span style=display:flex><span>Copyright <span style=color:#719e07>(</span>C<span style=color:#719e07>)</span> <span style=color:#2aa198>2016</span> Free Software Foundation, Inc.
+</span></span><span style=display:flex><span>This is free software; see the <span style=color:#b58900>source</span> <span style=color:#719e07>for</span> copying conditions.
+</span></span><span style=display:flex><span>There is NO warranty; not even <span style=color:#719e07>for</span> MERCHANTABILITY or FITNESS FOR A
+</span></span><span style=display:flex><span>PARTICULAR PURPOSE.
+</span></span><span style=display:flex><span>Compiled by GNU CC version 6.2.0 20161005.
+</span></span><span style=display:flex><span>Available extensions:
+</span></span><span style=display:flex><span>    crypt add-on version 2.1 by Michael Glad and others
+</span></span><span style=display:flex><span>    GNU Libidn by Simon Josefsson
+</span></span><span style=display:flex><span>    Native POSIX Threads Library by Ulrich Drepper et al
+</span></span><span style=display:flex><span>    BIND-8.2.3-T5B
+</span></span><span style=display:flex><span>libc ABIs: UNIQUE IFUNC
+</span></span><span style=display:flex><span>For bug reporting instructions, please see:
+</span></span><span style=display:flex><span>&lt;https://bugs.launchpad.net/ubuntu/+source/glibc/+bugs&gt;.
 </span></span></code></pre></div><p>Also, note that linking against third party code has licensing implications (of
 course) of particular interest when it’s GPL or LGPL.
-
-<a href="http://stackoverflow.com/a/10179181/1027966" target="_blank" rel="noopener">Here is a good overview</a>
+<a href=http://stackoverflow.com/a/10179181/1027966 target=_blank rel=noopener>Here is a good overview</a>
 which I’d summarize as: code that <em>statically</em> links against LGPL code must
-also be LGPL, while any form of linkage against GPL code must be GPL’d.</p>
-<p>Ok, that was a lot. In the previous post, we covered
-
-<a href="/blog/2016/08/13/object-files-and-symbols/">Object Files and Symbols</a>.
-In this post we covered hacking around with static and dynamic linkage.  In the
+also be LGPL, while any form of linkage against GPL code must be GPL’d.</p><p>Ok, that was a lot. In the previous post, we covered
+<a href=/blog/2016/08/13/object-files-and-symbols/>Object Files and Symbols</a>.
+In this post we covered hacking around with static and dynamic linkage. In the
 next post, I hope to talk about manually invoking the dynamic linker at
-runtime.</p>
-<ul>
-<li>
-<a href="/blog/2016/08/13/object-files-and-symbols/">Part 1 - Object Files and Symbols</a></li>
-<li>
-<a href="/blog/2016/11/20/static-and-dynamic-libraries/">Part 2 - Static and Dynamic Libraries</a></li>
-</ul>
-
-        </div>
-        
-
-<footer>
-  <p class="meta">
-    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-    
-    <time>Nov 20, 2016</time>
-    
-    </span>
-  </p>
-
-  
-
-  <p class="meta">
-    
-        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/" title="Object Files and Symbols">Object Files and Symbols</a>
-    
-
-    
-      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/" title="Submitting Your First Patch to the Linux Kernel and Responding to Feedback">Submitting Your First Patch to the Linux Kernel and Responding to Feedback</a>
-    
-  </p>
-  
-    
-      <div id="disqus_thread"></div>
-<script type="application/javascript">
-    window.disqus_config = function () {
-    
-    
-    
-    };
-    (function() {
-        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
-            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
-            return;
-        }
-        var d = document, s = d.createElement('script'); s.async = true;
-        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-    
-  
-</footer>
-
-      </article>
-    </div>
-    
-
-<aside class="sidebar thirds">
-  <section class="first odd">
-
-    
-
-    <p>
-      
-    </p>
-  </section>
-
-  
-  
-
-
-
-<ul class="sidebar-nav">
-  <li class="sidebar-nav-item">
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
-    
-    
-    
-    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
-    
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
-    
-    
-
-  
-  
-  </li>
-</ul>
-
-  
-
-  
-
-  
-  
-  
-    
-      <section class="even">
-        <h1>Recent Posts</h1>
-        <ul id="recent_posts">
-          
-          
-            
-              <li class="post">
-                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-              </li>
-            
-          
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-              </li>
-            
-          
-        </ul>
-      </section>
-    
-  
-</aside>
-
-  </div>
-</div>
-
-    <footer role="contentinfo">
-      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
-        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
-      </p>
-    </footer>
-
-    
-    
-
-
-
-    
-    
-    
-
-    
-      <script>
-        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
-        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-        s.parentNode.insertBefore(g,s)}(document,'script'));
-      </script>
-    
-  </body>
-</html>
-
+runtime.</p><ul><li><a href=/blog/2016/08/13/object-files-and-symbols/>Part 1 - Object Files and Symbols</a></li><li><a href=/blog/2016/11/20/static-and-dynamic-libraries/>Part 2 - Static and Dynamic Libraries</a></li></ul></div><footer><p class=meta><span class="byline author vcard">Posted by <span class=fn>Nick Desaulniers</span></span>
+<time>Nov 20, 2016</time></span></p><p class=meta><a class="basic-alignment left" href=https://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/ title="Object Files and Symbols">Object Files and Symbols</a>
+<a class="basic-alignment right" href=https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/ title="Submitting Your First Patch to the Linux Kernel and Responding to Feedback">Submitting Your First Patch to the Linux Kernel and Responding to Feedback</a></p><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//wangstabill.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></footer></article></div><aside class="sidebar thirds"><section class="first odd"><p></p></section><ul class=sidebar-nav><li class=sidebar-nav-item><a target=_blank rel="noopener noreferrer" href=https://github.com/nickdesaulniers title=https://github.com/nickdesaulniers><i class="fa fa-github fa-3x"></i></a>
+<a target=_blank rel="me noopener noreferrer" href=https://fosstodon.org/@llvm title=https://fosstodon.org/@llvm><i class="fa fa-mastodon fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.linkedin.com/in/nick-desaulniers-75520334 title=https://www.linkedin.com/in/nick-desaulniers-75520334><i class="fa fa-linkedin fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ title=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ><i class="fa fa-youtube fa-3x"></i></a></li></ul><section class=even><h1>Recent Posts</h1><ul id=recent_posts><li class=post><a href=/blog/2020/04/06/off-by-two/>Off by Two</a></li><li class=post><a href=/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/>f() vs f(void) in C vs C++</a></li><li class=post><a href=/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/>Finding Compiler Bugs With C-Reduce</a></li><li class=post><a href=/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a></li></ul></section></aside></div></div><footer role=contentinfo><p>Copyright &copy; 2023 Nick Desaulniers - <a href=https://nickdesaulniers.github.io/license/>License</a> -
+<span class=credit>Powered by <a target=_blank href=https://gohugo.io rel="noopener noreferrer">Hugo</a> and <a target=_blank href=https://github.com/parsiya/hugo-octopress/ rel="noopener noreferrer">Hugo-Octopress</a> theme.</p></footer><script>var _gaq=[["_setAccount","UA-36993986-1"],["_trackPageview"]];(function(e,t){var n=e.createElement(t),s=e.getElementsByTagName(t)[0];n.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js",s.parentNode.insertBefore(n,s)})(document,"script")</script></body></html>

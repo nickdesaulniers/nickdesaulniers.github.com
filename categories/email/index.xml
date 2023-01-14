@@ -1,22 +1,3 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>email on Nick Desaulniers</title>
-    <link>https://nickdesaulniers.github.io/categories/email/</link>
-    <description>Recent content in email on Nick Desaulniers</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Tue, 16 May 2017 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/email/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Submitting Your First Patch to the Linux Kernel and Responding to Feedback</title>
-      <link>https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/</link>
-      <pubDate>Tue, 16 May 2017 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/</guid>
-      <description>After working on the Linux kernel for Nexus and Pixel phones for nearly a year, and messing around with the excellent Eudyptula challenge, I finally wanted to take a crack at submitting patches upstream to the Linux kernel.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>email on Nick Desaulniers</title><link>https://nickdesaulniers.github.io/categories/email/</link><description>Recent content in email on Nick Desaulniers</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 16 May 2017 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/email/index.xml" rel="self" type="application/rss+xml"/><item><title>Submitting Your First Patch to the Linux Kernel and Responding to Feedback</title><link>https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/</link><pubDate>Tue, 16 May 2017 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/</guid><description>After working on the Linux kernel for Nexus and Pixel phones for nearly a year, and messing around with the excellent Eudyptula challenge, I finally wanted to take a crack at submitting patches upstream to the Linux kernel.
 This post is woefully inadequate compared to the existing documentation, which should be preferred.
-http://elixir.free-electrons.com/linux/latest/source/Documentation/process https://kernelnewbies.org/FirstKernelPatch I figure I’d document my workflow, now that I’ve gotten a few patches accepted (and so I can refer to this post rather than my shell history&amp;hellip;).</description>
-    </item>
-    
-  </channel>
-</rss>
+http://elixir.free-electrons.com/linux/latest/source/Documentation/process https://kernelnewbies.org/FirstKernelPatch I figure I’d document my workflow, now that I’ve gotten a few patches accepted (and so I can refer to this post rather than my shell history&amp;hellip;).</description></item></channel></rss>

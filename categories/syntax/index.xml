@@ -1,42 +1,5 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>syntax on Nick Desaulniers</title>
-    <link>https://nickdesaulniers.github.io/categories/syntax/</link>
-    <description>Recent content in syntax on Nick Desaulniers</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Sun, 12 May 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/syntax/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>f() vs f(void) in C vs C&#43;&#43;</title>
-      <link>https://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/</link>
-      <pubDate>Sun, 12 May 2019 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/</guid>
-      <description>TL;DR
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>syntax on Nick Desaulniers</title><link>https://nickdesaulniers.github.io/categories/syntax/</link><description>Recent content in syntax on Nick Desaulniers</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 12 May 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/syntax/index.xml" rel="self" type="application/rss+xml"/><item><title>f() vs f(void) in C vs C++</title><link>https://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/</link><pubDate>Sun, 12 May 2019 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/</guid><description>TL;DR
 Prefer f(void) in C to potentially save a 2B instruction per function call when targeting x86_64 as a micro-optimization. -Wstrict-prototypes can help. Doesn’t matter for C++.
-The Problem While messing around with some C code in godbolt Compiler Explorer, I kept noticing a particular funny case. It seemed with my small test cases that sometimes function calls would zero out the return register before calling a function that took no arguments, but other times not.</description>
-    </item>
-    
-    <item>
-      <title>Designated Initialization With Compound Literals in C</title>
-      <link>https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/</link>
-      <pubDate>Thu, 25 Jul 2013 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/</guid>
-      <description>Just a quick post on something I just discovered and found neat (I always find obscure C syntax interesting). I was trying to figure out how to use a C designated initializer, where a member was a pointer to another designated initializer. At this point, you need a compound literal. Just a quick background on C initialization:
-// verbosely create an array with a known size int arr [3]; arr[0] = 1; arr[1] = 2; arr[2] = 3; // =&amp;gt; [1, 2, 3] // concisely create an array with a known size int arr [3] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3] // creates an array with unspecified values initialized to 0 int arr [4] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3, 0] // truncates declaration int arr [1] = { 1, 2, 3 }; // =&amp;gt; [1] // based on number of initializers int arr [] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3] Let&amp;rsquo;s look at how we might have initialized a struct in C89.</description>
-    </item>
-    
-    <item>
-      <title>C Function Pointers Alternate Syntax</title>
-      <link>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</link>
-      <pubDate>Sat, 26 Jan 2013 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</guid>
-      <description>On an interview with Square, I made the mistake of stating that one of the benefits of working with JavaScript over C is that functions are first class in JavaScript, therefore they may be passed around. To which the interviewer replied, &amp;ldquo;Well, C can do that, what about function pointers?&amp;rdquo; What? Luckily, I was able to get out of that jam by guessing that JavaScript had a nicer syntax.
-While I was taught some C in university, we had never gone over function pointers or more in depth topics such as static or dynamic linkage.</description>
-    </item>
-    
-  </channel>
-</rss>
+The Problem While messing around with some C code in godbolt Compiler Explorer, I kept noticing a particular funny case. It seemed with my small test cases that sometimes function calls would zero out the return register before calling a function that took no arguments, but other times not.</description></item><item><title>Designated Initialization With Compound Literals in C</title><link>https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/</link><pubDate>Thu, 25 Jul 2013 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/</guid><description>Just a quick post on something I just discovered and found neat (I always find obscure C syntax interesting). I was trying to figure out how to use a C designated initializer, where a member was a pointer to another designated initializer. At this point, you need a compound literal. Just a quick background on C initialization:
+// verbosely create an array with a known size int arr [3]; arr[0] = 1; arr[1] = 2; arr[2] = 3; // =&amp;gt; [1, 2, 3] // concisely create an array with a known size int arr [3] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3] // creates an array with unspecified values initialized to 0 int arr [4] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3, 0] // truncates declaration int arr [1] = { 1, 2, 3 }; // =&amp;gt; [1] // based on number of initializers int arr [] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3] Let&amp;rsquo;s look at how we might have initialized a struct in C89.</description></item><item><title>C Function Pointers Alternate Syntax</title><link>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</link><pubDate>Sat, 26 Jan 2013 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</guid><description>On an interview with Square, I made the mistake of stating that one of the benefits of working with JavaScript over C is that functions are first class in JavaScript, therefore they may be passed around. To which the interviewer replied, &amp;ldquo;Well, C can do that, what about function pointers?&amp;rdquo; What? Luckily, I was able to get out of that jam by guessing that JavaScript had a nicer syntax.
+While I was taught some C in university, we had never gone over function pointers or more in depth topics such as static or dynamic linkage.</description></item></channel></rss>

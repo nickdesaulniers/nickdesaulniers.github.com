@@ -1,21 +1,2 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>function pointer on Nick Desaulniers</title>
-    <link>https://nickdesaulniers.github.io/categories/function-pointer/</link>
-    <description>Recent content in function pointer on Nick Desaulniers</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Sat, 26 Jan 2013 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/function-pointer/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>C Function Pointers Alternate Syntax</title>
-      <link>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</link>
-      <pubDate>Sat, 26 Jan 2013 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</guid>
-      <description>On an interview with Square, I made the mistake of stating that one of the benefits of working with JavaScript over C is that functions are first class in JavaScript, therefore they may be passed around. To which the interviewer replied, &amp;ldquo;Well, C can do that, what about function pointers?&amp;rdquo; What? Luckily, I was able to get out of that jam by guessing that JavaScript had a nicer syntax.
-While I was taught some C in university, we had never gone over function pointers or more in depth topics such as static or dynamic linkage.</description>
-    </item>
-    
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>function pointer on Nick Desaulniers</title><link>https://nickdesaulniers.github.io/categories/function-pointer/</link><description>Recent content in function pointer on Nick Desaulniers</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 26 Jan 2013 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/function-pointer/index.xml" rel="self" type="application/rss+xml"/><item><title>C Function Pointers Alternate Syntax</title><link>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</link><pubDate>Sat, 26 Jan 2013 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</guid><description>On an interview with Square, I made the mistake of stating that one of the benefits of working with JavaScript over C is that functions are first class in JavaScript, therefore they may be passed around. To which the interviewer replied, &amp;ldquo;Well, C can do that, what about function pointers?&amp;rdquo; What? Luckily, I was able to get out of that jam by guessing that JavaScript had a nicer syntax.
+While I was taught some C in university, we had never gone over function pointers or more in depth topics such as static or dynamic linkage.</description></item></channel></rss>

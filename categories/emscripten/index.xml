@@ -1,21 +1,2 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>emscripten on Nick Desaulniers</title>
-    <link>https://nickdesaulniers.github.io/categories/emscripten/</link>
-    <description>Recent content in emscripten on Nick Desaulniers</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Sun, 25 Jan 2015 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/emscripten/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Writing My First Technical Book Chapter</title>
-      <link>https://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/</link>
-      <pubDate>Sun, 25 Jan 2015 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/</guid>
-      <description>It&amp;rsquo;s a feeling of immense satisfaction when we complete a major achievement. Being able to say &amp;ldquo;it&amp;rsquo;s done&amp;rdquo; is such a great stress relief. Recently, I completed work on my first publication, a chapter about Emscripten for the upcoming book WebGL Insights to be published by CRC Press in time for SIGGRAPH 2015.
-One of the life goals I&amp;rsquo;ve had for a while is writing a book. A romantic idea it seems to have your ideas transcribed to a medium that will outlast your bones.</description>
-    </item>
-    
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>emscripten on Nick Desaulniers</title><link>https://nickdesaulniers.github.io/categories/emscripten/</link><description>Recent content in emscripten on Nick Desaulniers</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 25 Jan 2015 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/emscripten/index.xml" rel="self" type="application/rss+xml"/><item><title>Writing My First Technical Book Chapter</title><link>https://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/</link><pubDate>Sun, 25 Jan 2015 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/</guid><description>It&amp;rsquo;s a feeling of immense satisfaction when we complete a major achievement. Being able to say &amp;ldquo;it&amp;rsquo;s done&amp;rdquo; is such a great stress relief. Recently, I completed work on my first publication, a chapter about Emscripten for the upcoming book WebGL Insights to be published by CRC Press in time for SIGGRAPH 2015.
+One of the life goals I&amp;rsquo;ve had for a while is writing a book. A romantic idea it seems to have your ideas transcribed to a medium that will outlast your bones.</description></item></channel></rss>

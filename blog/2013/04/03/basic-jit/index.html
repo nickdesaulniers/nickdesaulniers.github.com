@@ -1,223 +1,54 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-  
-  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-
-  
-    
-    
-      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
-    
-  
-
-  
-  <title>Basic JIT</title>
-
-  
-  
-  <link rel="stylesheet" href="/css/hugo-octopress.css">
-
-  
-  
-    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
-  
-
-  
-    <link rel="stylesheet" href="/css/fork-awesome.min.css">
-  
-
-  
-  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
-
-  
-  
-
-  <meta name="description" content="" />
-  <meta name="keywords" content="">
-  <meta name="author" content="Nick Desaulniers">
-
-  
-  <meta name="generator" content="Hugo 0.109.0">
-
-  
-  
-
-  
-  
-
-  
-  
-
-
-
-</head>
-<body>
-
-
-<header role="banner">
-<hgroup>
-  
-  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
-    <h2>The enemy&#39;s gate is down</h2>
-</hgroup></header>
-
-
-<nav role="navigation">
-<fieldset class="mobile-nav">
-  
-  <select onchange="location = this.value;">
-    <option value="">Navigate…</option>
-      
-        <option value="https://nickdesaulniers.github.io/about/">» About</option>
-      
-        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
-      
-        <option value="https://nickdesaulniers.github.io/">» Blog</option>
-      
-        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
-      
-        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
-      
-  </select>
-</fieldset>
-
-
-<ul class="main-navigation">
-  
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
-    
-  
-</ul>
-
-<ul class="subscription">
-  
-    
-        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
-    
-  
-</ul>
-
-
-  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
-    <fieldset role="search">
-      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
-    </fieldset>
-  </form>
-
-</nav>
-
-
-<div id="main">
-  <div id="content">
-    <div>
-      <article class="hentry" role="article">
-
-        
-        
-
-<header>
-  <p class="meta">Apr 3, 2013
-     - 5 minute read 
-     - <a href="https://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/#disqus_thread">Comments</a>
-
-    
-    
-      - <a class="label" href="https://nickdesaulniers.github.io/categories/c/">C </a><a class="label" href="https://nickdesaulniers.github.io/categories/code/">Code </a><a class="label" href="https://nickdesaulniers.github.io/categories/jit/">JIT </a>
-    
-  </p>
-  <h1 class="entry-title">
-     Basic JIT 
-  </h1>
-</header>
-
-
-        <div class="entry-content">
-          
-          
-          
-          <p>Ever since I learned about
-
-<a href="%60http://en.wikipedia.org/wiki/Just-in-time_compilation">Just In Time Compilation</a>
+<!doctype html><html xmlns=http://www.w3.org/1999/xhtml xml:lang=en lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,minimum-scale=1,maximum-scale=1"><link href=/css/fonts.css rel=stylesheet type=text/css><title>Basic JIT</title><link rel=stylesheet href=/css/hugo-octopress.css><link rel=stylesheet href=https://nickdesaulniers.github.io/css/custom.css><link rel=stylesheet href=/css/fork-awesome.min.css><link href=https://nickdesaulniers.github.io/favicon.png rel=icon><meta name=description content><meta name=keywords content><meta name=author content="Nick Desaulniers"><meta name=generator content="Hugo 0.109.0"></head><body><header role=banner><hgroup><h1><a href=https://nickdesaulniers.github.io/>Nick Desaulniers</a></h1><h2>The enemy's gate is down</h2></hgroup></header><nav role=navigation><fieldset class=mobile-nav><select onchange="location=this.value"><option value>Navigate…</option><option value=https://nickdesaulniers.github.io/about/>» About</option><option value=https://nickdesaulniers.github.io/blog/archives/>» Archives</option><option value=https://nickdesaulniers.github.io/>» Blog</option><option value=https://nickdesaulniers.github.io/publications/>» Publications</option><option value=https://nickdesaulniers.github.io/talks/>» Talks</option></select></fieldset><ul class=main-navigation><li><a href=https://nickdesaulniers.github.io/about/ title=About rel="noopener noreferrer">About</a></li><li><a href=https://nickdesaulniers.github.io/blog/archives/ title=Archives rel="noopener noreferrer">Archives</a></li><li><a href=https://nickdesaulniers.github.io/ title=Blog>Blog</a></li><li><a href=https://nickdesaulniers.github.io/publications/ title=Publications rel="noopener noreferrer">Publications</a></li><li><a href=https://nickdesaulniers.github.io/talks/ title=Talks rel="noopener noreferrer">Talks</a></li></ul><ul class=subscription><a href=https://nickdesaulniers.github.io/index.xml target=_blank type=application/rss+xml title=RSS rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a></ul><form action=https://www.google.com/search method=get target=_blank rel="noopener noreferrer"><fieldset role=search><input class=search type=text name=q results=0 placeholder=Search>
+<input type=hidden name=q value=site:https://nickdesaulniers.github.io/></fieldset></form></nav><div id=main><div id=content><div><article class=hentry role=article><header><p class=meta>Apr 3, 2013
+- 5 minute read
+- <a href=https://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/#disqus_thread>Comments</a>
+- <a class=label href=https://nickdesaulniers.github.io/categories/c/>C </a><a class=label href=https://nickdesaulniers.github.io/categories/code/>Code </a><a class=label href=https://nickdesaulniers.github.io/categories/jit/>JIT</a></p><h1 class=entry-title>Basic JIT</h1></header><div class=entry-content><p>Ever since I learned about
+<a href=%60http://en.wikipedia.org/wiki/Just-in-time_compilation>Just In Time Compilation</a>
 from the various
-
-<a href="http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations" target="_blank" rel="noopener">Ruby VMs</a>
+<a href=http://en.wikipedia.org/wiki/Ruby_%28programming_language%29#Implementations target=_blank rel=noopener>Ruby VMs</a>
 and
-
-<a href="http://www.slideshare.net/newmovie/know-yourengines-velocity2011" target="_blank" rel="noopener">JavaScript VMs</a>,
-I&rsquo;ve been inspired.  I could tell you all about how just in time (JIT)
+<a href=http://www.slideshare.net/newmovie/know-yourengines-velocity2011 target=_blank rel=noopener>JavaScript VMs</a>,
+I&rsquo;ve been inspired. I could tell you all about how just in time (JIT)
 compilation worked, and how it could give your interpreted language a speed
-boost.  It was so cool.  Well, it still is!  There&rsquo;s a ton of research going on
-around JIT compilation.  But the problem for me is that I could never figure
-out, let alone guess, how it was being done.  How could you compile code at
-runtime, and then execute it?  I asked
-
-<a href="http://pybites.blogspot.com/" target="_blank" rel="noopener">Benjamin Peterson</a>
+boost. It was so cool. Well, it still is! There&rsquo;s a ton of research going on
+around JIT compilation. But the problem for me is that I could never figure
+out, let alone guess, how it was being done. How could you compile code at
+runtime, and then execute it? I asked
+<a href=http://pybites.blogspot.com/ target=_blank rel=noopener>Benjamin Peterson</a>
 about how he had learned so much about JITs, and he referred me to
-
-<a href="http://pypy.org/" target="_blank" rel="noopener">pypy</a> (a Python JIT)&rsquo;s source.  But digging through source
-was too much; I just wanted a simple example I could grok quickly.  So I&rsquo;ve
-always been left wondering.</p>
-<p>Luckily, I have an awesome job where I can meet face to face with the people
-who are doing the work on making awesome production JIT compilers.  I spent
-part of last week at 
-<a href="http://www.gdconf.com/" target="_blank" rel="noopener">GDC</a> demoing
-
-<a href="https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/" target="_blank" rel="noopener">Unreal Engine 3</a>
-running in the browser.  The demo was actually the hard work of many, and I&rsquo;ll
+<a href=http://pypy.org/ target=_blank rel=noopener>pypy</a> (a Python JIT)&rsquo;s source. But digging through source
+was too much; I just wanted a simple example I could grok quickly. So I&rsquo;ve
+always been left wondering.</p><p>Luckily, I have an awesome job where I can meet face to face with the people
+who are doing the work on making awesome production JIT compilers. I spent
+part of last week at
+<a href=http://www.gdconf.com/ target=_blank rel=noopener>GDC</a> demoing
+<a href=https://blog.mozilla.org/blog/2013/03/27/mozilla-is-unlocking-the-power-of-the-web-as-a-platform-for-gaming/ target=_blank rel=noopener>Unreal Engine 3</a>
+running in the browser. The demo was actually the hard work of many, and I&rsquo;ll
 dive into it more in another post following up the events, but
-
-<a href="https://blog.mozilla.org/luke/" target="_blank" rel="noopener">Luke Wagner</a>, a Mozillian working on the
+<a href=https://blog.mozilla.org/luke/ target=_blank rel=noopener>Luke Wagner</a>, a Mozillian working on the
 JavaScript engine, added OdinMonkey to SpiderMonkey to allow optimizations of
-
-<a href="https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/" target="_blank" rel="noopener">asm.js</a>.</p>
-<p>Luke is super friendly, and just listening to him talk with Dave Herman and
-Alon Zakai is a treat.  I asked Luke the basics of JIT&rsquo;ing at tonight&rsquo;s Mozilla
+<a href=https://blog.mozilla.org/luke/2013/03/21/asm-js-in-firefox-nightly/ target=_blank rel=noopener>asm.js</a>.</p><p>Luke is super friendly, and just listening to him talk with Dave Herman and
+Alon Zakai is a treat. I asked Luke the basics of JIT&rsquo;ing at tonight&rsquo;s Mozilla
 Research Party and he explained clearly. <em>Compile a simple object file, use
 objdump to get the resulting platform specific assembly, use the mmap system
 call to allocate some memory that you can write to <strong>AND</strong> execute, copy the
 instructions into that buffer, typecast it to a function pointer and finally
-call that.</em></p>
-<p>So my goal was to at runtime, create a function that for simplicity&rsquo;s sake
-multiplied two integers.  The first thing I did was write up a simple .c file,
-then compile that to an object file with the -c flag.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#586e75">// Compile me with: clang -c mul.c -o mul.o
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span><span style="color:#dc322f">int</span> <span style="color:#268bd2">mul</span> (<span style="color:#dc322f">int</span> a, <span style="color:#dc322f">int</span> b) {
-</span></span><span style="display:flex;"><span>  <span style="color:#719e07">return</span> a <span style="color:#719e07">*</span> b;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>As a heads up, I&rsquo;m on 64bit OSX.  So the generated assembly may differ on your
-platform.  Obviously, the production JIT maintainers have abstracted away the
-platform dependency, taking into account what platform you&rsquo;re on.  My example
+call that.</em></p><p>So my goal was to at runtime, create a function that for simplicity&rsquo;s sake
+multiplied two integers. The first thing I did was write up a simple .c file,
+then compile that to an object file with the -c flag.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#586e75>// Compile me with: clang -c mul.c -o mul.o
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#dc322f>int</span> <span style=color:#268bd2>mul</span> (<span style=color:#dc322f>int</span> a, <span style=color:#dc322f>int</span> b) {
+</span></span><span style=display:flex><span>  <span style=color:#719e07>return</span> a <span style=color:#719e07>*</span> b;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>As a heads up, I&rsquo;m on 64bit OSX. So the generated assembly may differ on your
+platform. Obviously, the production JIT maintainers have abstracted away the
+platform dependency, taking into account what platform you&rsquo;re on. My example
 doesn&rsquo;t, but that why I&rsquo;m walking you through the steps I took to find out the
-x86_64 instructions.  The next step is to grab binutils, which is not installed
-by default in OSX.  I used homebrew to install it: <code>brew install binutils</code>.
-Homebrew installs gobjdump but it works with the same flags.</p>
-<p>Once you have binutils and [g]objdump, the next step is to read out the machine
-code from your object file, which is represented in hexadecimal.  By running
+x86_64 instructions. The next step is to grab binutils, which is not installed
+by default in OSX. I used homebrew to install it: <code>brew install binutils</code>.
+Homebrew installs gobjdump but it works with the same flags.</p><p>Once you have binutils and [g]objdump, the next step is to read out the machine
+code from your object file, which is represented in hexadecimal. By running
 <code>gobjdump -j .text -d mul.o -M intel</code> you should get something similar
-(remember, architecture dependent).</p>
-<pre tabindex="0"><code>$ gobjdump -j .text -d mul.o -M intel
+(remember, architecture dependent).</p><pre tabindex=0><code>$ gobjdump -j .text -d mul.o -M intel
 
 Disassembly of section .text:
 
@@ -231,226 +62,64 @@ d: 0f af 75 f8 imul esi,DWORD PTR [rbp-0x8]
 11: 89 f0 mov eax,esi
 13: 5d pop rbp
 14: c3 ret
-</code></pre><p>Ok, so those instructions vary in size.  I don&rsquo;t know any x86 so I can&rsquo;t
+</code></pre><p>Ok, so those instructions vary in size. I don&rsquo;t know any x86 so I can&rsquo;t
 comment too much on that particular
-
-<a href="http://en.wikipedia.org/wiki/Instruction_set" target="_blank" rel="noopener">Instruction Set Architecture</a>
-but they&rsquo;re obviously in pairs of hexadecimal digits.  16^2 == 2^8 meaning that
+<a href=http://en.wikipedia.org/wiki/Instruction_set target=_blank rel=noopener>Instruction Set Architecture</a>
+but they&rsquo;re obviously in pairs of hexadecimal digits. 16^2 == 2^8 meaning that
 each pair of hex digits can be represented by a single byte (or char of memory).
-So these can all be thrown in an unsigned char [].  The man page for mmap explains
+So these can all be thrown in an unsigned char []. The man page for mmap explains
 all of the fun flags, but the important point is that this way of allocating
 memory makes it executable, so it can do bad things that memory allocated from
-malloc can&rsquo;t.  I&rsquo;m sure the JavaScript engine guys have fun with that.  Once
+malloc can&rsquo;t. I&rsquo;m sure the JavaScript engine guys have fun with that. Once
 memory is copied in, you can typecast the memory to a function pointer.
 Make sure to check out the syntax that reminds me of a function pointer in an
-argument list, but being used as an L-value.  Of course, you could just put the
+argument list, but being used as an L-value. Of course, you could just put the
 cast right in front of the memory before you use it, but I find this as neat,
-not so common C syntax.  I kind of
-
-<a href="http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/" target="_blank" rel="noopener">have a thing</a>
-for stuff like that.  Then we can call it!  The resulting code looks like this.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#719e07">#include</span> <span style="color:#719e07">&lt;stdio.h&gt; // printf</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07">#include</span> <span style="color:#719e07">&lt;string.h&gt; // memcpy</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07">#include</span> <span style="color:#719e07">&lt;sys/mman.h&gt; // mmap, munmap</span><span style="color:#719e07">
-</span></span></span><span style="display:flex;"><span><span style="color:#719e07"></span>
-</span></span><span style="display:flex;"><span><span style="color:#dc322f">int</span> <span style="color:#268bd2">main</span> () {
-</span></span><span style="display:flex;"><span><span style="color:#586e75">// Hexadecimal x86_64 machine code for: int mul (int a, int b) { return a * b; }
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span><span style="color:#dc322f">unsigned</span> <span style="color:#dc322f">char</span> code [] <span style="color:#719e07">=</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#2aa198">0x55</span>, <span style="color:#586e75">// push rbp
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#2aa198">0x48</span>, <span style="color:#2aa198">0x89</span>, <span style="color:#2aa198">0xe5</span>, <span style="color:#586e75">// mov rbp, rsp
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#2aa198">0x89</span>, <span style="color:#2aa198">0x7d</span>, <span style="color:#2aa198">0xfc</span>, <span style="color:#586e75">// mov DWORD PTR [rbp-0x4],edi
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#2aa198">0x89</span>, <span style="color:#2aa198">0x75</span>, <span style="color:#2aa198">0xf8</span>, <span style="color:#586e75">// mov DWORD PTR [rbp-0x8],esi
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#2aa198">0x8b</span>, <span style="color:#2aa198">0x75</span>, <span style="color:#2aa198">0xfc</span>, <span style="color:#586e75">// mov esi,DWORD PTR [rbp-04x]
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#2aa198">0x0f</span>, <span style="color:#2aa198">0xaf</span>, <span style="color:#2aa198">0x75</span>, <span style="color:#2aa198">0xf8</span>, <span style="color:#586e75">// imul esi,DWORD PTR [rbp-0x8]
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#2aa198">0x89</span>, <span style="color:#2aa198">0xf0</span>, <span style="color:#586e75">// mov eax,esi
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#2aa198">0x5d</span>, <span style="color:#586e75">// pop rbp
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#2aa198">0xc3</span> <span style="color:#586e75">// ret
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>};
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#586e75">// allocate executable memory via sys call
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#dc322f">void</span><span style="color:#719e07">*</span> mem <span style="color:#719e07">=</span> <span style="color:#268bd2">mmap</span>(<span style="color:#b58900">NULL</span>, <span style="color:#719e07">sizeof</span>(code), PROT_WRITE <span style="color:#719e07">|</span> PROT_EXEC,
-</span></span><span style="display:flex;"><span>                   MAP_ANON <span style="color:#719e07">|</span> MAP_PRIVATE, <span style="color:#719e07">-</span><span style="color:#2aa198">1</span>, <span style="color:#2aa198">0</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#586e75">// copy runtime code into allocated memory
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#268bd2">memcpy</span>(mem, code, <span style="color:#719e07">sizeof</span>(code));
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#586e75">// typecast allocated memory to a function pointer
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#dc322f">int</span> (<span style="color:#719e07">*</span>func) () <span style="color:#719e07">=</span> mem;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#586e75">// call function pointer
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#268bd2">printf</span>(<span style="color:#2aa198">&#34;%d * %d = %d</span><span style="color:#cb4b16">\n</span><span style="color:#2aa198">&#34;</span>, <span style="color:#2aa198">5</span>, <span style="color:#2aa198">11</span>, <span style="color:#268bd2">func</span>(<span style="color:#2aa198">5</span>, <span style="color:#2aa198">11</span>));
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#586e75">// Free up allocated memory
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>  <span style="color:#268bd2">munmap</span>(mem, <span style="color:#719e07">sizeof</span>(code));
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Voila!  How neat is that!  It works!  Luke&rsquo;s directions, an hour of working on
+not so common C syntax. I kind of
+<a href=http://nickdesaulniers.github.com/blog/2013/01/26/c-function-pointers-alternate-syntax/ target=_blank rel=noopener>have a thing</a>
+for stuff like that. Then we can call it! The resulting code looks like this.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;stdio.h&gt; // printf</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;string.h&gt; // memcpy</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;sys/mman.h&gt; // mmap, munmap</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span>
+</span></span><span style=display:flex><span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span> () {
+</span></span><span style=display:flex><span><span style=color:#586e75>// Hexadecimal x86_64 machine code for: int mul (int a, int b) { return a * b; }
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#dc322f>unsigned</span> <span style=color:#dc322f>char</span> code [] <span style=color:#719e07>=</span> {
+</span></span><span style=display:flex><span>  <span style=color:#2aa198>0x55</span>, <span style=color:#586e75>// push rbp
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#2aa198>0x48</span>, <span style=color:#2aa198>0x89</span>, <span style=color:#2aa198>0xe5</span>, <span style=color:#586e75>// mov rbp, rsp
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#2aa198>0x89</span>, <span style=color:#2aa198>0x7d</span>, <span style=color:#2aa198>0xfc</span>, <span style=color:#586e75>// mov DWORD PTR [rbp-0x4],edi
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#2aa198>0x89</span>, <span style=color:#2aa198>0x75</span>, <span style=color:#2aa198>0xf8</span>, <span style=color:#586e75>// mov DWORD PTR [rbp-0x8],esi
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#2aa198>0x8b</span>, <span style=color:#2aa198>0x75</span>, <span style=color:#2aa198>0xfc</span>, <span style=color:#586e75>// mov esi,DWORD PTR [rbp-04x]
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#2aa198>0x0f</span>, <span style=color:#2aa198>0xaf</span>, <span style=color:#2aa198>0x75</span>, <span style=color:#2aa198>0xf8</span>, <span style=color:#586e75>// imul esi,DWORD PTR [rbp-0x8]
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#2aa198>0x89</span>, <span style=color:#2aa198>0xf0</span>, <span style=color:#586e75>// mov eax,esi
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#2aa198>0x5d</span>, <span style=color:#586e75>// pop rbp
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#2aa198>0xc3</span> <span style=color:#586e75>// ret
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#586e75>// allocate executable memory via sys call
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#dc322f>void</span><span style=color:#719e07>*</span> mem <span style=color:#719e07>=</span> <span style=color:#268bd2>mmap</span>(<span style=color:#b58900>NULL</span>, <span style=color:#719e07>sizeof</span>(code), PROT_WRITE <span style=color:#719e07>|</span> PROT_EXEC,
+</span></span><span style=display:flex><span>                   MAP_ANON <span style=color:#719e07>|</span> MAP_PRIVATE, <span style=color:#719e07>-</span><span style=color:#2aa198>1</span>, <span style=color:#2aa198>0</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#586e75>// copy runtime code into allocated memory
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>memcpy</span>(mem, code, <span style=color:#719e07>sizeof</span>(code));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#586e75>// typecast allocated memory to a function pointer
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#dc322f>int</span> (<span style=color:#719e07>*</span>func) () <span style=color:#719e07>=</span> mem;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#586e75>// call function pointer
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;%d * %d = %d</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, <span style=color:#2aa198>5</span>, <span style=color:#2aa198>11</span>, <span style=color:#268bd2>func</span>(<span style=color:#2aa198>5</span>, <span style=color:#2aa198>11</span>));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#586e75>// Free up allocated memory
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>munmap</span>(mem, <span style=color:#719e07>sizeof</span>(code));
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Voila! How neat is that! It works! Luke&rsquo;s directions, an hour of working on
 this, and
-
-<a href="http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html" target="_blank" rel="noopener">this article</a>
+<a href=http://blog.reverberate.org/2012/12/hello-jit-world-joy-of-simple-jits.html target=_blank rel=noopener>this article</a>
 in particular, and we have a simple JIT working. Again, this simple example is super
-non-portable and dealing with memory in this fashion is generally unsafe.  But
-now I know the basics of JIT&rsquo;ing code, and now so do you!</p>
-<p>Thanks Luke!</p>
-
-        </div>
-        
-
-<footer>
-  <p class="meta">
-    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-    
-    <time>Apr 3, 2013</time>
-    
-    </span>
-  </p>
-
-  
-
-  <p class="meta">
-    
-        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2013/02/28/commandments-of-a-mobile-web/" title="Commandments of a Mobile Web">Commandments of a Mobile Web</a>
-    
-
-    
-      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/" title="The Persistence of Memory">The Persistence of Memory</a>
-    
-  </p>
-  
-    
-      <div id="disqus_thread"></div>
-<script type="application/javascript">
-    window.disqus_config = function () {
-    
-    
-    
-    };
-    (function() {
-        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
-            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
-            return;
-        }
-        var d = document, s = d.createElement('script'); s.async = true;
-        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-    
-  
-</footer>
-
-      </article>
-    </div>
-    
-
-<aside class="sidebar thirds">
-  <section class="first odd">
-
-    
-
-    <p>
-      
-    </p>
-  </section>
-
-  
-  
-
-
-
-<ul class="sidebar-nav">
-  <li class="sidebar-nav-item">
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
-    
-    
-    
-    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
-    
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
-    
-    
-
-  
-  
-  </li>
-</ul>
-
-  
-
-  
-
-  
-  
-  
-    
-      <section class="even">
-        <h1>Recent Posts</h1>
-        <ul id="recent_posts">
-          
-          
-            
-              <li class="post">
-                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-              </li>
-            
-          
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-              </li>
-            
-          
-        </ul>
-      </section>
-    
-  
-</aside>
-
-  </div>
-</div>
-
-    <footer role="contentinfo">
-      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
-        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
-      </p>
-    </footer>
-
-    
-    
-
-
-
-    
-    
-    
-
-    
-      <script>
-        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
-        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-        s.parentNode.insertBefore(g,s)}(document,'script'));
-      </script>
-    
-  </body>
-</html>
-
+non-portable and dealing with memory in this fashion is generally unsafe. But
+now I know the basics of JIT&rsquo;ing code, and now so do you!</p><p>Thanks Luke!</p></div><footer><p class=meta><span class="byline author vcard">Posted by <span class=fn>Nick Desaulniers</span></span>
+<time>Apr 3, 2013</time></span></p><p class=meta><a class="basic-alignment left" href=https://nickdesaulniers.github.io/blog/2013/02/28/commandments-of-a-mobile-web/ title="Commandments of a Mobile Web">Commandments of a Mobile Web</a>
+<a class="basic-alignment right" href=https://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/ title="The Persistence of Memory">The Persistence of Memory</a></p><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//wangstabill.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></footer></article></div><aside class="sidebar thirds"><section class="first odd"><p></p></section><ul class=sidebar-nav><li class=sidebar-nav-item><a target=_blank rel="noopener noreferrer" href=https://github.com/nickdesaulniers title=https://github.com/nickdesaulniers><i class="fa fa-github fa-3x"></i></a>
+<a target=_blank rel="me noopener noreferrer" href=https://fosstodon.org/@llvm title=https://fosstodon.org/@llvm><i class="fa fa-mastodon fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.linkedin.com/in/nick-desaulniers-75520334 title=https://www.linkedin.com/in/nick-desaulniers-75520334><i class="fa fa-linkedin fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ title=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ><i class="fa fa-youtube fa-3x"></i></a></li></ul><section class=even><h1>Recent Posts</h1><ul id=recent_posts><li class=post><a href=/blog/2020/04/06/off-by-two/>Off by Two</a></li><li class=post><a href=/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/>f() vs f(void) in C vs C++</a></li><li class=post><a href=/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/>Finding Compiler Bugs With C-Reduce</a></li><li class=post><a href=/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a></li></ul></section></aside></div></div><footer role=contentinfo><p>Copyright &copy; 2023 Nick Desaulniers - <a href=https://nickdesaulniers.github.io/license/>License</a> -
+<span class=credit>Powered by <a target=_blank href=https://gohugo.io rel="noopener noreferrer">Hugo</a> and <a target=_blank href=https://github.com/parsiya/hugo-octopress/ rel="noopener noreferrer">Hugo-Octopress</a> theme.</p></footer><script>var _gaq=[["_setAccount","UA-36993986-1"],["_trackPageview"]];(function(e,t){var n=e.createElement(t),s=e.getElementsByTagName(t)[0];n.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js",s.parentNode.insertBefore(n,s)})(document,"script")</script></body></html>

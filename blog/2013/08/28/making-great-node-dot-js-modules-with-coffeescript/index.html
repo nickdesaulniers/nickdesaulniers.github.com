@@ -1,638 +1,396 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
-  
-  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-
-  
-    
-    
-      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
-    
-  
-
-  
-  <title>Making Great Node.js Modules With Coffeescript</title>
-
-  
-  
-  <link rel="stylesheet" href="/css/hugo-octopress.css">
-
-  
-  
-    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
-  
-
-  
-    <link rel="stylesheet" href="/css/fork-awesome.min.css">
-  
-
-  
-  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
-
-  
-  
-
-  <meta name="description" content="" />
-  <meta name="keywords" content="">
-  <meta name="author" content="Nick Desaulniers">
-
-  
-  <meta name="generator" content="Hugo 0.109.0">
-
-  
-  
-
-  
-  
-
-  
-  
-
-
-
-</head>
-<body>
-
-
-<header role="banner">
-<hgroup>
-  
-  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
-    <h2>The enemy&#39;s gate is down</h2>
-</hgroup></header>
-
-
-<nav role="navigation">
-<fieldset class="mobile-nav">
-  
-  <select onchange="location = this.value;">
-    <option value="">Navigate…</option>
-      
-        <option value="https://nickdesaulniers.github.io/about/">» About</option>
-      
-        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
-      
-        <option value="https://nickdesaulniers.github.io/">» Blog</option>
-      
-        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
-      
-        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
-      
-  </select>
-</fieldset>
-
-
-<ul class="main-navigation">
-  
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
-    
-  
-    
-      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
-    
-  
-</ul>
-
-<ul class="subscription">
-  
-    
-        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
-    
-  
-</ul>
-
-
-  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
-    <fieldset role="search">
-      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
-    </fieldset>
-  </form>
-
-</nav>
-
-
-<div id="main">
-  <div id="content">
-    <div>
-      <article class="hentry" role="article">
-
-        
-        
-
-<header>
-  <p class="meta">Aug 28, 2013
-     - 14 minute read 
-     - <a href="https://nickdesaulniers.github.io/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript/#disqus_thread">Comments</a>
-
-    
-    
-      - <a class="label" href="https://nickdesaulniers.github.io/categories/coffeescript/">coffeescript </a><a class="label" href="https://nickdesaulniers.github.io/categories/javascript/">javascript </a><a class="label" href="https://nickdesaulniers.github.io/categories/module/">module </a><a class="label" href="https://nickdesaulniers.github.io/categories/node.js/">node.js </a>
-    
-  </p>
-  <h1 class="entry-title">
-     Making Great Node.js Modules With Coffeescript 
-  </h1>
-</header>
-
-
-        <div class="entry-content">
-          
-          
-          
-          <p>
-<a href="http://nodejs.org/" target="_blank" rel="noopener">Node.js</a>
+<!doctype html><html xmlns=http://www.w3.org/1999/xhtml xml:lang=en lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,minimum-scale=1,maximum-scale=1"><link href=/css/fonts.css rel=stylesheet type=text/css><title>Making Great Node.js Modules With Coffeescript</title><link rel=stylesheet href=/css/hugo-octopress.css><link rel=stylesheet href=https://nickdesaulniers.github.io/css/custom.css><link rel=stylesheet href=/css/fork-awesome.min.css><link href=https://nickdesaulniers.github.io/favicon.png rel=icon><meta name=description content><meta name=keywords content><meta name=author content="Nick Desaulniers"><meta name=generator content="Hugo 0.109.0"></head><body><header role=banner><hgroup><h1><a href=https://nickdesaulniers.github.io/>Nick Desaulniers</a></h1><h2>The enemy's gate is down</h2></hgroup></header><nav role=navigation><fieldset class=mobile-nav><select onchange="location=this.value"><option value>Navigate…</option><option value=https://nickdesaulniers.github.io/about/>» About</option><option value=https://nickdesaulniers.github.io/blog/archives/>» Archives</option><option value=https://nickdesaulniers.github.io/>» Blog</option><option value=https://nickdesaulniers.github.io/publications/>» Publications</option><option value=https://nickdesaulniers.github.io/talks/>» Talks</option></select></fieldset><ul class=main-navigation><li><a href=https://nickdesaulniers.github.io/about/ title=About rel="noopener noreferrer">About</a></li><li><a href=https://nickdesaulniers.github.io/blog/archives/ title=Archives rel="noopener noreferrer">Archives</a></li><li><a href=https://nickdesaulniers.github.io/ title=Blog>Blog</a></li><li><a href=https://nickdesaulniers.github.io/publications/ title=Publications rel="noopener noreferrer">Publications</a></li><li><a href=https://nickdesaulniers.github.io/talks/ title=Talks rel="noopener noreferrer">Talks</a></li></ul><ul class=subscription><a href=https://nickdesaulniers.github.io/index.xml target=_blank type=application/rss+xml title=RSS rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a></ul><form action=https://www.google.com/search method=get target=_blank rel="noopener noreferrer"><fieldset role=search><input class=search type=text name=q results=0 placeholder=Search>
+<input type=hidden name=q value=site:https://nickdesaulniers.github.io/></fieldset></form></nav><div id=main><div id=content><div><article class=hentry role=article><header><p class=meta>Aug 28, 2013
+- 14 minute read
+- <a href=https://nickdesaulniers.github.io/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript/#disqus_thread>Comments</a>
+- <a class=label href=https://nickdesaulniers.github.io/categories/coffeescript/>coffeescript </a><a class=label href=https://nickdesaulniers.github.io/categories/javascript/>javascript </a><a class=label href=https://nickdesaulniers.github.io/categories/module/>module </a><a class=label href=https://nickdesaulniers.github.io/categories/node.js/>node.js</a></p><h1 class=entry-title>Making Great Node.js Modules With Coffeescript</h1></header><div class=entry-content><p><a href=http://nodejs.org/ target=_blank rel=noopener>Node.js</a>
 is a great runtime for writing applications in JavaScript, the language
 I primarily develop in.
-
-<a href="http://coffeescript.org/" target="_blank" rel="noopener">CoffeeScript</a>
+<a href=http://coffeescript.org/ target=_blank rel=noopener>CoffeeScript</a>
 is a programming language that compiles
-to JavaScript.  Why would we write a reusable piece of code, a
-
-<a href="http://nodejs.org/api/modules.html" target="_blank" rel="noopener">module</a>
+to JavaScript. Why would we write a reusable piece of code, a
+<a href=http://nodejs.org/api/modules.html target=_blank rel=noopener>module</a>
 , in
-CoffeeScript?  CoffeeScript is a very high level language and
-
-<a href="http://railscasts.com/episodes/267-coffeescript-basics" target="_blank" rel="noopener">beautifully brings together</a>
+CoffeeScript? CoffeeScript is a very high level language and
+<a href=http://railscasts.com/episodes/267-coffeescript-basics target=_blank rel=noopener>beautifully brings together</a>
 my favorite aspects of JavaScript,
-Ruby, and Python.  In this tutorial, I&rsquo;ll show you how I create reusable open
+Ruby, and Python. In this tutorial, I&rsquo;ll show you how I create reusable open
 source modules for Node.js from CoffeeScript, which is something I recently
 discovered while creating a
-
-<a href="https://github.com/nickdesaulniers/javascript-playlist-parser" target="_blank" rel="noopener">playlist parser module</a>.
+<a href=https://github.com/nickdesaulniers/javascript-playlist-parser target=_blank rel=noopener>playlist parser module</a>.
 The point is to focus on how to turn a quick hack into a nicely laid
-out Node.js module.</p>
-<p>The steps are as follows:</p>
-<ol>
-<li>Turn an idea into a git repo.</li>
-<li>Add directory structure.</li>
-<li>Split library functions from testing.</li>
-<li>Add a Build script.</li>
-<li>Create node module.</li>
-<li>Add LICENSE and README.</li>
-<li>Publish.</li>
-</ol>
-<p>First thing&rsquo;s first, we have to have an idea.  It doesn&rsquo;t have to be
-revolutionary, just do one thing and do it well.  That is the first rule of
-
-<a href="http://www.faqs.org/docs/artu/ch01s06.html" target="_blank" rel="noopener">UNIX <del>fightclub</del> philosophy</a>,
+out Node.js module.</p><p>The steps are as follows:</p><ol><li>Turn an idea into a git repo.</li><li>Add directory structure.</li><li>Split library functions from testing.</li><li>Add a Build script.</li><li>Create node module.</li><li>Add LICENSE and README.</li><li>Publish.</li></ol><p>First thing&rsquo;s first, we have to have an idea. It doesn&rsquo;t have to be
+revolutionary, just do one thing and do it well. That is the first rule of
+<a href=http://www.faqs.org/docs/artu/ch01s06.html target=_blank rel=noopener>UNIX <del>fightclub</del> philosophy</a>,
 which resonates well within
-
-<a href="http://blog.izs.me/post/48281998870/unix-philosophy-and-node-js" target="_blank" rel="noopener">the Node.js community</a>.
+<a href=http://blog.izs.me/post/48281998870/unix-philosophy-and-node-js target=_blank rel=noopener>the Node.js community</a>.
 When I&rsquo;m hacking on
-something, I start out with a single file to test something out.  Then I
-progressively refine the example until it&rsquo;s something reusable.  That way, I
+something, I start out with a single file to test something out. Then I
+progressively refine the example until it&rsquo;s something reusable. That way, I
 can reuse it, others can reuse it, others can learn from it, and the world can
-be a better place.</p>
-<p>For this tutorial, I&rsquo;ll show you my process for creating a binding for
-
-<a href="http://nanomsg.org/index.html" target="_blank" rel="noopener">nanomsg</a>,
+be a better place.</p><p>For this tutorial, I&rsquo;ll show you my process for creating a binding for
+<a href=http://nanomsg.org/index.html target=_blank rel=noopener>nanomsg</a>,
 the latest scalability protocol library from the creator of
-
-<a href="http://zeromq.org/" target="_blank" rel="noopener">ZeroMQ</a>,
-
-<a href="http://250bpm.com/" target="_blank" rel="noopener">Martin Sústrik</a>.
+<a href=http://zeromq.org/ target=_blank rel=noopener>ZeroMQ</a>,
+<a href=http://250bpm.com/ target=_blank rel=noopener>Martin Sústrik</a>.
 I had played with ZeroMQ in the past and thought that it was really
 awesome, and I was excited to see a new library from it&rsquo;s creator, based on C,
 since I also really enjoyed his post on why he
-
-<a href="http://250bpm.com/blog:4" target="_blank" rel="noopener">shouldn&rsquo;t have written it in C++</a>.</p>
-<p>So messing around real quick, let&rsquo;s make sure we have node up to date.  I like
+<a href=http://250bpm.com/blog:4 target=_blank rel=noopener>shouldn&rsquo;t have written it in C++</a>.</p><p>So messing around real quick, let&rsquo;s make sure we have node up to date. I like
 to use
-
-<a href="https://github.com/creationix/nvm" target="_blank" rel="noopener">nvm</a>
+<a href=https://github.com/creationix/nvm target=_blank rel=noopener>nvm</a>
 and the latest stable minor version of node (stable versions have
 even minor patch numbers where versions are in the format <code>major.minor.patch</code>,
-so v0.11.0 is unstable).  <code>node -v</code> -&gt; v0.10.17</p>
-<p>Then I need to download and install the library that I&rsquo;ll be dynamically
-linking to, build, and install it.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>curl -O http://download.nanomsg.org/nanomsg-0.1-alpha.zip &amp;&amp; \
-</span></span><span style="display:flex;"><span>unzip nanomsg-0.1-alpha.zip &amp;&amp; \
-</span></span><span style="display:flex;"><span>cd nanomsg-0.1-alpha &amp;&amp; \
-</span></span><span style="display:flex;"><span>mkdir build &amp;&amp; \
-</span></span><span style="display:flex;"><span>cd build &amp;&amp; \
-</span></span><span style="display:flex;"><span>../configure &amp;&amp; \
-</span></span><span style="display:flex;"><span>make &amp;&amp; \
-</span></span><span style="display:flex;"><span>make install
+so v0.11.0 is unstable). <code>node -v</code> -> v0.10.17</p><p>Then I need to download and install the library that I&rsquo;ll be dynamically
+linking to, build, and install it.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>curl -O http://download.nanomsg.org/nanomsg-0.1-alpha.zip &amp;&amp; \
+</span></span><span style=display:flex><span>unzip nanomsg-0.1-alpha.zip &amp;&amp; \
+</span></span><span style=display:flex><span>cd nanomsg-0.1-alpha &amp;&amp; \
+</span></span><span style=display:flex><span>mkdir build &amp;&amp; \
+</span></span><span style=display:flex><span>cd build &amp;&amp; \
+</span></span><span style=display:flex><span>../configure &amp;&amp; \
+</span></span><span style=display:flex><span>make &amp;&amp; \
+</span></span><span style=display:flex><span>make install
 </span></span></code></pre></div><p>We&rsquo;ll use
-
-<a href="https://github.com/rbranson/node-ffi" target="_blank" rel="noopener">node&rsquo;s FFI module</a>
+<a href=https://github.com/rbranson/node-ffi target=_blank rel=noopener>node&rsquo;s FFI module</a>
 to interface with the dynamically linked library,
 because it&rsquo;s easier to write bindings than using
-
-<a href="http://nodejs.org/api/addons.html" target="_blank" rel="noopener">native addons</a>,
+<a href=http://nodejs.org/api/addons.html target=_blank rel=noopener>native addons</a>,
 and
-
-<a href="https://github.com/rvagg/node-addon-examples/blob/master/README.md#compatibility-notes" target="_blank" rel="noopener">v8&rsquo;s API has recently changed causing some headaches for native extensions</a>.</p>
-<p><code>npm install ffi</code></p>
-<p>We&rsquo;ll be writing the example in CoffeeScript.</p>
-<p><code>npm install -g coffee-script</code></p>
-<p>Now to mess around we can create main.coffee based on
-
-<a href="https://github.com/250bpm/cppnanomsg/blob/9becc3d5116ab33a7d2c5f06d68a8fea1b781194/binding.cpp#L29" target="_blank" rel="noopener">the C++ binding&rsquo;s example</a>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-coffeescript" data-lang="coffeescript"><span style="display:flex;"><span><span style="color:#268bd2">ffi = </span>require <span style="color:#2aa198">&#39;ffi&#39;</span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">assert = </span>require <span style="color:#2aa198">&#39;assert&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">AF_SP = </span><span style="color:#2aa198">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">NN_PAIR = </span><span style="color:#2aa198">16</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">nanomsg = </span>ffi.Library <span style="color:#2aa198">&#39;libnanomsg&#39;</span>,
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_socket: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [ <span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span> ]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_bind: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [ <span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;string&#39;</span> ]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_connect: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [<span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;string&#39;</span> ]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_send: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [<span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;pointer&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span>]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_recv: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [<span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;pointer&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span>]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_errno: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, []]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#586e75"># test
-</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span><span style="color:#268bd2">s1 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
-</span></span><span style="display:flex;"><span>assert s1 <span style="color:#719e07">&gt;=</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;s1: &#39;</span> <span style="color:#719e07">+</span> nanomsg.nn_errno()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">ret = </span>nanomsg.nn_bind s1, <span style="color:#2aa198">&#39;inproc://a&#39;</span>
-</span></span><span style="display:flex;"><span>assert ret <span style="color:#719e07">&gt;</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;bind&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">s2 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
-</span></span><span style="display:flex;"><span>assert s2 <span style="color:#719e07">&gt;=</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;s2: &#39;</span> <span style="color:#719e07">+</span> nanomsg.nn_errno()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">ret = </span>nanomsg.nn_connect s2, <span style="color:#2aa198">&#39;inproc://a&#39;</span>
-</span></span><span style="display:flex;"><span>assert ret <span style="color:#719e07">&gt;</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;connect&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">msg = </span><span style="color:#719e07">new</span> Buffer <span style="color:#2aa198">&#39;hello&#39;</span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">ret = </span>nanomsg.nn_send s2, msg, msg.length, <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>assert ret <span style="color:#719e07">&gt;</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;send&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">recv = </span><span style="color:#719e07">new</span> Buffer msg.length
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">ret = </span>nanomsg.nn_recv s1, recv, recv.length, <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>assert ret <span style="color:#719e07">&gt;</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;recv&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>console.log recv.toString()
-</span></span><span style="display:flex;"><span>assert msg.toString() <span style="color:#719e07">is</span> recv.toString(), <span style="color:#2aa198">&#39;received message did not match sent&#39;</span>
-</span></span></code></pre></div><p><code>coffee main.coffee</code> -&gt; hello</p>
-<p>This quick example shows that we have something working.  Currently our working
-directory should look like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>tree -L 2
-</span></span><span style="display:flex;"><span>.
-</span></span><span style="display:flex;"><span>├── main.coffee
-</span></span><span style="display:flex;"><span>└── node_modules
-</span></span><span style="display:flex;"><span>    └── ffi
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>2 directories, 1 file
-</span></span></code></pre></div><h2 id="turn-an-idea-into-a-git-repo">Turn an idea into a git repo</h2>
-<p>Next up is to create a repository using a version control system like
-
-<a href="http://git-scm.com/" target="_blank" rel="noopener">git</a> and
+<a href=https://github.com/rvagg/node-addon-examples/blob/master/README.md#compatibility-notes target=_blank rel=noopener>v8&rsquo;s API has recently changed causing some headaches for native extensions</a>.</p><p><code>npm install ffi</code></p><p>We&rsquo;ll be writing the example in CoffeeScript.</p><p><code>npm install -g coffee-script</code></p><p>Now to mess around we can create main.coffee based on
+<a href=https://github.com/250bpm/cppnanomsg/blob/9becc3d5116ab33a7d2c5f06d68a8fea1b781194/binding.cpp#L29 target=_blank rel=noopener>the C++ binding&rsquo;s example</a>:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-coffeescript data-lang=coffeescript><span style=display:flex><span><span style=color:#268bd2>ffi = </span>require <span style=color:#2aa198>&#39;ffi&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>assert = </span>require <span style=color:#2aa198>&#39;assert&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>AF_SP = </span><span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>NN_PAIR = </span><span style=color:#2aa198>16</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>nanomsg = </span>ffi.Library <span style=color:#2aa198>&#39;libnanomsg&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_socket: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [ <span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span> ]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_bind: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [ <span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;string&#39;</span> ]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_connect: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [<span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;string&#39;</span> ]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_send: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [<span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;pointer&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span>]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_recv: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [<span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;pointer&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span>]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_errno: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, []]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75># test
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#268bd2>s1 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
+</span></span><span style=display:flex><span>assert s1 <span style=color:#719e07>&gt;=</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;s1: &#39;</span> <span style=color:#719e07>+</span> nanomsg.nn_errno()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>ret = </span>nanomsg.nn_bind s1, <span style=color:#2aa198>&#39;inproc://a&#39;</span>
+</span></span><span style=display:flex><span>assert ret <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;bind&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>s2 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
+</span></span><span style=display:flex><span>assert s2 <span style=color:#719e07>&gt;=</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;s2: &#39;</span> <span style=color:#719e07>+</span> nanomsg.nn_errno()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>ret = </span>nanomsg.nn_connect s2, <span style=color:#2aa198>&#39;inproc://a&#39;</span>
+</span></span><span style=display:flex><span>assert ret <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;connect&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>msg = </span><span style=color:#719e07>new</span> Buffer <span style=color:#2aa198>&#39;hello&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>ret = </span>nanomsg.nn_send s2, msg, msg.length, <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>assert ret <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;send&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>recv = </span><span style=color:#719e07>new</span> Buffer msg.length
+</span></span><span style=display:flex><span><span style=color:#268bd2>ret = </span>nanomsg.nn_recv s1, recv, recv.length, <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>assert ret <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;recv&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>console.log recv.toString()
+</span></span><span style=display:flex><span>assert msg.toString() <span style=color:#719e07>is</span> recv.toString(), <span style=color:#2aa198>&#39;received message did not match sent&#39;</span>
+</span></span></code></pre></div><p><code>coffee main.coffee</code> -> hello</p><p>This quick example shows that we have something working. Currently our working
+directory should look like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>tree -L 2
+</span></span><span style=display:flex><span>.
+</span></span><span style=display:flex><span>├── main.coffee
+</span></span><span style=display:flex><span>└── node_modules
+</span></span><span style=display:flex><span>    └── ffi
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>2 directories, 1 file
+</span></span></code></pre></div><h2 id=turn-an-idea-into-a-git-repo>Turn an idea into a git repo</h2><p>Next up is to create a repository using a version control system like
+<a href=http://git-scm.com/ target=_blank rel=noopener>git</a> and
 start saving our work.
-
-<a href="http://www.codinghorror.com/blog/2008/08/check-in-early-check-in-often.html" target="_blank" rel="noopener">Check in early, check in often</a>.</p>
-<p>Let&rsquo;s add a .gitignore so that were not adding files that really don&rsquo;t need to
-be committed.  The node_modules folder is unnecessary because when this node
+<a href=http://www.codinghorror.com/blog/2008/08/check-in-early-check-in-often.html target=_blank rel=noopener>Check in early, check in often</a>.</p><p>Let&rsquo;s add a .gitignore so that were not adding files that really don&rsquo;t need to
+be committed. The node_modules folder is unnecessary because when this node
 module is installed, its dependencies will be recursively installed, so
-there&rsquo;s no need to commit them to source control.  The swap files are because I
+there&rsquo;s no need to commit them to source control. The swap files are because I
 use
-
-<a href="http://www.vim.org/" target="_blank" rel="noopener">vim</a>
+<a href=http://www.vim.org/ target=_blank rel=noopener>vim</a>
 and I accidentally commit the swap files from open buffers all the time
-like a noob.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>node_modules/
-</span></span><span style="display:flex;"><span>*.swp
-</span></span></code></pre></div><p>Let&rsquo;s turn this into a git repo:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>git init &amp;&amp; \
-</span></span><span style="display:flex;"><span>git add . &amp;&amp; \
-</span></span><span style="display:flex;"><span>git commit -am “initial commit”
-</span></span></code></pre></div><p>Up on github, let&rsquo;s 
-<a href="https://github.com/new" target="_blank" rel="noopener">create an uninitialized repo</a>
-and push to it:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>git remote add origin git@github.com:nickdesaulniers/node-nanomsg.git &amp;&amp; \
-</span></span><span style="display:flex;"><span>git push -u origin master
+like a noob.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>node_modules/
+</span></span><span style=display:flex><span>*.swp
+</span></span></code></pre></div><p>Let&rsquo;s turn this into a git repo:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>git init &amp;&amp; \
+</span></span><span style=display:flex><span>git add . &amp;&amp; \
+</span></span><span style=display:flex><span>git commit -am “initial commit”
+</span></span></code></pre></div><p>Up on github, let&rsquo;s
+<a href=https://github.com/new target=_blank rel=noopener>create an uninitialized repo</a>
+and push to it:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>git remote add origin git@github.com:nickdesaulniers/node-nanomsg.git &amp;&amp; \
+</span></span><span style=display:flex><span>git push -u origin master
 </span></span></code></pre></div><p>So we
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/19211e7520de9384a0d5b0ce4c08a623c4f2e0b9" target="_blank" rel="noopener">have</a>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>tree -L 2 -a
-</span></span><span style="display:flex;"><span>.
-</span></span><span style="display:flex;"><span>├── .gitignore
-</span></span><span style="display:flex;"><span>├── main.coffee
-</span></span><span style="display:flex;"><span>└── node_modules
-</span></span><span style="display:flex;"><span>    └── ffi
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>2 directories, 2 files
-</span></span></code></pre></div><h2 id="add-directory-structure">Add directory structure</h2>
-<p>Now that we have our repo under version control, let&rsquo;s start adding some
+<a href=https://github.com/nickdesaulniers/node-nanomsg/commit/19211e7520de9384a0d5b0ce4c08a623c4f2e0b9 target=_blank rel=noopener>have</a>:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>tree -L 2 -a
+</span></span><span style=display:flex><span>.
+</span></span><span style=display:flex><span>├── .gitignore
+</span></span><span style=display:flex><span>├── main.coffee
+</span></span><span style=display:flex><span>└── node_modules
+</span></span><span style=display:flex><span>    └── ffi
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>2 directories, 2 files
+</span></span></code></pre></div><h2 id=add-directory-structure>Add directory structure</h2><p>Now that we have our repo under version control, let&rsquo;s start adding some
 structure. Let&rsquo;s create
-<code>src/</code>, <code>lib/</code>, and <code>test/</code> directories.  Our CoffeeScript will live in
+<code>src/</code>, <code>lib/</code>, and <code>test/</code> directories. Our CoffeeScript will live in
 <code>src/</code>, compiled JavaScript will be in <code>lib/</code>, and our test code will be in
-<code>test/</code>.</p>
-<p><code>mkdir src lib test</code></p>
-<h2 id="split-library-functions-from-testing">Split library functions from testing</h2>
-<p>Now let&rsquo;s move a copy of <code>main.coffee</code> into <code>src/</code> and one into <code>test/</code>.  We
-are going to split the library definition away from the testing logic.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>cp main.coffee test/test.coffee &amp;&amp; \
-</span></span><span style="display:flex;"><span>git add test/test.coffee &amp;&amp; \
-</span></span><span style="display:flex;"><span>git mv main.coffee src/nanomsg.coffee
-</span></span></code></pre></div><p>This way <code>git status</code> tells us:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span># On branch master
-</span></span><span style="display:flex;"><span># Changes to be committed:
-</span></span><span style="display:flex;"><span>#   (use &#34;git reset HEAD &lt;file&gt;...&#34; to unstage)
-</span></span><span style="display:flex;"><span>#
-</span></span><span style="display:flex;"><span># renamed:    main.coffee -&gt; src/nanomsg.coffee
-</span></span><span style="display:flex;"><span># new file:   test/test.coffee
-</span></span><span style="display:flex;"><span>#
-</span></span></code></pre></div><p>Let&rsquo;s edit src/main.coffee to look like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-coffeescript" data-lang="coffeescript"><span style="display:flex;"><span><span style="color:#268bd2">ffi = </span>require <span style="color:#2aa198">&#39;ffi&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">exports = module.exports = </span>ffi.Library <span style="color:#2aa198">&#39;libnanomsg&#39;</span>,
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_socket: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [ <span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span> ]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_bind: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [ <span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;string&#39;</span> ]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_connect: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [<span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;string&#39;</span> ]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_send: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [<span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;pointer&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span>]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_recv: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, [<span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;pointer&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span>, <span style="color:#2aa198">&#39;int&#39;</span>]]
-</span></span><span style="display:flex;"><span>  <span style="color:#268bd2">nn_errno: </span>[ <span style="color:#2aa198">&#39;int&#39;</span>, []]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">exports.AF_SP = </span><span style="color:#2aa198">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">exports.NN_PAIR = </span><span style="color:#2aa198">16</span>
-</span></span></code></pre></div><p>and edit the tests to:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-coffeescript" data-lang="coffeescript"><span style="display:flex;"><span><span style="color:#268bd2">assert = </span>require <span style="color:#2aa198">&#39;assert&#39;</span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">nanomsg = </span>require <span style="color:#2aa198">&#39;../lib/nanomsg.js&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>{ AF_SP, NN_PAIR } <span style="color:#719e07">=</span> nanomsg
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">s1 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
-</span></span><span style="display:flex;"><span>assert s1 <span style="color:#719e07">&gt;=</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;s1: &#39;</span> <span style="color:#719e07">+</span> nanomsg.nn_errno()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">ret = </span>nanomsg.nn_bind s1, <span style="color:#2aa198">&#39;inproc://a&#39;</span>
-</span></span><span style="display:flex;"><span>assert ret <span style="color:#719e07">&gt;</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;bind&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">s2 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
-</span></span><span style="display:flex;"><span>assert s2 <span style="color:#719e07">&gt;=</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;s2: &#39;</span> <span style="color:#719e07">+</span> nanomsg.nn_errno()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">ret = </span>nanomsg.nn_connect s2, <span style="color:#2aa198">&#39;inproc://a&#39;</span>
-</span></span><span style="display:flex;"><span>assert ret <span style="color:#719e07">&gt;</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;connect&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">msg = </span><span style="color:#719e07">new</span> Buffer <span style="color:#2aa198">&#39;hello&#39;</span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">ret = </span>nanomsg.nn_send s2, msg, msg.length, <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>assert ret <span style="color:#719e07">&gt;</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;send&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">recv = </span><span style="color:#719e07">new</span> Buffer msg.length
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">ret = </span>nanomsg.nn_recv s1, recv, recv.length, <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>assert ret <span style="color:#719e07">&gt;</span> <span style="color:#2aa198">0</span>, <span style="color:#2aa198">&#39;recv&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>assert msg.toString() <span style="color:#719e07">is</span> recv.toString(), <span style="color:#2aa198">&#39;received message did not match sent&#39;</span>
+<code>test/</code>.</p><p><code>mkdir src lib test</code></p><h2 id=split-library-functions-from-testing>Split library functions from testing</h2><p>Now let&rsquo;s move a copy of <code>main.coffee</code> into <code>src/</code> and one into <code>test/</code>. We
+are going to split the library definition away from the testing logic.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>cp main.coffee test/test.coffee &amp;&amp; \
+</span></span><span style=display:flex><span>git add test/test.coffee &amp;&amp; \
+</span></span><span style=display:flex><span>git mv main.coffee src/nanomsg.coffee
+</span></span></code></pre></div><p>This way <code>git status</code> tells us:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span># On branch master
+</span></span><span style=display:flex><span># Changes to be committed:
+</span></span><span style=display:flex><span>#   (use &#34;git reset HEAD &lt;file&gt;...&#34; to unstage)
+</span></span><span style=display:flex><span>#
+</span></span><span style=display:flex><span># renamed:    main.coffee -&gt; src/nanomsg.coffee
+</span></span><span style=display:flex><span># new file:   test/test.coffee
+</span></span><span style=display:flex><span>#
+</span></span></code></pre></div><p>Let&rsquo;s edit src/main.coffee to look like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-coffeescript data-lang=coffeescript><span style=display:flex><span><span style=color:#268bd2>ffi = </span>require <span style=color:#2aa198>&#39;ffi&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>exports = module.exports = </span>ffi.Library <span style=color:#2aa198>&#39;libnanomsg&#39;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_socket: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [ <span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span> ]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_bind: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [ <span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;string&#39;</span> ]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_connect: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [<span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;string&#39;</span> ]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_send: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [<span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;pointer&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span>]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_recv: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, [<span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;pointer&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span>, <span style=color:#2aa198>&#39;int&#39;</span>]]
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>nn_errno: </span>[ <span style=color:#2aa198>&#39;int&#39;</span>, []]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>exports.AF_SP = </span><span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>exports.NN_PAIR = </span><span style=color:#2aa198>16</span>
+</span></span></code></pre></div><p>and edit the tests to:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-coffeescript data-lang=coffeescript><span style=display:flex><span><span style=color:#268bd2>assert = </span>require <span style=color:#2aa198>&#39;assert&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>nanomsg = </span>require <span style=color:#2aa198>&#39;../lib/nanomsg.js&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>{ AF_SP, NN_PAIR } <span style=color:#719e07>=</span> nanomsg
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>s1 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
+</span></span><span style=display:flex><span>assert s1 <span style=color:#719e07>&gt;=</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;s1: &#39;</span> <span style=color:#719e07>+</span> nanomsg.nn_errno()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>ret = </span>nanomsg.nn_bind s1, <span style=color:#2aa198>&#39;inproc://a&#39;</span>
+</span></span><span style=display:flex><span>assert ret <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;bind&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>s2 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
+</span></span><span style=display:flex><span>assert s2 <span style=color:#719e07>&gt;=</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;s2: &#39;</span> <span style=color:#719e07>+</span> nanomsg.nn_errno()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>ret = </span>nanomsg.nn_connect s2, <span style=color:#2aa198>&#39;inproc://a&#39;</span>
+</span></span><span style=display:flex><span>assert ret <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;connect&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>msg = </span><span style=color:#719e07>new</span> Buffer <span style=color:#2aa198>&#39;hello&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>ret = </span>nanomsg.nn_send s2, msg, msg.length, <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>assert ret <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;send&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>recv = </span><span style=color:#719e07>new</span> Buffer msg.length
+</span></span><span style=display:flex><span><span style=color:#268bd2>ret = </span>nanomsg.nn_recv s1, recv, recv.length, <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>assert ret <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>, <span style=color:#2aa198>&#39;recv&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>assert msg.toString() <span style=color:#719e07>is</span> recv.toString(), <span style=color:#2aa198>&#39;received message did not match sent&#39;</span>
 </span></span></code></pre></div><p>Notice how in the test we&rsquo;re including the compiled javascript from <code>lib/</code>
-which doesn&rsquo;t exist yet?  If you try running <code>coffee test/test.coffee</code> it
-should crash.  Let&rsquo;s make the compiled version.
-<code>coffee -o lib -c src/nanomsg.coffee</code></p>
-<p>Once the compiled lib exists, we can run our tests with
-<code>coffee test/test.coffee</code> and shouldn&rsquo;t see any errors.</p>
-<p>Now we should have a little more order, let&rsquo;s
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/3e3e3918971e2eddbe95e91e0c3cf32e7f8becba" target="_blank" rel="noopener">commit</a>.
+which doesn&rsquo;t exist yet? If you try running <code>coffee test/test.coffee</code> it
+should crash. Let&rsquo;s make the compiled version.
+<code>coffee -o lib -c src/nanomsg.coffee</code></p><p>Once the compiled lib exists, we can run our tests with
+<code>coffee test/test.coffee</code> and shouldn&rsquo;t see any errors.</p><p>Now we should have a little more order, let&rsquo;s
+<a href=https://github.com/nickdesaulniers/node-nanomsg/commit/3e3e3918971e2eddbe95e91e0c3cf32e7f8becba target=_blank rel=noopener>commit</a>.
 Hold off on adding
-<code>lib/</code> to version control, I&rsquo;ll explain why in a bit.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>tree -L 2 -C -a -I &#39;.git&#39;
-</span></span><span style="display:flex;"><span>.
-</span></span><span style="display:flex;"><span>├── .gitignore
-</span></span><span style="display:flex;"><span>├── lib
-</span></span><span style="display:flex;"><span>│   └── nanomsg.js
-</span></span><span style="display:flex;"><span>├── node_modules
-</span></span><span style="display:flex;"><span>│   └── ffi
-</span></span><span style="display:flex;"><span>├── src
-</span></span><span style="display:flex;"><span>│   └── nanomsg.coffee
-</span></span><span style="display:flex;"><span>└── test
-</span></span><span style="display:flex;"><span>    └── test.coffee
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>5 directories, 4 files
+<code>lib/</code> to version control, I&rsquo;ll explain why in a bit.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>tree -L 2 -C -a -I &#39;.git&#39;
+</span></span><span style=display:flex><span>.
+</span></span><span style=display:flex><span>├── .gitignore
+</span></span><span style=display:flex><span>├── lib
+</span></span><span style=display:flex><span>│   └── nanomsg.js
+</span></span><span style=display:flex><span>├── node_modules
+</span></span><span style=display:flex><span>│   └── ffi
+</span></span><span style=display:flex><span>├── src
+</span></span><span style=display:flex><span>│   └── nanomsg.coffee
+</span></span><span style=display:flex><span>└── test
+</span></span><span style=display:flex><span>    └── test.coffee
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>5 directories, 4 files
 </span></span></code></pre></div><p>At this point, if we add features and want to rerun our tests, we need to
-execute:</p>
-<p><code>coffee -o lib -c src/nanomsg.coffee &amp;&amp; coffee test/test.coffee</code></p>
-<p>While this command is simple now and easy to reverse search, anyone else
+execute:</p><p><code>coffee -o lib -c src/nanomsg.coffee && coffee test/test.coffee</code></p><p>While this command is simple now and easy to reverse search, anyone else
 contributing to you project is going to have to know the commands to run the
-tests.  Let&rsquo;s use
-
-<a href="http://gruntjs.com/" target="_blank" rel="noopener">Grunt</a>,
-the JavaScript task runner, to automate our build and test process.</p>
-<h2 id="add-a-build-script">Add a Build script</h2>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>npm install -g grunt-cli &amp;&amp; \
-</span></span><span style="display:flex;"><span>npm install grunt-contrib-coffee
-</span></span></code></pre></div><p>Create a simple Gruntfile which can also be written in CoffeeScript:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-coffeescript" data-lang="coffeescript"><span style="display:flex;"><span><span style="color:#268bd2">module.exports = </span><span style="color:#268bd2">(grunt) -&gt;</span>
-</span></span><span style="display:flex;"><span>  grunt.initConfig
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">coffee:
-</span></span></span><span style="display:flex;"><span><span style="color:#268bd2"></span>      <span style="color:#268bd2">compile:
-</span></span></span><span style="display:flex;"><span><span style="color:#268bd2"></span>        <span style="color:#268bd2">files:
-</span></span></span><span style="display:flex;"><span><span style="color:#268bd2"></span>          <span style="color:#2aa198">&#39;lib/nanomsg.js&#39;</span><span style="color:#719e07">:</span> [<span style="color:#2aa198">&#39;src/*.coffee&#39;</span>]
-</span></span><span style="display:flex;"><span>  grunt.loadNpmTasks <span style="color:#2aa198">&#39;grunt-contrib-coffee&#39;</span>
-</span></span><span style="display:flex;"><span>  grunt.registerTask <span style="color:#2aa198">&#39;default&#39;</span>, [<span style="color:#2aa198">&#39;coffee&#39;</span>]
+tests. Let&rsquo;s use
+<a href=http://gruntjs.com/ target=_blank rel=noopener>Grunt</a>,
+the JavaScript task runner, to automate our build and test process.</p><h2 id=add-a-build-script>Add a Build script</h2><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>npm install -g grunt-cli &amp;&amp; \
+</span></span><span style=display:flex><span>npm install grunt-contrib-coffee
+</span></span></code></pre></div><p>Create a simple Gruntfile which can also be written in CoffeeScript:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-coffeescript data-lang=coffeescript><span style=display:flex><span><span style=color:#268bd2>module.exports = </span><span style=color:#268bd2>(grunt) -&gt;</span>
+</span></span><span style=display:flex><span>  grunt.initConfig
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>coffee:
+</span></span></span><span style=display:flex><span><span style=color:#268bd2></span>      <span style=color:#268bd2>compile:
+</span></span></span><span style=display:flex><span><span style=color:#268bd2></span>        <span style=color:#268bd2>files:
+</span></span></span><span style=display:flex><span><span style=color:#268bd2></span>          <span style=color:#2aa198>&#39;lib/nanomsg.js&#39;</span><span style=color:#719e07>:</span> [<span style=color:#2aa198>&#39;src/*.coffee&#39;</span>]
+</span></span><span style=display:flex><span>  grunt.loadNpmTasks <span style=color:#2aa198>&#39;grunt-contrib-coffee&#39;</span>
+</span></span><span style=display:flex><span>  grunt.registerTask <span style=color:#2aa198>&#39;default&#39;</span>, [<span style=color:#2aa198>&#39;coffee&#39;</span>]
 </span></span></code></pre></div><p>Running <code>grunt</code> builds our lib which is a start, so let&rsquo;s
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/293e7378225c761ec496d9dcd09e1f2d331628a2" target="_blank" rel="noopener">commit</a>
-that.</p>
-<p>But <code>grunt</code> is not running our tests.  And our tests don&rsquo;t have nice output.
-Let&rsquo;s change that:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>npm install -g mocha &amp;&amp; \
-</span></span><span style="display:flex;"><span>npm install chai grunt-mocha-test
-</span></span></code></pre></div><p>edit test/test.coffee to:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-coffeescript" data-lang="coffeescript"><span style="display:flex;"><span><span style="color:#268bd2">assert = </span>require <span style="color:#2aa198">&#39;assert&#39;</span>
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">should = </span>require(<span style="color:#2aa198">&#39;chai&#39;</span>).should()
-</span></span><span style="display:flex;"><span><span style="color:#268bd2">nanomsg = </span>require <span style="color:#2aa198">&#39;../lib/nanomsg.js&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>describe <span style="color:#2aa198">&#39;nanomsg&#39;</span>, <span style="color:#268bd2">-&gt;</span>
-</span></span><span style="display:flex;"><span>  it <span style="color:#2aa198">&#39;should at least work&#39;</span>, <span style="color:#268bd2">-&gt;</span>
-</span></span><span style="display:flex;"><span>    { AF_SP, NN_PAIR } <span style="color:#719e07">=</span> nanomsg
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">s1 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
-</span></span><span style="display:flex;"><span>    s1.should.be.at.least <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">ret = </span>nanomsg.nn_bind s1, <span style="color:#2aa198">&#39;inproc://a&#39;</span>
-</span></span><span style="display:flex;"><span>    ret.should.be.above <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">s2 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
-</span></span><span style="display:flex;"><span>    s2.should.be.at.least <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">ret = </span>nanomsg.nn_connect s2, <span style="color:#2aa198">&#39;inproc://a&#39;</span>
-</span></span><span style="display:flex;"><span>    ret.should.be.above <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">msg = </span><span style="color:#719e07">new</span> Buffer <span style="color:#2aa198">&#39;hello&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">ret = </span>nanomsg.nn_send s2, msg, msg.length, <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>    ret.should.be.above <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">recv = </span><span style="color:#719e07">new</span> Buffer msg.length
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">ret = </span>nanomsg.nn_recv s1, recv, recv.length, <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>    ret.should.be.above <span style="color:#2aa198">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    msg.toString().should.equal recv.toString()
-</span></span></code></pre></div><p>and modify your gruntfile to add a testing step:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-coffeescript" data-lang="coffeescript"><span style="display:flex;"><span><span style="color:#268bd2">module.exports = </span><span style="color:#268bd2">(grunt) -&gt;</span>
-</span></span><span style="display:flex;"><span>  grunt.initConfig
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">coffee:
-</span></span></span><span style="display:flex;"><span><span style="color:#268bd2"></span>      <span style="color:#268bd2">compile:
-</span></span></span><span style="display:flex;"><span><span style="color:#268bd2"></span>        <span style="color:#268bd2">files:
-</span></span></span><span style="display:flex;"><span><span style="color:#268bd2"></span>          <span style="color:#2aa198">&#39;lib/nanomsg.js&#39;</span><span style="color:#719e07">:</span> [<span style="color:#2aa198">&#39;src/*.coffee&#39;</span>]
-</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">mochaTest:
-</span></span></span><span style="display:flex;"><span><span style="color:#268bd2"></span>      <span style="color:#268bd2">options:
-</span></span></span><span style="display:flex;"><span><span style="color:#268bd2"></span>        <span style="color:#268bd2">reporter: </span><span style="color:#2aa198">&#39;nyan&#39;</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#268bd2">src: </span>[<span style="color:#2aa198">&#39;test/test.coffee&#39;</span>]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  grunt.loadNpmTasks <span style="color:#2aa198">&#39;grunt-contrib-coffee&#39;</span>
-</span></span><span style="display:flex;"><span>  grunt.loadNpmTasks <span style="color:#2aa198">&#39;grunt-mocha-test&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  grunt.registerTask <span style="color:#2aa198">&#39;default&#39;</span>, [<span style="color:#2aa198">&#39;coffee&#39;</span>, <span style="color:#2aa198">&#39;mochaTest&#39;</span>]
+<a href=https://github.com/nickdesaulniers/node-nanomsg/commit/293e7378225c761ec496d9dcd09e1f2d331628a2 target=_blank rel=noopener>commit</a>
+that.</p><p>But <code>grunt</code> is not running our tests. And our tests don&rsquo;t have nice output.
+Let&rsquo;s change that:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>npm install -g mocha &amp;&amp; \
+</span></span><span style=display:flex><span>npm install chai grunt-mocha-test
+</span></span></code></pre></div><p>edit test/test.coffee to:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-coffeescript data-lang=coffeescript><span style=display:flex><span><span style=color:#268bd2>assert = </span>require <span style=color:#2aa198>&#39;assert&#39;</span>
+</span></span><span style=display:flex><span><span style=color:#268bd2>should = </span>require(<span style=color:#2aa198>&#39;chai&#39;</span>).should()
+</span></span><span style=display:flex><span><span style=color:#268bd2>nanomsg = </span>require <span style=color:#2aa198>&#39;../lib/nanomsg.js&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>describe <span style=color:#2aa198>&#39;nanomsg&#39;</span>, <span style=color:#268bd2>-&gt;</span>
+</span></span><span style=display:flex><span>  it <span style=color:#2aa198>&#39;should at least work&#39;</span>, <span style=color:#268bd2>-&gt;</span>
+</span></span><span style=display:flex><span>    { AF_SP, NN_PAIR } <span style=color:#719e07>=</span> nanomsg
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>s1 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
+</span></span><span style=display:flex><span>    s1.should.be.at.least <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>ret = </span>nanomsg.nn_bind s1, <span style=color:#2aa198>&#39;inproc://a&#39;</span>
+</span></span><span style=display:flex><span>    ret.should.be.above <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>s2 = </span>nanomsg.nn_socket AF_SP, NN_PAIR
+</span></span><span style=display:flex><span>    s2.should.be.at.least <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>ret = </span>nanomsg.nn_connect s2, <span style=color:#2aa198>&#39;inproc://a&#39;</span>
+</span></span><span style=display:flex><span>    ret.should.be.above <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>msg = </span><span style=color:#719e07>new</span> Buffer <span style=color:#2aa198>&#39;hello&#39;</span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>ret = </span>nanomsg.nn_send s2, msg, msg.length, <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>    ret.should.be.above <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>recv = </span><span style=color:#719e07>new</span> Buffer msg.length
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>ret = </span>nanomsg.nn_recv s1, recv, recv.length, <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>    ret.should.be.above <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    msg.toString().should.equal recv.toString()
+</span></span></code></pre></div><p>and modify your gruntfile to add a testing step:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-coffeescript data-lang=coffeescript><span style=display:flex><span><span style=color:#268bd2>module.exports = </span><span style=color:#268bd2>(grunt) -&gt;</span>
+</span></span><span style=display:flex><span>  grunt.initConfig
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>coffee:
+</span></span></span><span style=display:flex><span><span style=color:#268bd2></span>      <span style=color:#268bd2>compile:
+</span></span></span><span style=display:flex><span><span style=color:#268bd2></span>        <span style=color:#268bd2>files:
+</span></span></span><span style=display:flex><span><span style=color:#268bd2></span>          <span style=color:#2aa198>&#39;lib/nanomsg.js&#39;</span><span style=color:#719e07>:</span> [<span style=color:#2aa198>&#39;src/*.coffee&#39;</span>]
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>mochaTest:
+</span></span></span><span style=display:flex><span><span style=color:#268bd2></span>      <span style=color:#268bd2>options:
+</span></span></span><span style=display:flex><span><span style=color:#268bd2></span>        <span style=color:#268bd2>reporter: </span><span style=color:#2aa198>&#39;nyan&#39;</span>
+</span></span><span style=display:flex><span>      <span style=color:#268bd2>src: </span>[<span style=color:#2aa198>&#39;test/test.coffee&#39;</span>]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  grunt.loadNpmTasks <span style=color:#2aa198>&#39;grunt-contrib-coffee&#39;</span>
+</span></span><span style=display:flex><span>  grunt.loadNpmTasks <span style=color:#2aa198>&#39;grunt-mocha-test&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  grunt.registerTask <span style=color:#2aa198>&#39;default&#39;</span>, [<span style=color:#2aa198>&#39;coffee&#39;</span>, <span style=color:#2aa198>&#39;mochaTest&#39;</span>]
 </span></span></code></pre></div><p>Now when we run <code>grunt</code>, our build process will run, then our test process,
 then we should see one incredibly happy
-
-<a href="http://www.nyan.cat/" target="_blank" rel="noopener">nyan cat</a>.
+<a href=http://www.nyan.cat/ target=_blank rel=noopener>nyan cat</a>.
 The
-
-<a href="http://visionmedia.github.io/mocha/#reporters" target="_blank" rel="noopener">nyan cat mocha test reporter</a>
-is basically the pinnacle of human intellectual achievement.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>grunt
-</span></span><span style="display:flex;"><span>Running &#34;coffee:compile&#34; (coffee) task
-</span></span><span style="display:flex;"><span>File lib/nanomsg.js created.
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Running &#34;mochaTest:src&#34; (mochaTest) task
-</span></span><span style="display:flex;"><span> 1   -__,------,
-</span></span><span style="display:flex;"><span> 0   -__|  /\_/\
-</span></span><span style="display:flex;"><span> 0   -_~|_( ^ .^)
-</span></span><span style="display:flex;"><span>     -_ &#34;&#34;  &#34;&#34;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  1 passing (5 ms)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Done, without errors.
-</span></span></code></pre></div><p>
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/a43bcb3f69ca20bb1902472ecc954317e5fe0fe3" target="_blank" rel="noopener">Commit time</a>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>tree -L 2 -C -a -I &#39;.git&#39;
-</span></span><span style="display:flex;"><span>.
-</span></span><span style="display:flex;"><span>├── .gitignore
-</span></span><span style="display:flex;"><span>├── Gruntfile.coffee
-</span></span><span style="display:flex;"><span>├── lib
-</span></span><span style="display:flex;"><span>│   └── nanomsg.js
-</span></span><span style="display:flex;"><span>├── node_modules
-</span></span><span style="display:flex;"><span>│   ├── ffi
-</span></span><span style="display:flex;"><span>│   ├── grunt
-</span></span><span style="display:flex;"><span>│   └── grunt-contrib-coffee
-</span></span><span style="display:flex;"><span>├── src
-</span></span><span style="display:flex;"><span>│   └── nanomsg.coffee
-</span></span><span style="display:flex;"><span>└── test
-</span></span><span style="display:flex;"><span>    └── test.coffee
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>7 directories, 5 files
-</span></span></code></pre></div><h2 id="create-node-module">Create node module</h2>
-<p>Now that we have a more modular design with build and test logic built in,
-let&rsquo;s make this module redistributable.  First, let&rsquo;s talk about ignoring
-files.  Create a <code>.npmignore</code> file that will specify what not to include in the
-module that is downloaded.  Node Package Manager,
-
-<a href="https://npmjs.org/" target="_blank" rel="noopener">npm</a>,
+<a href=http://visionmedia.github.io/mocha/#reporters target=_blank rel=noopener>nyan cat mocha test reporter</a>
+is basically the pinnacle of human intellectual achievement.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>grunt
+</span></span><span style=display:flex><span>Running &#34;coffee:compile&#34; (coffee) task
+</span></span><span style=display:flex><span>File lib/nanomsg.js created.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Running &#34;mochaTest:src&#34; (mochaTest) task
+</span></span><span style=display:flex><span> 1   -__,------,
+</span></span><span style=display:flex><span> 0   -__|  /\_/\
+</span></span><span style=display:flex><span> 0   -_~|_( ^ .^)
+</span></span><span style=display:flex><span>     -_ &#34;&#34;  &#34;&#34;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  1 passing (5 ms)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Done, without errors.
+</span></span></code></pre></div><p><a href=https://github.com/nickdesaulniers/node-nanomsg/commit/a43bcb3f69ca20bb1902472ecc954317e5fe0fe3 target=_blank rel=noopener>Commit time</a>.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>tree -L 2 -C -a -I &#39;.git&#39;
+</span></span><span style=display:flex><span>.
+</span></span><span style=display:flex><span>├── .gitignore
+</span></span><span style=display:flex><span>├── Gruntfile.coffee
+</span></span><span style=display:flex><span>├── lib
+</span></span><span style=display:flex><span>│   └── nanomsg.js
+</span></span><span style=display:flex><span>├── node_modules
+</span></span><span style=display:flex><span>│   ├── ffi
+</span></span><span style=display:flex><span>│   ├── grunt
+</span></span><span style=display:flex><span>│   └── grunt-contrib-coffee
+</span></span><span style=display:flex><span>├── src
+</span></span><span style=display:flex><span>│   └── nanomsg.coffee
+</span></span><span style=display:flex><span>└── test
+</span></span><span style=display:flex><span>    └── test.coffee
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>7 directories, 5 files
+</span></span></code></pre></div><h2 id=create-node-module>Create node module</h2><p>Now that we have a more modular design with build and test logic built in,
+let&rsquo;s make this module redistributable. First, let&rsquo;s talk about ignoring
+files. Create a <code>.npmignore</code> file that will specify what not to include in the
+module that is downloaded. Node Package Manager,
+<a href=https://npmjs.org/ target=_blank rel=noopener>npm</a>,
 will
-
-<a href="https://npmjs.org/doc/developers.html#Keeping-files-out-of-your-package" target="_blank" rel="noopener">ignore a bunch of files by default</a>
-for us.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Gruntfile.coffee
-</span></span><span style="display:flex;"><span>src/
-</span></span><span style="display:flex;"><span>test/
+<a href=https://npmjs.org/doc/developers.html#Keeping-files-out-of-your-package target=_blank rel=noopener>ignore a bunch of files by default</a>
+for us.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Gruntfile.coffee
+</span></span><span style=display:flex><span>src/
+</span></span><span style=display:flex><span>test/
 </span></span></code></pre></div><p>Here we&rsquo;re ignoring the <code>src/</code> dir, where in our <code>.gitignore</code> we are going to
-ignore <code>lib/</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>node_modules/
-</span></span><span style="display:flex;"><span>lib/
-</span></span><span style="display:flex;"><span>*.swp
-</span></span></code></pre></div><p>Why are we doing this?  Admittedly, none of this is strictly necessary, but
-here&rsquo;s why I think it is useful.  When someone is checking out the source, they
+ignore <code>lib/</code>.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>node_modules/
+</span></span><span style=display:flex><span>lib/
+</span></span><span style=display:flex><span>*.swp
+</span></span></code></pre></div><p>Why are we doing this? Admittedly, none of this is strictly necessary, but
+here&rsquo;s why I think it is useful. When someone is checking out the source, they
 don&rsquo;t need the results of the compilation step, as they can make modifications
-and would need to recompile anyways.  Adding <code>lib/nanomsg.js</code> would just be
+and would need to recompile anyways. Adding <code>lib/nanomsg.js</code> would just be
 another thing to download (though its size is relatively insignificant).
 Likewise, when someone downloads the module, they most likely just want the
 results of the compilation step, not the source, build script, or test suite.
 If I was planned on making the compiled JavaScript accessible to a web browser,
 I would not add <code>lib/</code> to <code>.gitignore</code>, that way it could be referenced from the
 github raw URL.
-Again, these are generalizations that are not always true.  To make up for not
+Again, these are generalizations that are not always true. To make up for not
 having the entire source when installed as a module, we&rsquo;ll make up for it by
 adding a link to the repo from of manifest, but first let&rsquo;s
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/61458d964eaaee2ae6501bfbd186a1fe0d03d827" target="_blank" rel="noopener">commit</a>!</p>
-<p>Time to create a manifest file that has some basic info about our app.  It&rsquo;s a
-pretty good idea to run <code>npm search &lt;packagename&gt;</code> before hand to make sure
-your planned package name is not taken.  Since we have all of our dependencies
+<a href=https://github.com/nickdesaulniers/node-nanomsg/commit/61458d964eaaee2ae6501bfbd186a1fe0d03d827 target=_blank rel=noopener>commit</a>!</p><p>Time to create a manifest file that has some basic info about our app. It&rsquo;s a
+pretty good idea to run <code>npm search &lt;packagename></code> before hand to make sure
+your planned package name is not taken. Since we have all of our dependencies
 in a row, let&rsquo;s run
-<code>npm init</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>This utility will walk you through creating a package.json file.
-</span></span><span style="display:flex;"><span>It only covers the most common items, and tries to guess sane defaults.
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>See `npm help json` for definitive documentation on these fields
-</span></span><span style="display:flex;"><span>and exactly what they do.
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Use `npm install &lt;pkg&gt; --save` afterwards to install a package and
-</span></span><span style="display:flex;"><span>save it as a dependency in the package.json file.
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Press ^C at any time to quit.
-</span></span><span style="display:flex;"><span>name: (nanomsg)
-</span></span><span style="display:flex;"><span>version: (0.0.0)
-</span></span><span style="display:flex;"><span>description = nanomsg bindings
-</span></span><span style="display:flex;"><span>entry point: (index.js) lib/nanomsg.js
-</span></span><span style="display:flex;"><span>test command: grunt
-</span></span><span style="display:flex;"><span>git repository: (git://github.com/nickdesaulniers/node-nanomsg.git)
-</span></span><span style="display:flex;"><span>keywords = [&#34;nanomsg&#34;]
-</span></span><span style="display:flex;"><span>license: (BSD-2-Clause) Beerware
-</span></span><span style="display:flex;"><span>About to write to /Users/Nicholas/code/c/nanomsg/package.json:
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  &#34;name&#34;: &#34;nanomsg&#34;,
-</span></span><span style="display:flex;"><span>  &#34;version&#34;: &#34;0.0.0&#34;,
-</span></span><span style="display:flex;"><span>  &#34;description&#34;: &#34;nanomsg bindings&#34;,
-</span></span><span style="display:flex;"><span>  &#34;main&#34;: &#34;lib/nanomsg.js&#34;,
-</span></span><span style="display:flex;"><span>  &#34;directories&#34;: {
-</span></span><span style="display:flex;"><span>    &#34;test&#34;: &#34;test&#34;
-</span></span><span style="display:flex;"><span>  },
-</span></span><span style="display:flex;"><span>  &#34;dependencies&#34;: {
-</span></span><span style="display:flex;"><span>    &#34;chai&#34;: &#34;~1.7.2&#34;,
-</span></span><span style="display:flex;"><span>    &#34;ffi&#34;: &#34;~1.2.5&#34;,
-</span></span><span style="display:flex;"><span>    &#34;grunt&#34;: &#34;~0.4.1&#34;,
-</span></span><span style="display:flex;"><span>    &#34;grunt-mocha-test&#34;: &#34;~0.6.3&#34;,
-</span></span><span style="display:flex;"><span>    &#34;grunt-contrib-coffee&#34;: &#34;~0.7.0&#34;
-</span></span><span style="display:flex;"><span>  },
-</span></span><span style="display:flex;"><span>  &#34;devDependencies&#34;: {},
-</span></span><span style="display:flex;"><span>  &#34;scripts&#34;: {
-</span></span><span style="display:flex;"><span>    &#34;test&#34;: &#34;grunt&#34;
-</span></span><span style="display:flex;"><span>  },
-</span></span><span style="display:flex;"><span>  &#34;repository&#34;: {
-</span></span><span style="display:flex;"><span>    &#34;type&#34;: &#34;git&#34;,
-</span></span><span style="display:flex;"><span>    &#34;url&#34;: &#34;git://github.com/nickdesaulniers/node-nanomsg.git&#34;
-</span></span><span style="display:flex;"><span>  },
-</span></span><span style="display:flex;"><span>  &#34;keywords&#34;: [
-</span></span><span style="display:flex;"><span>    &#34;nanomsg&#34;
-</span></span><span style="display:flex;"><span>  ],
-</span></span><span style="display:flex;"><span>  &#34;author&#34;: &#34;Nick Desaulniers&#34;,
-</span></span><span style="display:flex;"><span>  &#34;license&#34;: &#34;Beerware&#34;,
-</span></span><span style="display:flex;"><span>  &#34;bugs&#34;: {
-</span></span><span style="display:flex;"><span>    &#34;url&#34;: &#34;https://github.com/nickdesaulniers/node-nanomsg/issues&#34;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>Is this ok? (yes)
-</span></span></code></pre></div><p>That should create for us a nice package.json manifest file for npm.</p>
-<p>We can now run our tests with the command <code>npm test</code> in addition to <code>grunt</code>.
+<code>npm init</code>.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>This utility will walk you through creating a package.json file.
+</span></span><span style=display:flex><span>It only covers the most common items, and tries to guess sane defaults.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>See `npm help json` for definitive documentation on these fields
+</span></span><span style=display:flex><span>and exactly what they do.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Use `npm install &lt;pkg&gt; --save` afterwards to install a package and
+</span></span><span style=display:flex><span>save it as a dependency in the package.json file.
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Press ^C at any time to quit.
+</span></span><span style=display:flex><span>name: (nanomsg)
+</span></span><span style=display:flex><span>version: (0.0.0)
+</span></span><span style=display:flex><span>description = nanomsg bindings
+</span></span><span style=display:flex><span>entry point: (index.js) lib/nanomsg.js
+</span></span><span style=display:flex><span>test command: grunt
+</span></span><span style=display:flex><span>git repository: (git://github.com/nickdesaulniers/node-nanomsg.git)
+</span></span><span style=display:flex><span>keywords = [&#34;nanomsg&#34;]
+</span></span><span style=display:flex><span>license: (BSD-2-Clause) Beerware
+</span></span><span style=display:flex><span>About to write to /Users/Nicholas/code/c/nanomsg/package.json:
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  &#34;name&#34;: &#34;nanomsg&#34;,
+</span></span><span style=display:flex><span>  &#34;version&#34;: &#34;0.0.0&#34;,
+</span></span><span style=display:flex><span>  &#34;description&#34;: &#34;nanomsg bindings&#34;,
+</span></span><span style=display:flex><span>  &#34;main&#34;: &#34;lib/nanomsg.js&#34;,
+</span></span><span style=display:flex><span>  &#34;directories&#34;: {
+</span></span><span style=display:flex><span>    &#34;test&#34;: &#34;test&#34;
+</span></span><span style=display:flex><span>  },
+</span></span><span style=display:flex><span>  &#34;dependencies&#34;: {
+</span></span><span style=display:flex><span>    &#34;chai&#34;: &#34;~1.7.2&#34;,
+</span></span><span style=display:flex><span>    &#34;ffi&#34;: &#34;~1.2.5&#34;,
+</span></span><span style=display:flex><span>    &#34;grunt&#34;: &#34;~0.4.1&#34;,
+</span></span><span style=display:flex><span>    &#34;grunt-mocha-test&#34;: &#34;~0.6.3&#34;,
+</span></span><span style=display:flex><span>    &#34;grunt-contrib-coffee&#34;: &#34;~0.7.0&#34;
+</span></span><span style=display:flex><span>  },
+</span></span><span style=display:flex><span>  &#34;devDependencies&#34;: {},
+</span></span><span style=display:flex><span>  &#34;scripts&#34;: {
+</span></span><span style=display:flex><span>    &#34;test&#34;: &#34;grunt&#34;
+</span></span><span style=display:flex><span>  },
+</span></span><span style=display:flex><span>  &#34;repository&#34;: {
+</span></span><span style=display:flex><span>    &#34;type&#34;: &#34;git&#34;,
+</span></span><span style=display:flex><span>    &#34;url&#34;: &#34;git://github.com/nickdesaulniers/node-nanomsg.git&#34;
+</span></span><span style=display:flex><span>  },
+</span></span><span style=display:flex><span>  &#34;keywords&#34;: [
+</span></span><span style=display:flex><span>    &#34;nanomsg&#34;
+</span></span><span style=display:flex><span>  ],
+</span></span><span style=display:flex><span>  &#34;author&#34;: &#34;Nick Desaulniers&#34;,
+</span></span><span style=display:flex><span>  &#34;license&#34;: &#34;Beerware&#34;,
+</span></span><span style=display:flex><span>  &#34;bugs&#34;: {
+</span></span><span style=display:flex><span>    &#34;url&#34;: &#34;https://github.com/nickdesaulniers/node-nanomsg/issues&#34;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Is this ok? (yes)
+</span></span></code></pre></div><p>That should create for us a nice package.json manifest file for npm.</p><p>We can now run our tests with the command <code>npm test</code> in addition to <code>grunt</code>.
 Let&rsquo;s hold off on publishing just yet,
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/6ac3425005c69683df85f75c49e27c9cb634ada6" target="_blank" rel="noopener">committing</a>
-instead.</p>
-<pre tabindex="0"><code>tree -L 2 -C -a -I &#39;.git&#39;
+<a href=https://github.com/nickdesaulniers/node-nanomsg/commit/6ac3425005c69683df85f75c49e27c9cb634ada6 target=_blank rel=noopener>committing</a>
+instead.</p><pre tabindex=0><code>tree -L 2 -C -a -I &#39;.git&#39;
 .
 ├── .gitignore
 ├── .npmignore
@@ -653,16 +411,12 @@ instead.</p>
     └── test.coffee
 
 10 directories, 7 files
-</code></pre><h2 id="add-license-and-readme">Add LICENSE and README</h2>
-<p>So we have a module that&rsquo;s almost ready to go.  But how will developers know
-how to reuse this code?  As much as I like to
-<em>
-<a href="http://bartaz.github.io/impress.js/#/source" target="_blank" rel="noopener">view the source, Luke</a></em>,
-npm will complain without a readme.  The
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/95e5a7203740f8ab31758f54491d095567accf70" target="_blank" rel="noopener">readme</a>
-also looks nice on the github repo.</p>
-<pre><code># Node-NanoMSG
+</code></pre><h2 id=add-license-and-readme>Add LICENSE and README</h2><p>So we have a module that&rsquo;s almost ready to go. But how will developers know
+how to reuse this code? As much as I like to
+<em><a href=http://bartaz.github.io/impress.js/#/source target=_blank rel=noopener>view the source, Luke</a></em>,
+npm will complain without a readme. The
+<a href=https://github.com/nickdesaulniers/node-nanomsg/commit/95e5a7203740f8ab31758f54491d095567accf70 target=_blank rel=noopener>readme</a>
+also looks nice on the github repo.</p><pre><code># Node-NanoMSG
 Node.js binding for [nanomsg](http://nanomsg.org/index.html).
 
 ## Usage
@@ -698,274 +452,99 @@ assert(ret &gt; 0, 'recv');
 
 assert(msg.toString() === recv.toString(), &quot;didn't receive sent message&quot;);
 console.log(recv.toString());
-</code></pre>
-<p>Before we publish, let&rsquo;s create a
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/48a55d0c51099f6b90cae5f190a8eb2b94140eae" target="_blank" rel="noopener">license</a>
+</code></pre><p>Before we publish, let&rsquo;s create a
+<a href=https://github.com/nickdesaulniers/node-nanomsg/commit/48a55d0c51099f6b90cae5f190a8eb2b94140eae target=_blank rel=noopener>license</a>
 file, because though we are making
 our code publicly viewable,
-
-<a href="https://help.github.com/articles/open-source-licensing#what-happens-if-i-dont-choose-a-license" target="_blank" rel="noopener">public source code without an explicit license is still under copyright and cannot be reused</a>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>/*
-</span></span><span style="display:flex;"><span> * ----------------------------------------------------------------------------
-</span></span><span style="display:flex;"><span> * &#34;THE BEER-WARE LICENSE&#34; (Revision 42):
-</span></span><span style="display:flex;"><span> * &lt;nick@mozilla.com&gt; wrote this file. As long as you retain this notice you
-</span></span><span style="display:flex;"><span> * can do whatever you want with this stuff. If we meet some day, and you think
-</span></span><span style="display:flex;"><span> * this stuff is worth it, you can buy me a beer in return. Nick Desaulniers
-</span></span><span style="display:flex;"><span> * ----------------------------------------------------------------------------
-</span></span><span style="display:flex;"><span> */
+<a href=https://help.github.com/articles/open-source-licensing#what-happens-if-i-dont-choose-a-license target=_blank rel=noopener>public source code without an explicit license is still under copyright and cannot be reused</a>.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>/*
+</span></span><span style=display:flex><span> * ----------------------------------------------------------------------------
+</span></span><span style=display:flex><span> * &#34;THE BEER-WARE LICENSE&#34; (Revision 42):
+</span></span><span style=display:flex><span> * &lt;nick@mozilla.com&gt; wrote this file. As long as you retain this notice you
+</span></span><span style=display:flex><span> * can do whatever you want with this stuff. If we meet some day, and you think
+</span></span><span style=display:flex><span> * this stuff is worth it, you can buy me a beer in return. Nick Desaulniers
+</span></span><span style=display:flex><span> * ----------------------------------------------------------------------------
+</span></span><span style=display:flex><span> */
 </span></span></code></pre></div><p>If you want to be more serious, maybe instead shoot for an MIT or BSD style
 license if you don&rsquo;t care what your repo gets used for or GPL style if you do.
-
-<a href="http://www.tldrlegal.com/" target="_blank" rel="noopener">TLDRLegal</a> has a great breakdown on common licenses.</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>tree -L 2 -C -a -I &#39;.git&#39;
-</span></span><span style="display:flex;"><span>.
-</span></span><span style="display:flex;"><span>├── .gitignore
-</span></span><span style="display:flex;"><span>├── .npmignore
-</span></span><span style="display:flex;"><span>├── Gruntfile.coffee
-</span></span><span style="display:flex;"><span>├── LICENSE
-</span></span><span style="display:flex;"><span>├── README.md
-</span></span><span style="display:flex;"><span>├── lib
-</span></span><span style="display:flex;"><span>│   └── nanomsg.js
-</span></span><span style="display:flex;"><span>├── node_modules
-</span></span><span style="display:flex;"><span>│   ├── .bin
-</span></span><span style="display:flex;"><span>│   ├── chai
-</span></span><span style="display:flex;"><span>│   ├── ffi
-</span></span><span style="display:flex;"><span>│   ├── grunt
-</span></span><span style="display:flex;"><span>│   ├── grunt-contrib-coffee
-</span></span><span style="display:flex;"><span>│   └── grunt-mocha-test
-</span></span><span style="display:flex;"><span>├── package.json
-</span></span><span style="display:flex;"><span>├── src
-</span></span><span style="display:flex;"><span>│   └── nanomsg.coffee
-</span></span><span style="display:flex;"><span>└── test
-</span></span><span style="display:flex;"><span>    └── test.coffee
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>10 directories, 9 files
-</span></span></code></pre></div><h2 id="publish">Publish</h2>
-<p><code>npm publish</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>npm http PUT https://registry.npmjs.org/nanomsg
-</span></span><span style="display:flex;"><span>npm http 201 https://registry.npmjs.org/nanomsg
-</span></span><span style="display:flex;"><span>npm http GET https://registry.npmjs.org/nanomsg
-</span></span><span style="display:flex;"><span>npm http 200 https://registry.npmjs.org/nanomsg
-</span></span><span style="display:flex;"><span>npm http PUT https://registry.npmjs.org/nanomsg/-/nanomsg-0.0.0.tgz/-rev/1-20f1ec5ca2eed51e840feff22479bb5d
-</span></span><span style="display:flex;"><span>npm http 201 https://registry.npmjs.org/nanomsg/-/nanomsg-0.0.0.tgz/-rev/1-20f1ec5ca2eed51e840feff22479bb5d
-</span></span><span style="display:flex;"><span>npm http PUT https://registry.npmjs.org/nanomsg/0.0.0/-tag/latest
-</span></span><span style="display:flex;"><span>npm http 201 https://registry.npmjs.org/nanomsg/0.0.0/-tag/latest
-</span></span><span style="display:flex;"><span>+ nanomsg@0.0.0
+<a href=http://www.tldrlegal.com/ target=_blank rel=noopener>TLDRLegal</a> has a great breakdown on common licenses.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>tree -L 2 -C -a -I &#39;.git&#39;
+</span></span><span style=display:flex><span>.
+</span></span><span style=display:flex><span>├── .gitignore
+</span></span><span style=display:flex><span>├── .npmignore
+</span></span><span style=display:flex><span>├── Gruntfile.coffee
+</span></span><span style=display:flex><span>├── LICENSE
+</span></span><span style=display:flex><span>├── README.md
+</span></span><span style=display:flex><span>├── lib
+</span></span><span style=display:flex><span>│   └── nanomsg.js
+</span></span><span style=display:flex><span>├── node_modules
+</span></span><span style=display:flex><span>│   ├── .bin
+</span></span><span style=display:flex><span>│   ├── chai
+</span></span><span style=display:flex><span>│   ├── ffi
+</span></span><span style=display:flex><span>│   ├── grunt
+</span></span><span style=display:flex><span>│   ├── grunt-contrib-coffee
+</span></span><span style=display:flex><span>│   └── grunt-mocha-test
+</span></span><span style=display:flex><span>├── package.json
+</span></span><span style=display:flex><span>├── src
+</span></span><span style=display:flex><span>│   └── nanomsg.coffee
+</span></span><span style=display:flex><span>└── test
+</span></span><span style=display:flex><span>    └── test.coffee
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>10 directories, 9 files
+</span></span></code></pre></div><h2 id=publish>Publish</h2><p><code>npm publish</code></p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>npm http PUT https://registry.npmjs.org/nanomsg
+</span></span><span style=display:flex><span>npm http 201 https://registry.npmjs.org/nanomsg
+</span></span><span style=display:flex><span>npm http GET https://registry.npmjs.org/nanomsg
+</span></span><span style=display:flex><span>npm http 200 https://registry.npmjs.org/nanomsg
+</span></span><span style=display:flex><span>npm http PUT https://registry.npmjs.org/nanomsg/-/nanomsg-0.0.0.tgz/-rev/1-20f1ec5ca2eed51e840feff22479bb5d
+</span></span><span style=display:flex><span>npm http 201 https://registry.npmjs.org/nanomsg/-/nanomsg-0.0.0.tgz/-rev/1-20f1ec5ca2eed51e840feff22479bb5d
+</span></span><span style=display:flex><span>npm http PUT https://registry.npmjs.org/nanomsg/0.0.0/-tag/latest
+</span></span><span style=display:flex><span>npm http 201 https://registry.npmjs.org/nanomsg/0.0.0/-tag/latest
+</span></span><span style=display:flex><span>+ nanomsg@0.0.0
 </span></span></code></pre></div><p>Finally as a sanity check, I like to make a new folder elsewhere, and run
 through the steps in the readme manually to make sure the package is reuseable.
 Which is good, since in the readme I
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/c145d3b3a8e85354f1bfb61d8342531ec6bbaa0a" target="_blank" rel="noopener">accidentally forgot</a>
+<a href=https://github.com/nickdesaulniers/node-nanomsg/commit/c145d3b3a8e85354f1bfb61d8342531ec6bbaa0a target=_blank rel=noopener>accidentally forgot</a>
 the <code>nn_</code> prefix in
-front of errno and recv!</p>
-<p>After updating the example in the readme, let&rsquo;s
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/commit/a6280ca85c4b9cbaac36f5b427bc052961d7e972" target="_blank" rel="noopener">bump the version number</a>
+front of errno and recv!</p><p>After updating the example in the readme, let&rsquo;s
+<a href=https://github.com/nickdesaulniers/node-nanomsg/commit/a6280ca85c4b9cbaac36f5b427bc052961d7e972 target=_blank rel=noopener>bump the version number</a>
 and
-republish.  Use <code>npm version</code> without arguments to find the current version,
-then <code>npm version patch</code> to bump it.  You have to commit the readme changes
-before bumping the version.  Finally don&rsquo;t forget to rerun <code>npm publish</code>.</p>
-<p>Our
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg/tree/a6280ca85c4b9cbaac36f5b427bc052961d7e972" target="_blank" rel="noopener">final directory structure</a>
-ends up looking like:</p>
-<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>tree -L 2 -C -a -I &#39;.git&#39;
-</span></span><span style="display:flex;"><span>.
-</span></span><span style="display:flex;"><span>├── .gitignore
-</span></span><span style="display:flex;"><span>├── .npmignore
-</span></span><span style="display:flex;"><span>├── Gruntfile.coffee
-</span></span><span style="display:flex;"><span>├── LICENSE
-</span></span><span style="display:flex;"><span>├── README.md
-</span></span><span style="display:flex;"><span>├── lib
-</span></span><span style="display:flex;"><span>│   └── nanomsg.js
-</span></span><span style="display:flex;"><span>├── node_modules
-</span></span><span style="display:flex;"><span>│   ├── .bin
-</span></span><span style="display:flex;"><span>│   ├── chai
-</span></span><span style="display:flex;"><span>│   ├── ffi
-</span></span><span style="display:flex;"><span>│   ├── grunt
-</span></span><span style="display:flex;"><span>│   ├── grunt-contrib-coffee
-</span></span><span style="display:flex;"><span>│   └── grunt-mocha-test
-</span></span><span style="display:flex;"><span>├── package.json
-</span></span><span style="display:flex;"><span>├── src
-</span></span><span style="display:flex;"><span>│   └── nanomsg.coffee
-</span></span><span style="display:flex;"><span>└── test
-</span></span><span style="display:flex;"><span>    └── test.coffee
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>10 directories, 9 files
+republish. Use <code>npm version</code> without arguments to find the current version,
+then <code>npm version patch</code> to bump it. You have to commit the readme changes
+before bumping the version. Finally don&rsquo;t forget to rerun <code>npm publish</code>.</p><p>Our
+<a href=https://github.com/nickdesaulniers/node-nanomsg/tree/a6280ca85c4b9cbaac36f5b427bc052961d7e972 target=_blank rel=noopener>final directory structure</a>
+ends up looking like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>tree -L 2 -C -a -I &#39;.git&#39;
+</span></span><span style=display:flex><span>.
+</span></span><span style=display:flex><span>├── .gitignore
+</span></span><span style=display:flex><span>├── .npmignore
+</span></span><span style=display:flex><span>├── Gruntfile.coffee
+</span></span><span style=display:flex><span>├── LICENSE
+</span></span><span style=display:flex><span>├── README.md
+</span></span><span style=display:flex><span>├── lib
+</span></span><span style=display:flex><span>│   └── nanomsg.js
+</span></span><span style=display:flex><span>├── node_modules
+</span></span><span style=display:flex><span>│   ├── .bin
+</span></span><span style=display:flex><span>│   ├── chai
+</span></span><span style=display:flex><span>│   ├── ffi
+</span></span><span style=display:flex><span>│   ├── grunt
+</span></span><span style=display:flex><span>│   ├── grunt-contrib-coffee
+</span></span><span style=display:flex><span>│   └── grunt-mocha-test
+</span></span><span style=display:flex><span>├── package.json
+</span></span><span style=display:flex><span>├── src
+</span></span><span style=display:flex><span>│   └── nanomsg.coffee
+</span></span><span style=display:flex><span>└── test
+</span></span><span style=display:flex><span>    └── test.coffee
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>10 directories, 9 files
 </span></span></code></pre></div><p>Lastly, I&rsquo;ll
-
-<a href="https://github.com/250bpm/nanomsg/pull/122" target="_blank" rel="noopener">reach out to</a>
-Martin Sústrik and let him know that nanomsg has a new binding.</p>
-<p>The bindings are far from complete, the test coverage could be better, and the
+<a href=https://github.com/250bpm/nanomsg/pull/122 target=_blank rel=noopener>reach out to</a>
+Martin Sústrik and let him know that nanomsg has a new binding.</p><p>The bindings are far from complete, the test coverage could be better, and the
 API is very C like and could use some OO syntactic sugar, but we&rsquo;re at a great
-starting point and ready to rock and roll.  If you&rsquo;d like to help out, fork
-
-<a href="https://github.com/nickdesaulniers/node-nanomsg.git" target="_blank" rel="noopener">https://github.com/nickdesaulniers/node-nanomsg.git</a>.</p>
-<p>What are some of your thoughts on build steps, testing, and directory layout of
-node module?  This
-tutorial was definitely not meant to be an authoritarian guide.  I look forward
-to your comments on your experiences!</p>
-
-        </div>
-        
-
-<footer>
-  <p class="meta">
-    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-    
-    <time>Aug 28, 2013</time>
-    
-    </span>
-  </p>
-
-  
-
-  <p class="meta">
-    
-        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/" title="Designated Initialization With Compound Literals in C">Designated Initialization With Compound Literals in C</a>
-    
-
-    
-      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/" title="Function.prototype.bind Edge Cases">Function.prototype.bind Edge Cases</a>
-    
-  </p>
-  
-    
-      <div id="disqus_thread"></div>
-<script type="application/javascript">
-    window.disqus_config = function () {
-    
-    
-    
-    };
-    (function() {
-        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
-            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
-            return;
-        }
-        var d = document, s = d.createElement('script'); s.async = true;
-        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-    
-  
-</footer>
-
-      </article>
-    </div>
-    
-
-<aside class="sidebar thirds">
-  <section class="first odd">
-
-    
-
-    <p>
-      
-    </p>
-  </section>
-
-  
-  
-
-
-
-<ul class="sidebar-nav">
-  <li class="sidebar-nav-item">
-    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
-    
-    
-    
-    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
-    
-    
-    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
-    
-    
-
-  
-  
-  </li>
-</ul>
-
-  
-
-  
-
-  
-  
-  
-    
-      <section class="even">
-        <h1>Recent Posts</h1>
-        <ul id="recent_posts">
-          
-          
-            
-              <li class="post">
-                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-              </li>
-            
-          
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-              </li>
-            
-          
-            
-              <li class="post">
-                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-              </li>
-            
-          
-        </ul>
-      </section>
-    
-  
-</aside>
-
-  </div>
-</div>
-
-    <footer role="contentinfo">
-      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
-        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
-      </p>
-    </footer>
-
-    
-    
-
-
-
-    
-    
-    
-
-    
-      <script>
-        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
-        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-        s.parentNode.insertBefore(g,s)}(document,'script'));
-      </script>
-    
-  </body>
-</html>
-
+starting point and ready to rock and roll. If you&rsquo;d like to help out, fork
+<a href=https://github.com/nickdesaulniers/node-nanomsg.git target=_blank rel=noopener>https://github.com/nickdesaulniers/node-nanomsg.git</a>.</p><p>What are some of your thoughts on build steps, testing, and directory layout of
+node module? This
+tutorial was definitely not meant to be an authoritarian guide. I look forward
+to your comments on your experiences!</p></div><footer><p class=meta><span class="byline author vcard">Posted by <span class=fn>Nick Desaulniers</span></span>
+<time>Aug 28, 2013</time></span></p><p class=meta><a class="basic-alignment left" href=https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/ title="Designated Initialization With Compound Literals in C">Designated Initialization With Compound Literals in C</a>
+<a class="basic-alignment right" href=https://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/ title="Function.prototype.bind Edge Cases">Function.prototype.bind Edge Cases</a></p><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//wangstabill.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></footer></article></div><aside class="sidebar thirds"><section class="first odd"><p></p></section><ul class=sidebar-nav><li class=sidebar-nav-item><a target=_blank rel="noopener noreferrer" href=https://github.com/nickdesaulniers title=https://github.com/nickdesaulniers><i class="fa fa-github fa-3x"></i></a>
+<a target=_blank rel="me noopener noreferrer" href=https://fosstodon.org/@llvm title=https://fosstodon.org/@llvm><i class="fa fa-mastodon fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.linkedin.com/in/nick-desaulniers-75520334 title=https://www.linkedin.com/in/nick-desaulniers-75520334><i class="fa fa-linkedin fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ title=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ><i class="fa fa-youtube fa-3x"></i></a></li></ul><section class=even><h1>Recent Posts</h1><ul id=recent_posts><li class=post><a href=/blog/2020/04/06/off-by-two/>Off by Two</a></li><li class=post><a href=/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/>f() vs f(void) in C vs C++</a></li><li class=post><a href=/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/>Finding Compiler Bugs With C-Reduce</a></li><li class=post><a href=/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a></li></ul></section></aside></div></div><footer role=contentinfo><p>Copyright &copy; 2023 Nick Desaulniers - <a href=https://nickdesaulniers.github.io/license/>License</a> -
+<span class=credit>Powered by <a target=_blank href=https://gohugo.io rel="noopener noreferrer">Hugo</a> and <a target=_blank href=https://github.com/parsiya/hugo-octopress/ rel="noopener noreferrer">Hugo-Octopress</a> theme.</p></footer><script>var _gaq=[["_setAccount","UA-36993986-1"],["_trackPageview"]];(function(e,t){var n=e.createElement(t),s=e.getElementsByTagName(t)[0];n.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js",s.parentNode.insertBefore(n,s)})(document,"script")</script></body></html>

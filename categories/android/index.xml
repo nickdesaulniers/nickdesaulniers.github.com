@@ -1,21 +1,2 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Android on Nick Desaulniers</title>
-    <link>https://nickdesaulniers.github.io/categories/android/</link>
-    <description>Recent content in Android on Nick Desaulniers</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Fri, 01 Jul 2016 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/android/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Cross Compiling C/C&#43;&#43; for Android</title>
-      <link>https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/</link>
-      <pubDate>Fri, 01 Jul 2016 00:00:00 +0000</pubDate>
-      
-      <guid>https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/</guid>
-      <description>Let’s say you want to build a hello world command line application in C or C++ and run it on your Android phone. How would you go about it? It’s not super practical; apps visible and distributable to end users must use the framework (AFAIK), but for folks looking to get into developing on ARM it’s likely they have an ARM device in their pocket.
-This post is for folks who typically invoke their compiler from the command line, either explicitly, from build scripts, or other forms of automation.</description>
-    </item>
-    
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Android on Nick Desaulniers</title><link>https://nickdesaulniers.github.io/categories/android/</link><description>Recent content in Android on Nick Desaulniers</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 01 Jul 2016 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/android/index.xml" rel="self" type="application/rss+xml"/><item><title>Cross Compiling C/C++ for Android</title><link>https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/</link><pubDate>Fri, 01 Jul 2016 00:00:00 +0000</pubDate><guid>https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/</guid><description>Let’s say you want to build a hello world command line application in C or C++ and run it on your Android phone. How would you go about it? It’s not super practical; apps visible and distributable to end users must use the framework (AFAIK), but for folks looking to get into developing on ARM it’s likely they have an ARM device in their pocket.
+This post is for folks who typically invoke their compiler from the command line, either explicitly, from build scripts, or other forms of automation.</description></item></channel></rss>
