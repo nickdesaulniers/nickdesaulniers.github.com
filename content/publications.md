@@ -2,8 +2,6 @@
 layout: page
 title: "Publications"
 comments: false
-sharing: false
-footer: true
 ---
 
 Desaulniers, Nick. "WebGL Off the Main Thread." *Mozilla Hacks*. Mozilla. January 22, 2015. [Link](https://hacks.mozilla.org/2016/01/webgl-off-the-main-thread/)

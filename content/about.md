@@ -1,5 +1,6 @@
 +++
 title="About"
+comments=false
 +++
 
 ![Nick Desaulniers](/images/nick.jpg)

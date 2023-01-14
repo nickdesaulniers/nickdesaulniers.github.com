@@ -2,8 +2,6 @@
 layout: page
 title: "Talks"
 comments: true
-sharing: true
-footer: true
 ---
 ## 2019
 
