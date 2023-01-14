@@ -21,6 +21,7 @@ body > nav a:hover {
 }
 figure.float_right {
   float: right;
+  padding-left: 15px;
 }
 figure.float_left {
   float: left;
