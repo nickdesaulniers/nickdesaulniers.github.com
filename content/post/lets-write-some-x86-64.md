@@ -1,5 +1,5 @@
 +++
-title = "Lets Write Some X86 64"
+title = "Let's Write Some X86-64"
 date = "2014-04-18"
 slug = "2014/04/18/lets-write-some-x86-64"
 Categories = []

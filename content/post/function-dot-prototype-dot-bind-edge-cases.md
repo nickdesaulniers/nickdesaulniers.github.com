@@ -1,5 +1,5 @@
 +++
-title = "Function Dot Prototype Dot Bind Edge Cases"
+title = "Function.prototype.bind Edge Cases"
 date = "2013-09-26"
 slug = "2013/09/26/function-dot-prototype-dot-bind-edge-cases"
 Categories = []

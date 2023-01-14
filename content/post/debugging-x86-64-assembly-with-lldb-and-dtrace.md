@@ -1,5 +1,5 @@
 +++
-title = "Debugging X86 64 Assembly With Lldb and Dtrace"
+title = "Intro to Debugging X86-64 Assembly"
 date = "2016-01-20"
 slug = "2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace"
 Categories = []

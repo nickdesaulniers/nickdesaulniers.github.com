@@ -1,5 +1,5 @@
 +++
-title = "Additional C Slash C Plus Plus Tooling"
+title = "Additional C/C++ Tooling"
 date = "2015-07-23"
 slug = "2015/07/23/additional-c-slash-c-plus-plus-tooling"
 Categories = []

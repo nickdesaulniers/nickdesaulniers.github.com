@@ -1,5 +1,5 @@
 +++
-title = "Android Cli"
+title = "Cross Compiling C/C++ for Android"
 date = "2016-07-01"
 slug = "2016/07/01/android-cli"
 Categories = []

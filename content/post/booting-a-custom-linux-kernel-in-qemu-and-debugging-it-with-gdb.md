@@ -1,5 +1,5 @@
 +++
-title = "Booting a Custom Linux Kernel in Qemu and Debugging It With Gdb"
+title = "Booting a Custom Linux Kernel in QEMU and Debugging It With GDB"
 date = "2018-10-24"
 slug = "2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb"
 Categories = []

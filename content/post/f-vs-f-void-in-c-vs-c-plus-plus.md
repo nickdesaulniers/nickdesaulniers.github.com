@@ -1,5 +1,5 @@
 +++
-title = "F vs F Void in C vs C Plus Plus"
+title = "F() vs F(void) in C vs C++"
 date = "2019-05-12"
 slug = "2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus"
 Categories = []

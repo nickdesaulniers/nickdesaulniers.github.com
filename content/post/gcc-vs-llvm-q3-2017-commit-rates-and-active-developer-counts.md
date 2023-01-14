@@ -1,5 +1,5 @@
 +++
-title = "Gcc vs Llvm Q3 2017 Commit Rates and Active Developer Counts"
+title = "GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts"
 date = "2017-09-05"
 slug = "2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts"
 Categories = []
