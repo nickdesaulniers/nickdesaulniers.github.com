@@ -1,7 +1,8 @@
 ---
 layout: page
 title: "Talks"
-comments: true
+comments: false
+type: "no_time_to_read"
 ---
 ## 2019
 

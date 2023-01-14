@@ -1,6 +1,7 @@
 +++
 title="About"
 comments=false
+type="no_time_to_read"
 +++
 
 ![Nick Desaulniers](/images/nick.jpg)
