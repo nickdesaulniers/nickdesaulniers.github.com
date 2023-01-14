@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>closure on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/closure/</link>
+    <description>Recent content in closure on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 14 Jan 2013 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/closure/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Closures: JavaScript, Ruby, and Rust</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/01/14/closures-javascript/</link>
+      <pubDate>Mon, 14 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/01/14/closures-javascript/</guid>
+      <description>It&amp;rsquo;s all about closures. Understanding scope is paramount to coding. What can you access and what can&amp;rsquo;t you access. Closures allow us to access variables that otherwise might be awkward to pass into a function. Closures can help us out of tricky situations, but can confuse those from backgrounds with (typically) statically typed languages that may not support closing over variables.
+Rust is an up and coming systems level programming language being developed at Mozilla.</description>
+    </item>
+    
+  </channel>
+</rss>

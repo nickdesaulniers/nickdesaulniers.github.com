@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>git on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/git/</link>
+    <description>Recent content in git on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 05 Sep 2017 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/git/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts</title>
+      <link>https://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/</link>
+      <pubDate>Tue, 05 Sep 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/</guid>
+      <description>A blog post from a few years ago that really stuck with me was Martin Olsson’s Browser Engines 2015: Commit Rates and Active Developer Counts, where he shows information about the number of authors and commits to popular web browsers. The graphs and analysis had interesting takeaways like showing the obvious split in blink and webkit, and relative number of contributors of the projects. Martin had data comparing gcc to llvm from Q4 2015, but I wanted to see what the data looked like now in Q3 2017 and wanted to share my findings; simply rerunning the numbers.</description>
+    </item>
+    
+  </channel>
+</rss>

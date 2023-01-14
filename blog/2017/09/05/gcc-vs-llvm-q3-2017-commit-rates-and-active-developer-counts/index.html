@@ -1,126 +1,174 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
 <head>
-  <meta charset="utf-8">
-  <title>GCC vs LLVM Q3 2017: Active Developer Counts - Nick Desaulniers</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+
+  
+    
+    
+      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
+    
+  
+
+  
+  <title>GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts</title>
+
+  
+  
+  <link rel="stylesheet" href="/css/hugo-octopress.css">
+
+  
+  
+    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
+  
+
+  
+    <link rel="stylesheet" href="/css/fork-awesome.min.css">
+  
+
+  
+  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
+
+  
+  
+
+  <meta name="description" content="" />
+  <meta name="keywords" content="">
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="A blog post from a few years ago that really stuck with me was Martin Olsson’s
-Browser Engines 2015: Commit Rates and Active Developer Counts,
-where &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="Hugo 0.109.0">
 
   
-  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts">
-  <link href="/favicon.ico" rel="icon">
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <!--Fonts from Google"s Web font directory at https://google.com/webfonts -->
-<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  
 
   
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-36993986-1']);
-    _gaq.push(['_trackPageview']);
+  
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
+  
+  
+
 
 
 </head>
+<body>
 
-<body   >
-  <header role="banner"><hgroup>
-  <h1><a href="/">Nick Desaulniers</a></h1>
-  
-    <h2>The enemy's gate is down</h2>
-  
-</hgroup>
 
-</header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+<header role="banner">
+<hgroup>
   
-</ul>
+  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
+    <h2>The enemy&#39;s gate is down</h2>
+</hgroup></header>
+
+
+<nav role="navigation">
+<fieldset class="mobile-nav">
   
-<form action="http://google.com/search" method="get">
-  <fieldset role="search">
-    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
-    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-  </fieldset>
-</form>
-  
+  <select onchange="location = this.value;">
+    <option value="">Navigate…</option>
+      
+        <option value="https://nickdesaulniers.github.io/about/">» About</option>
+      
+        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
+      
+        <option value="https://nickdesaulniers.github.io/">» Blog</option>
+      
+        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
+      
+        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
+      
+  </select>
+</fieldset>
+
+
 <ul class="main-navigation">
-  <li><a href="/about">About</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
-  <li><a href="/">Blog</a></li>
-  <li><a href="/publications">Publications</a></li>
-  <li><a href="/talks">Talks</a></li>
+  
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
+    
+  
 </ul>
+
+<ul class="subscription">
+  
+    
+        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
+    
+  
+</ul>
+
+
+  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
+    <fieldset role="search">
+      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
+    </fieldset>
+  </form>
 
 </nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
-    
-      <h1 class="entry-title">GCC vs LLVM Q3 2017: Active Developer Counts</h1>
-    
-    
-      <p class="meta">
+
+
+<div id="main">
+  <div id="content">
+    <div>
+      <article class="hentry" role="article">
+
+        
         
 
+<header>
+  <p class="meta">Sep 5, 2017
+     - 2 minute read 
+     - <a href="https://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/#disqus_thread">Comments</a>
 
-
-
-
-
-
-
-  
-
-
-<time datetime="2017-09-05T00:20:00-07:00" pubdate data-updated="true">Sep 5<span>th</span>, 2017</time>
-        
-         | <a href="#disqus_thread">Comments</a>
-        
-      </p>
     
-  </header>
+    
+      - <a class="label" href="https://nickdesaulniers.github.io/categories/clang/">clang </a><a class="label" href="https://nickdesaulniers.github.io/categories/gcc/">gcc </a><a class="label" href="https://nickdesaulniers.github.io/categories/git/">git </a><a class="label" href="https://nickdesaulniers.github.io/categories/llvm/">llvm </a>
+    
+  </p>
+  <h1 class="entry-title">
+     GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts 
+  </h1>
+</header>
 
 
-<div class="entry-content"><p>A blog post from a few years ago that really stuck with me was Martin Olsson’s
-<a href="https://mo.github.io/2015/11/04/browser-engines-active-developers-and-commit-rates.html">Browser Engines 2015: Commit Rates and Active Developer Counts</a>,
+        <div class="entry-content">
+          
+          
+          
+          <p>A blog post from a few years ago that really stuck with me was Martin Olsson’s
+
+<a href="https://mo.github.io/2015/11/04/browser-engines-active-developers-and-commit-rates.html" target="_blank" rel="noopener">Browser Engines 2015: Commit Rates and Active Developer Counts</a>,
 where he shows information about the number of authors and commits to popular
 web browsers.  The graphs and analysis had interesting takeaways like showing
 the obvious split in blink and webkit, and relative number of contributors of
 the projects.  Martin had data comparing gcc to llvm from Q4 2015, but I wanted
 to see what the data looked like now in Q3 2017 and wanted to share my
 findings; simply rerunning the numbers.  Luckily Martin
-<a href="https://github.com/mo/git-source-metrics">open sourced</a>
-the scripts he used for measurements so they could be rerun.</p>
 
+<a href="https://github.com/mo/git-source-metrics" target="_blank" rel="noopener">open sourced</a>
+the scripts he used for measurements so they could be rerun.</p>
 <p>Commit count and active authors in the previous 60 days is a rough estimate for
 project health; the scripts don’t/can’t account for unique authors (same author
 using different git commit info) and commit frequency is meaningless for
@@ -128,211 +176,183 @@ comparing developers that commit early and commit often, but let’s take a look
 Active contributors over 60 days cuts out folks who do commit to either code
 bases, just not as often.  Lies, damn lies, and statistics, right? Or torture
 the data enough, and it will confess anything&hellip;</p>
-
 <p>Note that LLVM is split into a few repositories (llvm the common base, clang
 the C/C++ frontend, libc++ the C++ runtime, compiler-rt the
 sanitizers/built-ins/profiler lib, lld the linker, clang-tools-extra the
 utility belt, lldb the debugger (there are more, these are the most active LLVM
 projects)).  Later, I refer to LLVM as the grouping of these repos.</p>
-
 <p>There’s a lot of caveats with this data.  I suspect that the separate LLVM
 repo’s have a lot of overlap and have fewer active contributors when looked at
 in aggregate.  That is to say you can’t simply add them else you’d be double
 counting a bunch.  Also, the comparison is not quite fair since the overlap in
 front-end-language and back-end-target support in these two massive projects
 does not overlap in a lot of places.</p>
-
-<p><img class="center" src="/images/gcc_clang_authors.jpg"></p>
-
+<p><img src="/images/gcc_clang_authors.jpg" alt="gcc clang authors"></p>
 <p>LLVM’s 60 day active contributors are ~3x-5x times GCC’s and growing, while
 GCC’s 100-count hasn’t changed much since ‘04.  It’s safe to say GCC is not
 dying; it’s going steady and chugging away as it has been, but it seems LLVM
 has been very strong in attracting active contributors.  Either way, I’m
 thankful to have not one, but two high quality open source C/C++ compilers.</p>
-</div>
 
+        </div>
+        
 
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-
-      
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2017-09-05T00:20:00-07:00" pubdate data-updated="true">Sep 5<span>th</span>, 2017</time>
-      
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/active/'>active</a>, <a class='category' href='/blog/categories/clang/'>clang</a>, <a class='category' href='/blog/categories/contributor/'>contributor</a>, <a class='category' href='/blog/categories/count/'>count</a>, <a class='category' href='/blog/categories/developer/'>developer</a>, <a class='category' href='/blog/categories/gcc/'>gcc</a>, <a class='category' href='/blog/categories/git/'>git</a>, <a class='category' href='/blog/categories/llvm/'>llvm</a>
-  
-</span>
-
-
-    </p>
+<footer>
+  <p class="meta">
+    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
     
-      <div class="sharing">
+    <time>Sep 5, 2017</time>
+    
+    </span>
+  </p>
+
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/" data-via="" data-counturl="http://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/" >Tweet</a>
-  
-  
-  
-    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
-  
-</div>
+
+  <p class="meta">
+    
+        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/" title="Running Clang-Tidy on the Linux Kernel">Running Clang-Tidy on the Linux Kernel</a>
+    
 
     
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/" title="Previous Post: Running Clang-Tidy on the Linux Kernel">&laquo; Running Clang-Tidy on the Linux Kernel</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/" title="Next Post: Speeding up Linux kernel builds with ccache">Speeding up Linux kernel builds with ccache &raquo;</a>
+      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/" title="Speeding Up Linux Kernel Builds With ccache">Speeding Up Linux Kernel Builds With ccache</a>
+    
+  </p>
+  
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    window.disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+  
+</footer>
+
+      </article>
+    </div>
+    
+
+<aside class="sidebar thirds">
+  <section class="first odd">
+
+    
+
+    <p>
       
     </p>
-  </footer>
-</article>
-
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
   </section>
 
-</div>
-
-<aside class="sidebar">
   
-    <section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">F() vs F(void) in C vs C++</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/">Speeding Up Linux Kernel Builds With Ccache</a>
-      </li>
-    
-  </ul>
-</section>
-
-<section>
-  <h1>GitHub Repos</h1>
-  <ul id="gh_repos">
-    <li class="loading">Status updating...</li>
-  </ul>
   
-  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+
+
+
+<ul class="sidebar-nav">
+  <li class="sidebar-nav-item">
+    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
+    
+    
+    
+    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
+    
+    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
+    
+    
+    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
+    
+    
+
   
-  <script type="text/javascript">
-    $(document).ready(function(){
-        if (!window.jXHR){
-            var jxhr = document.createElement('script');
-            jxhr.type = 'text/javascript';
-            jxhr.src = '/javascripts/libs/jXHR.js';
-            var s = document.getElementsByTagName('script')[0];
-            s.parentNode.insertBefore(jxhr, s);
-        }
+  
+  </li>
+</ul>
 
-        github.showRepos({
-            user: 'nickdesaulniers',
-            count: 20,
-            skip_forks: true,
-            target: '#gh_repos'
-        });
-    });
-  </script>
-  <script src="/javascripts/github.js" type="text/javascript"> </script>
-</section>
+  
 
+  
 
-
-
-
+  
+  
+  
+    
+      <section class="even">
+        <h1>Recent Posts</h1>
+        <ul id="recent_posts">
+          
+          
+            
+              <li class="post">
+                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
+              </li>
+            
+          
+            
+          
+            
+              <li class="post">
+                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
+              </li>
+            
+          
+            
+              <li class="post">
+                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
+              </li>
+            
+          
+            
+              <li class="post">
+                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
+              </li>
+            
+          
+        </ul>
+      </section>
+    
   
 </aside>
 
-
-    </div>
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2020 - Nick Desaulniers -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
-</p>
+</div>
 
-</footer>
-  
+    <footer role="contentinfo">
+      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
+        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
+      </p>
+    </footer>
 
-<script type="text/javascript">
-      var disqus_shortname = 'wangstabill';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/';
-        var disqus_url = 'http://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+    
+    
 
 
 
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) {return;}
-  js = d.createElement(s); js.id = id; js.async = true;
-  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+    
+    
+    
 
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = '//platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
-</body>
+    
+      <script>
+        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
+        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+        s.parentNode.insertBefore(g,s)}(document,'script'));
+      </script>
+    
+  </body>
 </html>
+

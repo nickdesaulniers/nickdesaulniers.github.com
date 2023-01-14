@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Brainfuck on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/brainfuck/</link>
+    <description>Recent content in Brainfuck on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 25 May 2015 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/brainfuck/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Interpreter Compiler JIT</title>
+      <link>https://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/</link>
+      <pubDate>Mon, 25 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/</guid>
+      <description>Interpreters and compilers are interesting programs, themselves used to run or translate other programs, respectively. Those other programs that might be interpreted might be languages like JavaScript, Ruby, Python, PHP, and Perl. The other programs that might be compiled are C, C++, and to some extent Java and C#.
+Taking the time to do translation to native machine code ahead of time can result in better performance at runtime, but an interpreter can get to work right away without spending any time translating.</description>
+    </item>
+    
+  </channel>
+</rss>

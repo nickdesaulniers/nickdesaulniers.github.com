@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>VR on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/vr/</link>
+    <description>Recent content in VR on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 14 Aug 2015 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/vr/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>My SIGGRAPH 2015 Experience</title>
+      <link>https://nickdesaulniers.github.io/blog/2015/08/14/my-siggraph-2015-experience/</link>
+      <pubDate>Fri, 14 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2015/08/14/my-siggraph-2015-experience/</guid>
+      <description>I was recently lucky enough to get to attend my first SIGGRAPH conference this year. While I didn&amp;rsquo;t attend any talks, I did spend some time in the expo. Here is a collection of some of the neat things I saw at SIGGRAPH 2015. Sorry it&amp;rsquo;s not more collected; I didn&amp;rsquo;t have the intention of writing a blog post until after folks kept asking me &amp;ldquo;how was it?&amp;rdquo;
+VR Most booths had demos on VR headsets.</description>
+    </item>
+    
+  </channel>
+</rss>

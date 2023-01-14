@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ccache on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/ccache/</link>
+    <description>Recent content in ccache on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 02 Jun 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/ccache/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Speeding Up Linux Kernel Builds With ccache</title>
+      <link>https://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/</link>
+      <pubDate>Sat, 02 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/</guid>
+      <description>ccache, the compiler cache, is a fantastic way to speed up build times for C and C++ code that I previously recommended. Recently, I was playing around with trying to get it to speed up my Linux kernel builds, but wasn&amp;rsquo;t seeing any benefit. Usually when this happens with ccache, there&amp;rsquo;s something non-deterministic about the builds that prevents cache hits.
+Turns out someone asked this exact question on the ccache mailing list back in 2014, and a teammate from my Android days supposed a timestamp was the culprit.</description>
+    </item>
+    
+  </channel>
+</rss>

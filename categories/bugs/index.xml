@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>bugs on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/bugs/</link>
+    <description>Recent content in bugs on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 01 Mar 2014 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/bugs/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Write a Test Case</title>
+      <link>https://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/</link>
+      <pubDate>Sat, 01 Mar 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/</guid>
+      <description>Your application just broke, oh no! It couldn&amp;rsquo;t have been your code, right?
+I&amp;rsquo;ve always had trouble spotting mistakes in my own work such as spelling, grammar, mathematical, or even in programming. With spelling or grammar, office applications quickly pick up on my mistakes and underline them for me, but most of my mistakes come from my own hubris. I&amp;rsquo;m confident in what I do, and that gets me in trouble when I make little mistakes.</description>
+    </item>
+    
+  </channel>
+</rss>

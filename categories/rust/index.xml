@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>rust on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/rust/</link>
+    <description>Recent content in rust on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 07 May 2013 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/rust/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Rust: Pattern Matching and the Option Type</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type/</link>
+      <pubDate>Tue, 07 May 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type/</guid>
+      <description>The other day I was thinking about the function for performing dynamic memory allocation in the C standard library, malloc. From the manual pages, If successful, the malloc() function returns a pointer to allocated memory. If there is an error, it returns a NULL pointer and sets errno to ENOMEM. One of the most common errors when using malloc is not checking for allocation failure. The allocation is not guaranteed to succeed and trying to use a NULL reference can lead to program crashes.</description>
+    </item>
+    
+    <item>
+      <title>Closures: JavaScript, Ruby, and Rust</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/01/14/closures-javascript/</link>
+      <pubDate>Mon, 14 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/01/14/closures-javascript/</guid>
+      <description>It&amp;rsquo;s all about closures. Understanding scope is paramount to coding. What can you access and what can&amp;rsquo;t you access. Closures allow us to access variables that otherwise might be awkward to pass into a function. Closures can help us out of tricky situations, but can confuse those from backgrounds with (typically) statically typed languages that may not support closing over variables.
+Rust is an up and coming systems level programming language being developed at Mozilla.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/</link>
+    <description>Recent content on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 06 Apr 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Off by Two</title>
+      <link>https://nickdesaulniers.github.io/blog/2020/04/06/off-by-two/</link>
+      <pubDate>Mon, 06 Apr 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2020/04/06/off-by-two/</guid>
+      <description>&amp;ldquo;War stories&amp;rdquo; in programming are entertaining tales of truly evil bugs that kept you up at night. Inspired by posts like My Hardest Bug Ever, Debugging an evil Go runtime bug, and others from /r/TalesFromDebugging, I wanted to share with you one of my favorites from recent memory. Recent work has given me much fulfilment and a long list of truly awful bugs to recount. My blog has been quieter than I would have liked; hopefully I can find more time to document some of these, maybe in series form.</description>
+    </item>
+    
+    <item>
+      <title>f() vs f(void) in C vs C&#43;&#43;</title>
+      <link>https://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/</link>
+      <pubDate>Sun, 12 May 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/</guid>
+      <description>TL;DR
+Prefer f(void) in C to potentially save a 2B instruction per function call when targeting x86_64 as a micro-optimization. -Wstrict-prototypes can help. Doesn’t matter for C++.
+The Problem While messing around with some C code in godbolt Compiler Explorer, I kept noticing a particular funny case. It seemed with my small test cases that sometimes function calls would zero out the return register before calling a function that took no arguments, but other times not.</description>
+    </item>
+    
+    <item>
+      <title>Finding Compiler Bugs With C-Reduce</title>
+      <link>https://nickdesaulniers.github.io/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/</link>
+      <pubDate>Fri, 18 Jan 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/</guid>
+      <description>Support for a long awaited GNU C extension, asm goto, is in the midst of landing in Clang and LLVM. We want to make sure that we release a high quality implementation, so it&amp;rsquo;s important to test the new patches on real code and not just small test cases. When we hit compiler bugs in large source files, it can be tricky to find exactly what part of potentially large translation units are problematic.</description>
+    </item>
+    
+    <item>
+      <title>Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</title>
+      <link>https://nickdesaulniers.github.io/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/</link>
+      <pubDate>Wed, 24 Oct 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/</guid>
+      <description>Typically, when we modify a program, we’d like to run it to verify our changes. Before booting a compiled Linux kernel image on actual hardware, it can save us time and potential headache to do a quick boot in a virtual machine like QEMU as a sanity check. If your kernel boots in QEMU, it’s not a guarantee it will boot on metal, but it is a quick assurance that the kernel image is not completely busted.</description>
+    </item>
+    
+    <item>
+      <title>Speeding Up Linux Kernel Builds With ccache</title>
+      <link>https://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/</link>
+      <pubDate>Sat, 02 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/</guid>
+      <description>ccache, the compiler cache, is a fantastic way to speed up build times for C and C++ code that I previously recommended. Recently, I was playing around with trying to get it to speed up my Linux kernel builds, but wasn&amp;rsquo;t seeing any benefit. Usually when this happens with ccache, there&amp;rsquo;s something non-deterministic about the builds that prevents cache hits.
+Turns out someone asked this exact question on the ccache mailing list back in 2014, and a teammate from my Android days supposed a timestamp was the culprit.</description>
+    </item>
+    
+    <item>
+      <title>GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts</title>
+      <link>https://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/</link>
+      <pubDate>Tue, 05 Sep 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2017/09/05/gcc-vs-llvm-q3-2017-commit-rates-and-active-developer-counts/</guid>
+      <description>A blog post from a few years ago that really stuck with me was Martin Olsson’s Browser Engines 2015: Commit Rates and Active Developer Counts, where he shows information about the number of authors and commits to popular web browsers. The graphs and analysis had interesting takeaways like showing the obvious split in blink and webkit, and relative number of contributors of the projects. Martin had data comparing gcc to llvm from Q4 2015, but I wanted to see what the data looked like now in Q3 2017 and wanted to share my findings; simply rerunning the numbers.</description>
+    </item>
+    
+    <item>
+      <title>Running Clang-Tidy on the Linux Kernel</title>
+      <link>https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/</link>
+      <pubDate>Wed, 31 May 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2017/05/31/running-clang-tidy-on-the-linux-kernel/</guid>
+      <description>Clang-Tidy is a linter from the LLVM ecosystem. I wanted to try to run it on the Linux kernel to see what kind of bugs it would find. The false positive rate seems pretty high (a persistent bane to static analysis), but some patching in both the tooling and the source can likely help bring this rate down.
+The most straightforward way to invoke Clang-Tidy is with a compilation database, which is a json based file that for each translation unit records</description>
+    </item>
+    
+    <item>
+      <title>Submitting Your First Patch to the Linux Kernel and Responding to Feedback</title>
+      <link>https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/</link>
+      <pubDate>Tue, 16 May 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2017/05/16/submitting-your-first-patch-to-the-linux-kernel-and-responding-to-feedback/</guid>
+      <description>After working on the Linux kernel for Nexus and Pixel phones for nearly a year, and messing around with the excellent Eudyptula challenge, I finally wanted to take a crack at submitting patches upstream to the Linux kernel.
+This post is woefully inadequate compared to the existing documentation, which should be preferred.
+http://elixir.free-electrons.com/linux/latest/source/Documentation/process https://kernelnewbies.org/FirstKernelPatch I figure I’d document my workflow, now that I’ve gotten a few patches accepted (and so I can refer to this post rather than my shell history&amp;hellip;).</description>
+    </item>
+    
+    <item>
+      <title>Static and Dynamic Libraries</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/</link>
+      <pubDate>Sun, 20 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/</guid>
+      <description>This is the second post in a series on memory segmentation. It covers working with static and dynamic libraries in Linux and OSX. Make sure to check out the first on object files and symbols.
+Let’s say we wanted to reuse some of the code from our previous project in our next one. We could continue to copy around object files, but let’s say we have a bunch and it’s hard to keep track of all of them.</description>
+    </item>
+    
+    <item>
+      <title>Object Files and Symbols</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/</link>
+      <pubDate>Sat, 13 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/</guid>
+      <description>What was supposed to be one blog post about memory segmentation turned into what will be a series of posts. As the first in the series, we cover the extreme basics of object files and symbols. In follow up posts, I plan to talk about static libraries, dynamic libraries, dynamic linkage, memory segments, and finally memory usage accounting. I also cover command line tools for working with these notions, both in Linux and OSX.</description>
+    </item>
+    
+    <item>
+      <title>Cross Compiling C/C&#43;&#43; for Android</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/</link>
+      <pubDate>Fri, 01 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/</guid>
+      <description>Let’s say you want to build a hello world command line application in C or C++ and run it on your Android phone. How would you go about it? It’s not super practical; apps visible and distributable to end users must use the framework (AFAIK), but for folks looking to get into developing on ARM it’s likely they have an ARM device in their pocket.
+This post is for folks who typically invoke their compiler from the command line, either explicitly, from build scripts, or other forms of automation.</description>
+    </item>
+    
+    <item>
+      <title>Setting up mutt with gmail on Ubuntu</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/</link>
+      <pubDate>Sat, 18 Jun 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/06/18/mutt-gmail-ubuntu/</guid>
+      <description>I was looking to set up the mutt email client on my Ubuntu box to go through my gmail account. Since it took me a couple of hours to figure out, and I’ll probably forget by the time I need to know again, I figure I’d post my steps here.
+I’m on Ubuntu 16.04 LTS (lsb_release -a)
+Install mutt:
+$ sudo apt-get install mutt In gmail, allow other apps to access gmail:</description>
+    </item>
+    
+    <item>
+      <title>Data Models and Word Size</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/</link>
+      <pubDate>Mon, 30 May 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/</guid>
+      <description>This post is a follow up to my previous blog post about word size.
+Three C/C++ programmers walk into a bar. One argues that sizeof(void*) is equivalent to sizeof(long), one argues that sizeof(void*) is equivalent to sizeof(int), and the third argues it’s sizeof(long long). Simultaneously, they’re all right, but they’re also all wrong (and need a lesson about portable C code). What the hell is going on?
+One of the first few programs a programmer might write after hello world is something like this:</description>
+    </item>
+    
+    <item>
+      <title>What&#39;s in a Word?</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/</link>
+      <pubDate>Sun, 15 May 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/05/15/whats-in-a-word/</guid>
+      <description>Recently, there some was some confusion between myself and a coworker over the definition of a &amp;ldquo;word.&amp;rdquo; I&amp;rsquo;m currently working on a blog post about data alignment and figured it would be good to clarify some things now, that we can refer to later.
+Having studied computer engineering and being quite fond of processor design, when I think of a &amp;ldquo;word,&amp;rdquo; I think of the number of bits wide a processor&amp;rsquo;s general purpose registers are (aka word size).</description>
+    </item>
+    
+    <item>
+      <title>Intro to Debugging X86-64 Assembly</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/</link>
+      <pubDate>Wed, 20 Jan 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/01/20/debugging-x86-64-assembly-with-lldb-and-dtrace/</guid>
+      <description>I&amp;rsquo;m hacking on an assembly project, and wanted to document some of the tricks I was using for figuring out what was going on. This post might seem a little basic for folks who spend all day heads down in gdb or who do this stuff professionally, but I just wanted to share a quick intro to some tools that others may find useful. ( oh god, I&amp;rsquo;m doing it)</description>
+    </item>
+    
+    <item>
+      <title>My SIGGRAPH 2015 Experience</title>
+      <link>https://nickdesaulniers.github.io/blog/2015/08/14/my-siggraph-2015-experience/</link>
+      <pubDate>Fri, 14 Aug 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2015/08/14/my-siggraph-2015-experience/</guid>
+      <description>I was recently lucky enough to get to attend my first SIGGRAPH conference this year. While I didn&amp;rsquo;t attend any talks, I did spend some time in the expo. Here is a collection of some of the neat things I saw at SIGGRAPH 2015. Sorry it&amp;rsquo;s not more collected; I didn&amp;rsquo;t have the intention of writing a blog post until after folks kept asking me &amp;ldquo;how was it?&amp;rdquo;
+VR Most booths had demos on VR headsets.</description>
+    </item>
+    
+    <item>
+      <title>Additional C/C&#43;&#43; Tooling</title>
+      <link>https://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/</link>
+      <pubDate>Thu, 23 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/</guid>
+      <description>21st Century C by Ben Klemens was a great read. It had a section with an intro to autotools, git, and gdb. There are a few other useful tools that came to mind that I&amp;rsquo;ve used when working with C and C++ codebases. These tools are a great way to start contributing to Open Source C &amp;amp; C++ codebases; running these tools on the code or adding them to the codebases.</description>
+    </item>
+    
+    <item>
+      <title>Interpreter Compiler JIT</title>
+      <link>https://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/</link>
+      <pubDate>Mon, 25 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/</guid>
+      <description>Interpreters and compilers are interesting programs, themselves used to run or translate other programs, respectively. Those other programs that might be interpreted might be languages like JavaScript, Ruby, Python, PHP, and Perl. The other programs that might be compiled are C, C++, and to some extent Java and C#.
+Taking the time to do translation to native machine code ahead of time can result in better performance at runtime, but an interpreter can get to work right away without spending any time translating.</description>
+    </item>
+    
+    <item>
+      <title>Hidden in Plain Sight - Public Key Crypto</title>
+      <link>https://nickdesaulniers.github.io/blog/2015/02/22/public-key-crypto-code-example/</link>
+      <pubDate>Sun, 22 Feb 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2015/02/22/public-key-crypto-code-example/</guid>
+      <description>How is it possible for us to communicate securely when there&amp;rsquo;s the possibility of a third party eavesdropping on us? How can we communicate private secrets through public channels? How do such techniques enable us to bank online and carry out other sensitive transactions on the Internet while trusting numerous relays? In this post, I hope to explain public key cryptography, with actual code examples, so that the concepts are a little more concrete.</description>
+    </item>
+    
+    <item>
+      <title>Writing My First Technical Book Chapter</title>
+      <link>https://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/</link>
+      <pubDate>Sun, 25 Jan 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2015/01/25/writing-my-first-book-chapter/</guid>
+      <description>It&amp;rsquo;s a feeling of immense satisfaction when we complete a major achievement. Being able to say &amp;ldquo;it&amp;rsquo;s done&amp;rdquo; is such a great stress relief. Recently, I completed work on my first publication, a chapter about Emscripten for the upcoming book WebGL Insights to be published by CRC Press in time for SIGGRAPH 2015.
+One of the life goals I&amp;rsquo;ve had for a while is writing a book. A romantic idea it seems to have your ideas transcribed to a medium that will outlast your bones.</description>
+    </item>
+    
+    <item>
+      <title>Let&#39;s Write Some X86-64</title>
+      <link>https://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/</link>
+      <pubDate>Fri, 18 Apr 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2014/04/18/lets-write-some-x86-64/</guid>
+      <description>&amp;hellip;&amp;quot;&amp;lsquo;Our speech interposes itself between apprehension and truth like a dusty pane or warped mirror. The tongue of Eden was like a flawless glass; a light of total understanding streamed through it. Thus Babel was a second Fall.&amp;rsquo; And Isaac the Blind, an early Kabbalist, said that, to quote Gershom Scholem&amp;rsquo;s translation, &amp;lsquo;The speech of men is connected with divine speech and all language whether heavenly or human derives from one source: the Divine Name.</description>
+    </item>
+    
+    <item>
+      <title>Write a Test Case</title>
+      <link>https://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/</link>
+      <pubDate>Sat, 01 Mar 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/</guid>
+      <description>Your application just broke, oh no! It couldn&amp;rsquo;t have been your code, right?
+I&amp;rsquo;ve always had trouble spotting mistakes in my own work such as spelling, grammar, mathematical, or even in programming. With spelling or grammar, office applications quickly pick up on my mistakes and underline them for me, but most of my mistakes come from my own hubris. I&amp;rsquo;m confident in what I do, and that gets me in trouble when I make little mistakes.</description>
+    </item>
+    
+    <item>
+      <title>Function.prototype.bind Edge Cases</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/</link>
+      <pubDate>Thu, 26 Sep 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/</guid>
+      <description>ECMAScript 5&amp;rsquo;s Function.prototype.bind is a great tool that&amp;rsquo;s implemented in all modern browser JavaScript engines. It allows you to modify the context, this, of a function when it is evaluated in the future. Knowing what this refers to in various contexts is key to being a professional JavaScript developer; don&amp;rsquo;t show up to an interview without knowing all about it.
+Here&amp;rsquo;s a common use case that developers need to watch for.</description>
+    </item>
+    
+    <item>
+      <title>Making Great Node.js Modules With Coffeescript</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript/</link>
+      <pubDate>Wed, 28 Aug 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript/</guid>
+      <description>Node.js is a great runtime for writing applications in JavaScript, the language I primarily develop in. CoffeeScript is a programming language that compiles to JavaScript. Why would we write a reusable piece of code, a module , in CoffeeScript? CoffeeScript is a very high level language and beautifully brings together my favorite aspects of JavaScript, Ruby, and Python. In this tutorial, I&amp;rsquo;ll show you how I create reusable open source modules for Node.</description>
+    </item>
+    
+    <item>
+      <title>Designated Initialization With Compound Literals in C</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/</link>
+      <pubDate>Thu, 25 Jul 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/</guid>
+      <description>Just a quick post on something I just discovered and found neat (I always find obscure C syntax interesting). I was trying to figure out how to use a C designated initializer, where a member was a pointer to another designated initializer. At this point, you need a compound literal. Just a quick background on C initialization:
+// verbosely create an array with a known size int arr [3]; arr[0] = 1; arr[1] = 2; arr[2] = 3; // =&amp;gt; [1, 2, 3] // concisely create an array with a known size int arr [3] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3] // creates an array with unspecified values initialized to 0 int arr [4] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3, 0] // truncates declaration int arr [1] = { 1, 2, 3 }; // =&amp;gt; [1] // based on number of initializers int arr [] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3] Let&amp;rsquo;s look at how we might have initialized a struct in C89.</description>
+    </item>
+    
+    <item>
+      <title>Why I&#39;ll Be Marching This 4th</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/07/03/why-ill-be-marching-this-4th/</link>
+      <pubDate>Wed, 03 Jul 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/07/03/why-ill-be-marching-this-4th/</guid>
+      <description>If you&amp;rsquo;ve done nothing wrong, then you&amp;rsquo;ve got nothing to hide.
+Wrong. Nothing ever justifies giving up your human rights , especially to prove lack of wrong doing, and any government that asks you to do so is not your friend.
+Terrorism has become a weapon used against us by those elected to lead to keep us compliant, like blinders you&amp;rsquo;d put on a horse. The threat just keeps growing and growing instead diminishing, despite the money and lives we throw at it.</description>
+    </item>
+    
+    <item>
+      <title>8 Months in Mozilla</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/06/13/8-months-in-mozilla/</link>
+      <pubDate>Thu, 13 Jun 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/06/13/8-months-in-mozilla/</guid>
+      <description>Besides 3 months interrupted to finish degree requirements, and including an internship, I’ve been at Mozilla for about 8 months now. After reading a blog post of another software engineer’s experience at Microsoft, I count my blessings. Reading that article set off too many alarms in my head. It was well written, and I sugguest you go read it, but my takeaway was that that any big name corporation people dream about working at is actually quite dystopian, and I do not feel that that is the case here.</description>
+    </item>
+    
+    <item>
+      <title>Rust: Pattern Matching and the Option Type</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type/</link>
+      <pubDate>Tue, 07 May 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type/</guid>
+      <description>The other day I was thinking about the function for performing dynamic memory allocation in the C standard library, malloc. From the manual pages, If successful, the malloc() function returns a pointer to allocated memory. If there is an error, it returns a NULL pointer and sets errno to ENOMEM. One of the most common errors when using malloc is not checking for allocation failure. The allocation is not guaranteed to succeed and trying to use a NULL reference can lead to program crashes.</description>
+    </item>
+    
+    <item>
+      <title>The Persistence of Memory</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/</link>
+      <pubDate>Mon, 29 Apr 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/</guid>
+      <description>I would like to die on Mars&amp;hellip;
+Elon Musk Elon Musk, the 21st Century Industrialist, Bloomberg Well, isn&amp;rsquo;t that forward thinking? Granted, the full quote I would like to die on Mars, just not on impact is meant to sound hopeful of his company, SpaceX. I agree that some day, humans will be buried on Mars. But is it forward thinking, enough? Does it push the needle to where it needs to be pushed?</description>
+    </item>
+    
+    <item>
+      <title>Basic JIT</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/</link>
+      <pubDate>Wed, 03 Apr 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/</guid>
+      <description>Ever since I learned about Just In Time Compilation from the various Ruby VMs and JavaScript VMs, I&amp;rsquo;ve been inspired. I could tell you all about how just in time (JIT) compilation worked, and how it could give your interpreted language a speed boost. It was so cool. Well, it still is! There&amp;rsquo;s a ton of research going on around JIT compilation. But the problem for me is that I could never figure out, let alone guess, how it was being done.</description>
+    </item>
+    
+    <item>
+      <title>Commandments of a Mobile Web</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/02/28/commandments-of-a-mobile-web/</link>
+      <pubDate>Thu, 28 Feb 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/02/28/commandments-of-a-mobile-web/</guid>
+      <description>Over the past few years, there&amp;rsquo;s been certain paradigm shifts in web development. When you think of milestones that really changed how development on the web was done, the two biggest were Ajax and HTML5. Development was identifiably different before and after such technological advancements. There were some who initially doubted the technologies, but I&amp;rsquo;m sure such doubters eventually saw the light. After spending time working on applications for Mozilla&amp;rsquo;s upcoming mobile operating system, Firefox OS, and talking with my fellow employees, I feel that the mobile web is another one of those shifts in how we approach web development that looking back will be an identifiable point in time where we can say that we did things differently before and after.</description>
+    </item>
+    
+    <item>
+      <title>C Function Pointers Alternate Syntax</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</link>
+      <pubDate>Sat, 26 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</guid>
+      <description>On an interview with Square, I made the mistake of stating that one of the benefits of working with JavaScript over C is that functions are first class in JavaScript, therefore they may be passed around. To which the interviewer replied, &amp;ldquo;Well, C can do that, what about function pointers?&amp;rdquo; What? Luckily, I was able to get out of that jam by guessing that JavaScript had a nicer syntax.
+While I was taught some C in university, we had never gone over function pointers or more in depth topics such as static or dynamic linkage.</description>
+    </item>
+    
+    <item>
+      <title>[Internet] Freedom Is Not Free</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/01/19/internet-freedom-is-not-free/</link>
+      <pubDate>Sat, 19 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/01/19/internet-freedom-is-not-free/</guid>
+      <description>Last week, the Internet community lost a member in the on going war against the copyright industry. While I&amp;rsquo;ve never met the deceased, or even heard of the deceased before his suicide, I&amp;rsquo;m horrified. I&amp;rsquo;m horrified that the government we are asked to put so much faith in, would give someone, not that different from myself, such a ridiculous sentence. That I could be thrown away, locked away from the things that I love for 35 years, for freeing information that should have been free, and was later made free.</description>
+    </item>
+    
+    <item>
+      <title>Closures: JavaScript, Ruby, and Rust</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/01/14/closures-javascript/</link>
+      <pubDate>Mon, 14 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/01/14/closures-javascript/</guid>
+      <description>It&amp;rsquo;s all about closures. Understanding scope is paramount to coding. What can you access and what can&amp;rsquo;t you access. Closures allow us to access variables that otherwise might be awkward to pass into a function. Closures can help us out of tricky situations, but can confuse those from backgrounds with (typically) statically typed languages that may not support closing over variables.
+Rust is an up and coming systems level programming language being developed at Mozilla.</description>
+    </item>
+    
+    <item>
+      <title>About</title>
+      <link>https://nickdesaulniers.github.io/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/about/</guid>
+      <description>Nick Desaulniers is a software engineer at Google working on compiling the Linux Kernel with Clang (and LLVM).
+Nick has previously worked on TensorFlow&amp;rsquo;s Accelerated Linear Algebra (XLA) JIT compiler for Tensor Processing Units (TPUs), and the Linux kernel for the Nexus and Pixel phones while at Google.
+Nick also hacked on open source projects like Firefox, Firefox OS, Emscripten, and Rust at Mozilla.
+Contributing to Open Source software and an accessible Internet for all are some of the things that Nick is most passionate about.</description>
+    </item>
+    
+    <item>
+      <title>Blog Archive</title>
+      <link>https://nickdesaulniers.github.io/blog/archives/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/archives/</guid>
+      <description>2020 Apr 6 Off by Two 2019 May 12 f() vs f(void) in C vs C&amp;#43;&amp;#43; 2019 Jan 18 Finding Compiler Bugs With C-Reduce 2018 Oct 24 Booting a Custom Linux Kernel in QEMU and Debugging It With GDB 2018 Jun 2 Speeding Up Linux Kernel Builds With ccache 2017 Sep 5 GCC vs LLVM Q3 2017 Commit Rates and Active Developer Counts 2017 May 31 Running Clang-Tidy on the Linux Kernel 2017 May 16 Submitting Your First Patch to the Linux Kernel and Responding to Feedback 2016 Nov 20 Static and Dynamic Libraries 2016 Aug 13 Object Files and Symbols 2016 Jul 1 Cross Compiling C/C&amp;#43;&amp;#43; for Android 2016 Jun 18 Setting up mutt with gmail on Ubuntu 2016 May 30 Data Models and Word Size 2016 May 15 What&amp;#39;s in a Word?</description>
+    </item>
+    
+    <item>
+      <title>Publications</title>
+      <link>https://nickdesaulniers.github.io/publications/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/publications/</guid>
+      <description>Desaulniers, Nick. &amp;ldquo;WebGL Off the Main Thread.&amp;rdquo; Mozilla Hacks. Mozilla. January 22, 2015. Link
+Desaulniers, Nick. &amp;ldquo;Better than Gzip Compression with Brotli.&amp;rdquo; Mozilla Hacks. Mozilla. November 6, 2015. Link
+Desaulniers, Nick. &amp;ldquo;Stereoscopic Rendering in WebVR.&amp;rdquo; Mozilla Hacks. Mozilla. September 16, 2015. Link
+Desaulniers, Nick. &amp;ldquo;Streaming media on demand with Media Source Extensions.&amp;rdquo; Mozilla Hacks. Mozilla. July 1, 2015. Link
+Desaulniers, Nick. &amp;ldquo;Build an HTML5 Game - and distribute it.&amp;rdquo; Mozilla Hacks.</description>
+    </item>
+    
+    <item>
+      <title>Talks</title>
+      <link>https://nickdesaulniers.github.io/talks/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/talks/</guid>
+      <description>2019 Compiling the Linux Kernel with LLVM Tools FOSDEM &amp;lsquo;19&amp;rsquo; - Brussels, Belgium - February 2-3
+slides - video
+2018 Compiling the Linux Kernel with Clang Linux Plumbers Conference 2018 - Vancouver, Canada - November 13-15
+slides - video
+2017 Compiling Android Userspace and Linux Kernel with LLVM 2017 US LLVM Developers&amp;rsquo; Meeting - San Jose, CA - October 18-19
+abstract - video
+Clang Built Kernels Linux Plumbers Conference - Los Angeles, CA - September 13-15</description>
+    </item>
+    
+  </channel>
+</rss>

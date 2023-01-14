@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>C on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/c/</link>
+    <description>Recent content in C on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 12 May 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/c/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>f() vs f(void) in C vs C&#43;&#43;</title>
+      <link>https://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/</link>
+      <pubDate>Sun, 12 May 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/</guid>
+      <description>TL;DR
+Prefer f(void) in C to potentially save a 2B instruction per function call when targeting x86_64 as a micro-optimization. -Wstrict-prototypes can help. Doesn’t matter for C++.
+The Problem While messing around with some C code in godbolt Compiler Explorer, I kept noticing a particular funny case. It seemed with my small test cases that sometimes function calls would zero out the return register before calling a function that took no arguments, but other times not.</description>
+    </item>
+    
+    <item>
+      <title>Finding Compiler Bugs With C-Reduce</title>
+      <link>https://nickdesaulniers.github.io/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/</link>
+      <pubDate>Fri, 18 Jan 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/</guid>
+      <description>Support for a long awaited GNU C extension, asm goto, is in the midst of landing in Clang and LLVM. We want to make sure that we release a high quality implementation, so it&amp;rsquo;s important to test the new patches on real code and not just small test cases. When we hit compiler bugs in large source files, it can be tricky to find exactly what part of potentially large translation units are problematic.</description>
+    </item>
+    
+    <item>
+      <title>Speeding Up Linux Kernel Builds With ccache</title>
+      <link>https://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/</link>
+      <pubDate>Sat, 02 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/</guid>
+      <description>ccache, the compiler cache, is a fantastic way to speed up build times for C and C++ code that I previously recommended. Recently, I was playing around with trying to get it to speed up my Linux kernel builds, but wasn&amp;rsquo;t seeing any benefit. Usually when this happens with ccache, there&amp;rsquo;s something non-deterministic about the builds that prevents cache hits.
+Turns out someone asked this exact question on the ccache mailing list back in 2014, and a teammate from my Android days supposed a timestamp was the culprit.</description>
+    </item>
+    
+    <item>
+      <title>Static and Dynamic Libraries</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/</link>
+      <pubDate>Sun, 20 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/</guid>
+      <description>This is the second post in a series on memory segmentation. It covers working with static and dynamic libraries in Linux and OSX. Make sure to check out the first on object files and symbols.
+Let’s say we wanted to reuse some of the code from our previous project in our next one. We could continue to copy around object files, but let’s say we have a bunch and it’s hard to keep track of all of them.</description>
+    </item>
+    
+    <item>
+      <title>Object Files and Symbols</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/</link>
+      <pubDate>Sat, 13 Aug 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/08/13/object-files-and-symbols/</guid>
+      <description>What was supposed to be one blog post about memory segmentation turned into what will be a series of posts. As the first in the series, we cover the extreme basics of object files and symbols. In follow up posts, I plan to talk about static libraries, dynamic libraries, dynamic linkage, memory segments, and finally memory usage accounting. I also cover command line tools for working with these notions, both in Linux and OSX.</description>
+    </item>
+    
+    <item>
+      <title>Cross Compiling C/C&#43;&#43; for Android</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/</link>
+      <pubDate>Fri, 01 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/07/01/android-cli/</guid>
+      <description>Let’s say you want to build a hello world command line application in C or C++ and run it on your Android phone. How would you go about it? It’s not super practical; apps visible and distributable to end users must use the framework (AFAIK), but for folks looking to get into developing on ARM it’s likely they have an ARM device in their pocket.
+This post is for folks who typically invoke their compiler from the command line, either explicitly, from build scripts, or other forms of automation.</description>
+    </item>
+    
+    <item>
+      <title>Data Models and Word Size</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/</link>
+      <pubDate>Mon, 30 May 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/05/30/data-models-and-word-size/</guid>
+      <description>This post is a follow up to my previous blog post about word size.
+Three C/C++ programmers walk into a bar. One argues that sizeof(void*) is equivalent to sizeof(long), one argues that sizeof(void*) is equivalent to sizeof(int), and the third argues it’s sizeof(long long). Simultaneously, they’re all right, but they’re also all wrong (and need a lesson about portable C code). What the hell is going on?
+One of the first few programs a programmer might write after hello world is something like this:</description>
+    </item>
+    
+    <item>
+      <title>Additional C/C&#43;&#43; Tooling</title>
+      <link>https://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/</link>
+      <pubDate>Thu, 23 Jul 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2015/07/23/additional-c-slash-c-plus-plus-tooling/</guid>
+      <description>21st Century C by Ben Klemens was a great read. It had a section with an intro to autotools, git, and gdb. There are a few other useful tools that came to mind that I&amp;rsquo;ve used when working with C and C++ codebases. These tools are a great way to start contributing to Open Source C &amp;amp; C++ codebases; running these tools on the code or adding them to the codebases.</description>
+    </item>
+    
+    <item>
+      <title>Interpreter Compiler JIT</title>
+      <link>https://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/</link>
+      <pubDate>Mon, 25 May 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2015/05/25/interpreter-compiler-jit/</guid>
+      <description>Interpreters and compilers are interesting programs, themselves used to run or translate other programs, respectively. Those other programs that might be interpreted might be languages like JavaScript, Ruby, Python, PHP, and Perl. The other programs that might be compiled are C, C++, and to some extent Java and C#.
+Taking the time to do translation to native machine code ahead of time can result in better performance at runtime, but an interpreter can get to work right away without spending any time translating.</description>
+    </item>
+    
+    <item>
+      <title>Designated Initialization With Compound Literals in C</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/</link>
+      <pubDate>Thu, 25 Jul 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/07/25/designated-initialization-with-pointers-in-c/</guid>
+      <description>Just a quick post on something I just discovered and found neat (I always find obscure C syntax interesting). I was trying to figure out how to use a C designated initializer, where a member was a pointer to another designated initializer. At this point, you need a compound literal. Just a quick background on C initialization:
+// verbosely create an array with a known size int arr [3]; arr[0] = 1; arr[1] = 2; arr[2] = 3; // =&amp;gt; [1, 2, 3] // concisely create an array with a known size int arr [3] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3] // creates an array with unspecified values initialized to 0 int arr [4] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3, 0] // truncates declaration int arr [1] = { 1, 2, 3 }; // =&amp;gt; [1] // based on number of initializers int arr [] = { 1, 2, 3 }; // =&amp;gt; [1, 2, 3] Let&amp;rsquo;s look at how we might have initialized a struct in C89.</description>
+    </item>
+    
+    <item>
+      <title>Basic JIT</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/</link>
+      <pubDate>Wed, 03 Apr 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/</guid>
+      <description>Ever since I learned about Just In Time Compilation from the various Ruby VMs and JavaScript VMs, I&amp;rsquo;ve been inspired. I could tell you all about how just in time (JIT) compilation worked, and how it could give your interpreted language a speed boost. It was so cool. Well, it still is! There&amp;rsquo;s a ton of research going on around JIT compilation. But the problem for me is that I could never figure out, let alone guess, how it was being done.</description>
+    </item>
+    
+    <item>
+      <title>C Function Pointers Alternate Syntax</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</link>
+      <pubDate>Sat, 26 Jan 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/01/26/c-function-pointers-alternate-syntax/</guid>
+      <description>On an interview with Square, I made the mistake of stating that one of the benefits of working with JavaScript over C is that functions are first class in JavaScript, therefore they may be passed around. To which the interviewer replied, &amp;ldquo;Well, C can do that, what about function pointers?&amp;rdquo; What? Luckily, I was able to get out of that jam by guessing that JavaScript had a nicer syntax.
+While I was taught some C in university, we had never gone over function pointers or more in depth topics such as static or dynamic linkage.</description>
+    </item>
+    
+  </channel>
+</rss>

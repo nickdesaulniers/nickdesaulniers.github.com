@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>partial function application on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/partial-function-application/</link>
+    <description>Recent content in partial function application on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 26 Sep 2013 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/partial-function-application/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Function.prototype.bind Edge Cases</title>
+      <link>https://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/</link>
+      <pubDate>Thu, 26 Sep 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/</guid>
+      <description>ECMAScript 5&amp;rsquo;s Function.prototype.bind is a great tool that&amp;rsquo;s implemented in all modern browser JavaScript engines. It allows you to modify the context, this, of a function when it is evaluated in the future. Knowing what this refers to in various contexts is key to being a professional JavaScript developer; don&amp;rsquo;t show up to an interview without knowing all about it.
+Here&amp;rsquo;s a common use case that developers need to watch for.</description>
+    </item>
+    
+  </channel>
+</rss>

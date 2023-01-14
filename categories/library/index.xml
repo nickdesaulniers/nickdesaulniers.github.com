@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>library on Nick Desaulniers</title>
+    <link>https://nickdesaulniers.github.io/categories/library/</link>
+    <description>Recent content in library on Nick Desaulniers</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 20 Nov 2016 00:00:00 +0000</lastBuildDate><atom:link href="https://nickdesaulniers.github.io/categories/library/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Static and Dynamic Libraries</title>
+      <link>https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/</link>
+      <pubDate>Sun, 20 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://nickdesaulniers.github.io/blog/2016/11/20/static-and-dynamic-libraries/</guid>
+      <description>This is the second post in a series on memory segmentation. It covers working with static and dynamic libraries in Linux and OSX. Make sure to check out the first on object files and symbols.
+Let’s say we wanted to reuse some of the code from our previous project in our next one. We could continue to copy around object files, but let’s say we have a bunch and it’s hard to keep track of all of them.</description>
+    </item>
+    
+  </channel>
+</rss>

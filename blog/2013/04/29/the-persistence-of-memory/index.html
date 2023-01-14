@@ -1,96 +1,177 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
 <head>
-  <meta charset="utf-8">
-  <title>The Persistence of Memory - Nick Desaulniers</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+
+  
+    
+    
+      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
+    
+  
+
+  
+  <title>The Persistence of Memory</title>
+
+  
+  
+  <link rel="stylesheet" href="/css/hugo-octopress.css">
+
+  
+  
+    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
+  
+
+  
+    <link rel="stylesheet" href="/css/fork-awesome.min.css">
+  
+
+  
+  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
+
+  
+  
+
+  <meta name="description" content="" />
+  <meta name="keywords" content="">
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="I would like to die on Mars&#8230;Elon Musk, Bloomberg, Elon Musk, the 21st Century Industrialist Well, isn&rsquo;t that forward thinking? Granted, &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="Hugo 0.109.0">
 
   
-  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory">
-  <link href="/favicon.ico" rel="icon">
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <!--Fonts from Google"s Web font directory at https://google.com/webfonts -->
-<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  
 
   
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-36993986-1']);
-    _gaq.push(['_trackPageview']);
+  
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
+  
+  
+
 
 
 </head>
+<body>
 
-<body   >
-  <header role="banner"><hgroup>
-  <h1><a href="/">Nick Desaulniers</a></h1>
-  
-    <h2>The enemy's gate is down</h2>
-  
-</hgroup>
 
-</header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+<header role="banner">
+<hgroup>
   
-</ul>
+  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
+    <h2>The enemy&#39;s gate is down</h2>
+</hgroup></header>
+
+
+<nav role="navigation">
+<fieldset class="mobile-nav">
   
-<form action="http://google.com/search" method="get">
-  <fieldset role="search">
-    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
-    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-  </fieldset>
-</form>
-  
+  <select onchange="location = this.value;">
+    <option value="">Navigate…</option>
+      
+        <option value="https://nickdesaulniers.github.io/about/">» About</option>
+      
+        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
+      
+        <option value="https://nickdesaulniers.github.io/">» Blog</option>
+      
+        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
+      
+        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
+      
+  </select>
+</fieldset>
+
+
 <ul class="main-navigation">
-  <li><a href="/about">About</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
-  <li><a href="/">Blog</a></li>
-  <li><a href="/publications">Publications</a></li>
-  <li><a href="/talks">Talks</a></li>
+  
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
+    
+  
 </ul>
+
+<ul class="subscription">
+  
+    
+        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
+    
+  
+</ul>
+
+
+  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
+    <fieldset role="search">
+      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
+    </fieldset>
+  </form>
 
 </nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
+
+
+<div id="main">
+  <div id="content">
+    <div>
+      <article class="hentry" role="article">
+
+        
+        
+
+<header>
+  <p class="meta">Apr 29, 2013
+     - 8 minute read 
+     - <a href="https://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/#disqus_thread">Comments</a>
+
+    
+    
+      - <a class="label" href="https://nickdesaulniers.github.io/categories/death/">death </a><a class="label" href="https://nickdesaulniers.github.io/categories/memory/">memory </a>
+    
+  </p>
+  <h1 class="entry-title">
+     The Persistence of Memory 
+  </h1>
+</header>
+
+
+        <div class="entry-content">
+          
+          
+          
+          
+
+
+
+
+
+
+
+
+
+
   
-  <header>
-    
-      <h1 class="entry-title">The Persistence of Memory</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
+  
+  
+  
 
 
 
@@ -99,27 +180,61 @@
   
 
 
-<time datetime="2013-04-29T20:35:00-07:00" pubdate data-updated="true">Apr 29<span>th</span>, 2013</time>
-        
-         | <a href="#disqus_thread">Comments</a>
-        
-      </p>
+<blockquote>
+  <p>I would like to die on Mars&hellip;</p>
+  <footer>
+    <strong>Elon Musk</strong>
     
-  </header>
-
-
-<div class="entry-content"><blockquote><p>I would like to die on Mars&#8230;</p><footer><strong>Elon Musk, Bloomberg,</strong> <cite><a href='http://www.businessweek.com/articles/2012-09-13/elon-musk-the-21st-century-industrialist#p5,'>Elon Musk, the 21st Century Industrialist</a></cite></footer></blockquote>
-
+      
+        <cite>
+          <a href="http://www.businessweek.com/articles/2012-09-13/elon-musk-the-21st-century-industrialist#p5" title="http://www.businessweek.com/articles/2012-09-13/elon-musk-the-21st-century-industrialist#p5" rel="noopener noreferrer">Elon Musk, the 21st Century Industrialist, Bloomberg</a> 
+        </cite>
+      
+    
+  </footer>
+</blockquote>
 
 <p>Well, isn&rsquo;t that forward thinking?  Granted, the full quote
 <em>I would like to die on Mars, just not on impact</em> is meant to sound hopeful of
-his company, <a href="http://www.spacex.com/">SpaceX</a>.  I agree that some day, humans
+his company, 
+<a href="http://www.spacex.com/" target="_blank" rel="noopener">SpaceX</a>.  I agree that some day, humans
 will be buried on Mars.  But is it forward thinking, enough?  Does it push the
 needle to where it needs to be pushed?  Does it strive for innovation and push
 our imagination like Star Trek did?  Or is it just a realistic goal for SpaceX?</p>
 
-<blockquote><p>The person with big dreams is more powerful than one with all the facts.</p><footer><strong>Albert Einstein</strong></footer></blockquote>
 
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>The person with big dreams is more powerful than one with all the facts.</p>
+  <footer>
+    <strong>Albert Einstein</strong>
+    
+      
+        
+      
+    
+  </footer>
+</blockquote>
 
 <p>While Elon would like to die on Mars, I think it would be neat to transfer my &ldquo;soul&rdquo; into a
 computer.  We refer to data persistence within a computer as memory, using
@@ -131,12 +246,13 @@ transfer back, or swap even.  One could
 theoretically trade entire bodies.  The jury is still out for me as far my
 opinion of Google&rsquo;s Glass, but I see wearable computing as a step in the right
 direction towards interfacing with the human body.  I guess it reminds me of the
-<a href="http://futurama.wikia.com/wiki/Heads_in_Jars">Heads in Jars from Futurama</a>.
+
+<a href="http://futurama.wikia.com/wiki/Heads_in_Jars" target="_blank" rel="noopener">Heads in Jars from Futurama</a>.
 I recognize that the old guard must give way for the new guard, lest the new be
 held in place, bound socially by the old.</p>
-
 <p>In database systems, there is this notion of
-<a href="http://en.wikipedia.org/wiki/Atomic_transaction">Atomicity</a>, where a set of
+
+<a href="http://en.wikipedia.org/wiki/Atomic_transaction" target="_blank" rel="noopener">Atomicity</a>, where a set of
 operations is guaranteed to either complete as a group, or all fail should
 at least one fail.  One of the most popular examples is a bank transfer.  Say
 you&rsquo;re transferring $100 from Bank A to Bank B.  Bank A&rsquo;s database should not
@@ -148,35 +264,104 @@ it&rsquo;s yours.  You may have just doubled your money, or lost all of it.
 The notion of
 Atomicity provides for &ldquo;transactions,&rdquo; or sets of instructions that are
 guaranteed to all pass or all fail.</p>
-
 <p>Atomicity would be important for a memory transference device.  Once you were
 transferred into a machine, would it still be &ldquo;you&rdquo; if you remained in your
 body?  A physical clone, is as much <em>you</em>
-<del><a href="http://www.dailymail.co.uk/sciencetech/article-2232148/Identical-twins-genetically-different-research-suggests.html">as an identical twin</a></del>,
+<del>
+<a href="http://www.dailymail.co.uk/sciencetech/article-2232148/Identical-twins-genetically-different-research-suggests.html" target="_blank" rel="noopener">as an identical twin</a></del>,
 but will never have the same memories and experiences that shape their mind.  If
 you merely copied your mind to a machine rather than transferred it, then you
 would still remained trapped in your
-<a href="http://www.quotefully.com/q/Jk3y3rG2aP">rotting piece of meat</a>.</p>
 
+<a href="http://www.quotefully.com/q/Jk3y3rG2aP" target="_blank" rel="noopener">rotting piece of meat</a>.</p>
 <p>This is what I mean by transfer my &ldquo;soul.&rdquo;  An actual atomic transaction moving
 all of your memories and experiences from body to machine, all at once, or not
 at all.  I probably wouldn&rsquo;t want to
 be the first volunteer for such a machine, because if the machine failed at the
 atomic transaction, your soul would either be as lost as the $100 from the
 earlier example, or you&rsquo;d just be copied, not moved.</p>
-
 <p>In a world where diseases are too profitable to cure, I can imagine a world
 where the richest 1% live forever while the poor are forced to die.  Frozen Walt
 Disney just sat up.  An abuse of the technology, not too different a world from
-the one in <a href="http://en.wikipedia.org/wiki/Surrogates_%28film%29">Surrogates</a>.</p>
-
-<blockquote><p>Have you not done tormenting me with your accursed time! It&#8217;s Abominable! When! When! One day, is that not enough for you, one day he went dumb, one day I went blind, one day we&#8217;ll go deaf, one day we were born, one day we shall die, the same day, the same second, is that not enough for you? They give birth astride a grave, the light gleams an instant, then it&#8217;s night once more.</p><footer><strong>Pozzo</strong> <cite>Waiting for Godot by Samuel Becket</cite></footer></blockquote>
-
+the one in 
+<a href="http://en.wikipedia.org/wiki/Surrogates_%28film%29" target="_blank" rel="noopener">Surrogates</a>.</p>
 
 
 
-<blockquote><p>They say that it is fear of death and what comes after death that makes men turn to religion.</p><footer><strong>Mustafa Mond</strong> <cite>Brave New World by Alduos Huxley</cite></footer></blockquote>
 
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>Have you not done tormenting me with your accursed time! It&rsquo;s Abominable! When! When! One day, is that not enough for you, one day he went dumb, one day I went blind, one day we&rsquo;ll go deaf, one day we were born, one day we shall die, the same day, the same second, is that not enough for you? They give birth astride a grave, the light gleams an instant, then it&rsquo;s night once more.</p>
+  <footer>
+    <strong>Pozzo</strong>
+    
+      
+        
+          <cite>
+            Waiting for Godot by Samuel Becket</a>
+          </cite>
+        
+      
+    
+  </footer>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>They say that it is fear of death and what comes after death that makes men turn to religion.</p>
+  <footer>
+    <strong>Mustafa Mond</strong>
+    
+      
+        
+          <cite>
+            Brave New World by Alduos Huxley</a>
+          </cite>
+        
+      
+    
+  </footer>
+</blockquote>
 
 <p>Ever since my father passed away, I&rsquo;ve occasionally suffered from existential
 anxiety attacks.  It usually starts with me thinking about those Discovery
@@ -189,18 +374,121 @@ won&rsquo;t care.  Currently, I calm myself down my telling myself that such an 
 is a long time away and I will live a long and happy life with many descendants,
 though I have no guarantees.  My father only lived to be 48.</p>
 
-<blockquote><p>&#8216;That&#8217;s such a weak excuse,&#8217; said Valentine. &#8216;Everyone dies. Everyone leaves. What matters is the things you build together before they go. What matters is the part of them that continues in you when they&#8217;re gone.&#8217;</p><footer><strong>Valentine</strong> <cite>Children of the Mind by Orson Scott Card</cite></footer></blockquote>
 
 
 
 
-<blockquote><p>Where before they would bloom and wither in the space of a single day, now they hold their blooms for three and four days at a time. Moistened by the dew of night, bathed in the light of the sun, the white flowers strive to live their lives to the fullest, beautifying the town as if striving to live out the portion of life denied to those whose &#8220;tomorrows&#8221; were snatched away from them forever.</p><footer><strong>White Flowers</strong> <cite>Lost Odyssey</cite></footer></blockquote>
 
 
 
 
-<blockquote><p>Human beings, who cannot live forever, daring to take a journey without end. This might be the ultimate tragedy, but it could just as well be the ultimate comedy. Kaim knows one thing, however: one cannot simply dismiss it as an exercise in futility.</p><footer><strong>The Upstreamers</strong> <cite>Lost Odyssey</cite></footer></blockquote>
 
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>&lsquo;That&rsquo;s such a weak excuse,&rsquo; said Valentine. &lsquo;Everyone dies. Everyone leaves. What matters is the things you build together before they go. What matters is the part of them that continues in you when they&rsquo;re gone.&rsquo;</p>
+  <footer>
+    <strong>Valentine</strong>
+    
+      
+        
+          <cite>
+            Children of the Mind by Orson Scott Card</a>
+          </cite>
+        
+      
+    
+  </footer>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>Where before they would bloom and wither in the space of a single day, now they hold their blooms for three and four days at a time. Moistened by the dew of night, bathed in the light of the sun, the white flowers strive to live their lives to the fullest, beautifying the town as if striving to live out the portion of life denied to those whose &ldquo;tomorrows&rdquo; were snatched away from them forever.</p>
+  <footer>
+    <strong>White Flowers</strong>
+    
+      
+        
+          <cite>
+            Lost Odyssey</a>
+          </cite>
+        
+      
+    
+  </footer>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>Human beings, who cannot live forever, daring to take a journey without end. This might be the ultimate tragedy, but it could just as well be the ultimate comedy. Kaim knows one thing, however: one cannot simply dismiss it as an exercise in futility.</p>
+  <footer>
+    <strong>The Upstreamers</strong>
+    
+      
+        
+          <cite>
+            Lost Odyssey</a>
+          </cite>
+        
+      
+    
+  </footer>
+</blockquote>
 
 <p>Randy Pausch&rsquo;s <em>The Last Lecture</em> taught me that legacy is the greatest thing you
 can leave behind.  While I haven&rsquo;t yet started the business I&rsquo;ve always wanted,
@@ -208,10 +496,46 @@ my first legacy I will leave my kiddos is my collection of Iron Maiden vinyl
 records.  They and their children will probably think I was nuts, but there is
 the slim chance they might really appreciate my taste in music.  I also want to
 write a book someday, that way I can marvel at how
-<a href="http://www.goodreads.com/quotes/287093-beneath-this-mask-there-is-more-than-flesh-beneath-this">my ideas will outlast me</a>.</p>
 
-<blockquote><p>I like to think that something survives after you die, it&#8217;s strange to think that you accumulate all this experience, and maybe a little wisdom, and it just goes away.  So I really want to believe that something survives, that maybe your consciousness endures.  But on the other hand, perhaps it&#8217;s like an on-off switch.  &#8220;Click!&#8221; And you&#8217;re gone.</p><footer><strong>Steve Jobs</strong> <cite>Steve Jobs by Walter Isaacson</cite></footer></blockquote>
+<a href="http://www.goodreads.com/quotes/287093-beneath-this-mask-there-is-more-than-flesh-beneath-this" target="_blank" rel="noopener">my ideas will outlast me</a>.</p>
 
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>I like to think that something survives after you die, it&rsquo;s strange to think that you accumulate all this experience, and maybe a little wisdom, and it just goes away.  So I really want to believe that something survives, that maybe your consciousness endures.  But on the other hand, perhaps it&rsquo;s like an on-off switch.  &ldquo;Click!&rdquo; And you&rsquo;re gone.</p>
+  <footer>
+    <strong>Steve Jobs</strong>
+    
+      
+        
+          <cite>
+            Steve Jobs by Walter Isaacson</a>
+          </cite>
+        
+      
+    
+  </footer>
+</blockquote>
 
 <p>It terrifies me to no end to think what could possibly drive someone to suicide.
 What doom a person would have to be surrounded with to honestly believe that no
@@ -221,205 +545,286 @@ terrifies me to think of all of the amazing minds this world has seen, among so
 many who choose not to develop their own, that have come and gone.  Those who
 could change the world yet are snatched away.</p>
 
-<blockquote><p>This body holding me reminds me of my own mortality. Embrace this moment. Remember. We are eternal. All this pain is an illusion.</p><footer><strong>Parabola</strong> <cite>Tool</cite></footer></blockquote>
 
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>This body holding me reminds me of my own mortality. Embrace this moment. Remember. We are eternal. All this pain is an illusion.</p>
+  <footer>
+    <strong>Parabola</strong>
+    
+      
+        
+          <cite>
+            Tool</a>
+          </cite>
+        
+      
+    
+  </footer>
+</blockquote>
 
 <p>I&rsquo;m sorry this post turned a little dark.  By talking about my fears, I hope to
 not let them control me.  I believe publishing this will be a relief.  I think
 I&rsquo;ll join Elon on Mars, but unlike Elon, I believe I will transcend my physical
 being.  It&rsquo;s important therefor, to treasure your body while it lasts.</p>
 
-<blockquote><p>&#8216;But it [life] won&#8217;t have amounted to anything,&#8217; said Grego. &#8216;If your children die, then it was all a waste.&#8217; &#8216;No&#8217; said Olhado quietly. Grego shook his head. &#8216;Yes it does, Olhado. Death undoes everything.&#8217; Olhado shrugged. &#8216;Then why do you bother doing everything, Grego? Because someday you will die. Why should anyone ever have children? Someday they will die, their children will die, all children will die. Someday stars will wind down or blow up. Someday death will cover us all like the water of a lake and perhaps nothing will ever come to the surface to show that we were there. But we were there, and during the time we lived, we were alive. That&#8217;s the truth-what is, what was, what will be-not what could be, what should have been, what never can be. If we die, then our death has meaning to the rest of the universe. Even if our lives are unknown, the fact that someone lived here, and died, that will have repercussions, that will shape the universe.&#8217;</p><footer><strong>Children of the Mind</strong> <cite>Orson Scott Card</cite></footer></blockquote>
 
 
 
 
-<blockquote><p>There will allways be hope, wherever you are, until you yourself abondon it.</p><footer><strong>Old Revolutionary</strong> <cite>Lost Odyssey</cite></footer></blockquote>
-
-</div>
 
 
+
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>&lsquo;But it [life] won&rsquo;t have amounted to anything,&rsquo; said Grego. &lsquo;If your children die, then it was all a waste.&rsquo; &lsquo;No&rsquo; said Olhado quietly. Grego shook his head. &lsquo;Yes it does, Olhado. Death undoes everything.&rsquo; Olhado shrugged. &lsquo;Then why do you bother doing everything, Grego? Because someday you will die. Why should anyone ever have children? Someday they will die, their children will die, all children will die. Someday stars will wind down or blow up. Someday death will cover us all like the water of a lake and perhaps nothing will ever come to the surface to show that we were there. But we were there, and during the time we lived, we were alive. That&rsquo;s the truth-what is, what was, what will be-not what could be, what should have been, what never can be. If we die, then our death has meaning to the rest of the universe. Even if our lives are unknown, the fact that someone lived here, and died, that will have repercussions, that will shape the universe.&rsquo;</p>
   <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-
-      
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-04-29T20:35:00-07:00" pubdate data-updated="true">Apr 29<span>th</span>, 2013</time>
-      
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/elon/'>Elon</a>, <a class='category' href='/blog/categories/mars/'>Mars</a>, <a class='category' href='/blog/categories/musk/'>Musk</a>, <a class='category' href='/blog/categories/computer/'>computer</a>, <a class='category' href='/blog/categories/death/'>death</a>, <a class='category' href='/blog/categories/memory/'>memory</a>, <a class='category' href='/blog/categories/transaction/'>transaction</a>
-  
-</span>
-
-
-    </p>
+    <strong></strong>
     
-      <div class="sharing">
-  
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/" data-via="" data-counturl="http://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/" >Tweet</a>
-  
-  
-  
-    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
-  
-</div>
-
+      
+        
+          <cite>
+            Children of the Mind, Orson Scott Card</a>
+          </cite>
+        
+      
     
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2013/04/03/basic-jit/" title="Previous Post: Basic JIT">&laquo; Basic JIT</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2013/05/07/rust-pattern-matching-and-the-option-type/" title="Next Post: Rust: Pattern Matching and the Option Type">Rust: Pattern Matching and the Option Type &raquo;</a>
-      
-    </p>
   </footer>
-</article>
+</blockquote>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+  
+
+
+<blockquote>
+  <p>There will allways be hope, wherever you are, until you yourself abondon it.</p>
+  <footer>
+    <strong>Old Revolutionary</strong>
+    
+      
+        
+          <cite>
+            Lost Odyssey</a>
+          </cite>
+        
+      
+    
+  </footer>
+</blockquote>
+
+
+        </div>
+        
+
+<footer>
+  <p class="meta">
+    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
+    
+    <time>Apr 29, 2013</time>
+    
+    </span>
+  </p>
+
+  
+
+  <p class="meta">
+    
+        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2013/04/03/basic-jit/" title="Basic JIT">Basic JIT</a>
+    
+
+    
+      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2013/05/07/rust-pattern-matching-and-the-option-type/" title="Rust: Pattern Matching and the Option Type">Rust: Pattern Matching and the Option Type</a>
+    
+  </p>
+  
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    window.disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+  
+</footer>
+
+      </article>
+    </div>
+    
+
+<aside class="sidebar thirds">
+  <section class="first odd">
+
+    
+
+    <p>
+      
+    </p>
   </section>
 
-</div>
-
-<aside class="sidebar">
   
-    <section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">F() vs F(void) in C vs C++</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/">Speeding Up Linux Kernel Builds With Ccache</a>
-      </li>
-    
-  </ul>
-</section>
-
-<section>
-  <h1>GitHub Repos</h1>
-  <ul id="gh_repos">
-    <li class="loading">Status updating...</li>
-  </ul>
   
-  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+
+
+
+<ul class="sidebar-nav">
+  <li class="sidebar-nav-item">
+    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
+    
+    
+    
+    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
+    
+    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
+    
+    
+    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
+    
+    
+
   
-  <script type="text/javascript">
-    $(document).ready(function(){
-        if (!window.jXHR){
-            var jxhr = document.createElement('script');
-            jxhr.type = 'text/javascript';
-            jxhr.src = '/javascripts/libs/jXHR.js';
-            var s = document.getElementsByTagName('script')[0];
-            s.parentNode.insertBefore(jxhr, s);
-        }
+  
+  </li>
+</ul>
 
-        github.showRepos({
-            user: 'nickdesaulniers',
-            count: 20,
-            skip_forks: true,
-            target: '#gh_repos'
-        });
-    });
-  </script>
-  <script src="/javascripts/github.js" type="text/javascript"> </script>
-</section>
+  
 
+  
 
-
-
-
+  
+  
+  
+    
+      <section class="even">
+        <h1>Recent Posts</h1>
+        <ul id="recent_posts">
+          
+          
+            
+              <li class="post">
+                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
+              </li>
+            
+          
+            
+          
+            
+              <li class="post">
+                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
+              </li>
+            
+          
+            
+              <li class="post">
+                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
+              </li>
+            
+          
+            
+              <li class="post">
+                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
+              </li>
+            
+          
+        </ul>
+      </section>
+    
   
 </aside>
 
-
-    </div>
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2020 - Nick Desaulniers -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
-</p>
+</div>
 
-</footer>
-  
+    <footer role="contentinfo">
+      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
+        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
+      </p>
+    </footer>
 
-<script type="text/javascript">
-      var disqus_shortname = 'wangstabill';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/';
-        var disqus_url = 'http://nickdesaulniers.github.io/blog/2013/04/29/the-persistence-of-memory/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+    
+    
 
 
 
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) {return;}
-  js = d.createElement(s); js.id = id; js.async = true;
-  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+    
+    
+    
 
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = '//platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
-</body>
+    
+      <script>
+        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
+        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+        s.parentNode.insertBefore(g,s)}(document,'script'));
+      </script>
+    
+  </body>
 </html>
+

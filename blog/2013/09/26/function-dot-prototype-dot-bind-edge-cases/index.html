@@ -1,302 +1,265 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
 <head>
-  <meta charset="utf-8">
-  <title>Function.prototype.bind Edge Cases - Nick Desaulniers</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+
+  
+    
+    
+      <link href="/css/fonts.css" rel="stylesheet" type="text/css">
+    
+  
+
+  
+  <title>Function.prototype.bind Edge Cases</title>
+
+  
+  
+  <link rel="stylesheet" href="/css/hugo-octopress.css">
+
+  
+  
+    <link rel="stylesheet" href="https://nickdesaulniers.github.io/css/custom.css">
+  
+
+  
+    <link rel="stylesheet" href="/css/fork-awesome.min.css">
+  
+
+  
+  <link href="https://nickdesaulniers.github.io/favicon.png" rel="icon">
+
+  
+  
+
+  <meta name="description" content="" />
+  <meta name="keywords" content="">
   <meta name="author" content="Nick Desaulniers">
 
   
-  <meta name="description" content="ECMAScript 5&rsquo;s
-Function.prototype.bind
-is a great tool that&rsquo;s implemented in all
-modern browser JavaScript engines.
-It allows you to &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="Hugo 0.109.0">
 
   
-  <link rel="canonical" href="http://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases">
-  <link href="/favicon.ico" rel="icon">
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Nick Desaulniers" type="application/atom+xml">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <!--Fonts from Google"s Web font directory at https://google.com/webfonts -->
-<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  
 
   
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-36993986-1']);
-    _gaq.push(['_trackPageview']);
+  
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
+  
+  
+
 
 
 </head>
+<body>
 
-<body   >
-  <header role="banner"><hgroup>
-  <h1><a href="/">Nick Desaulniers</a></h1>
-  
-    <h2>The enemy's gate is down</h2>
-  
-</hgroup>
 
-</header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+<header role="banner">
+<hgroup>
   
-</ul>
+  <h1><a href="https://nickdesaulniers.github.io/">Nick Desaulniers</a></h1>
+    <h2>The enemy&#39;s gate is down</h2>
+</hgroup></header>
+
+
+<nav role="navigation">
+<fieldset class="mobile-nav">
   
-<form action="http://google.com/search" method="get">
-  <fieldset role="search">
-    <input type="hidden" name="q" value="site:nickdesaulniers.github.io" />
-    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-  </fieldset>
-</form>
-  
+  <select onchange="location = this.value;">
+    <option value="">Navigate…</option>
+      
+        <option value="https://nickdesaulniers.github.io/about/">» About</option>
+      
+        <option value="https://nickdesaulniers.github.io/blog/archives/">» Archives</option>
+      
+        <option value="https://nickdesaulniers.github.io/">» Blog</option>
+      
+        <option value="https://nickdesaulniers.github.io/publications/">» Publications</option>
+      
+        <option value="https://nickdesaulniers.github.io/talks/">» Talks</option>
+      
+  </select>
+</fieldset>
+
+
 <ul class="main-navigation">
-  <li><a href="/about">About</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
-  <li><a href="/">Blog</a></li>
-  <li><a href="/publications">Publications</a></li>
-  <li><a href="/talks">Talks</a></li>
+  
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/about/" title="About"  rel="noopener noreferrer">About</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/blog/archives/" title="Archives"  rel="noopener noreferrer">Archives</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/" title="Blog">Blog</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/publications/" title="Publications"  rel="noopener noreferrer">Publications</a></li>
+    
+  
+    
+      <li><a href="https://nickdesaulniers.github.io/talks/" title="Talks"  rel="noopener noreferrer">Talks</a></li>
+    
+  
 </ul>
+
+<ul class="subscription">
+  
+    
+        <a href="https://nickdesaulniers.github.io/index.xml" target="_blank" type="application/rss+xml" title="RSS" rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a>
+    
+  
+</ul>
+
+
+  <form action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer">
+    <fieldset role="search">
+      <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+      <input type="hidden" name="q" value="site:https://nickdesaulniers.github.io/" />
+    </fieldset>
+  </form>
 
 </nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
-    
-      <h1 class="entry-title">Function.prototype.bind Edge Cases</h1>
-    
-    
-      <p class="meta">
+
+
+<div id="main">
+  <div id="content">
+    <div>
+      <article class="hentry" role="article">
+
+        
         
 
+<header>
+  <p class="meta">Sep 26, 2013
+     - 6 minute read 
+     - <a href="https://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/#disqus_thread">Comments</a>
 
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-26T21:00:00-07:00" pubdate data-updated="true">Sep 26<span>th</span>, 2013</time>
-        
-         | <a href="#disqus_thread">Comments</a>
-        
-      </p>
     
-  </header>
+    
+      - <a class="label" href="https://nickdesaulniers.github.io/categories/partial-function-application/">partial function application </a><a class="label" href="https://nickdesaulniers.github.io/categories/javascript/">javascript </a>
+    
+  </p>
+  <h1 class="entry-title">
+     Function.prototype.bind Edge Cases 
+  </h1>
+</header>
 
 
-<div class="entry-content"><p>ECMAScript 5&rsquo;s
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind">Function.prototype.bind</a>
+        <div class="entry-content">
+          
+          
+          
+          <p>ECMAScript 5&rsquo;s
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" target="_blank" rel="noopener">Function.prototype.bind</a>
 is a great tool that&rsquo;s implemented in all
-<a href="http://kangax.github.io/es5-compat-table/#Function.prototype.bind">modern browser JavaScript engines</a>.
+
+<a href="http://kangax.github.io/es5-compat-table/#Function.prototype.bind" target="_blank" rel="noopener">modern browser JavaScript engines</a>.
 It allows you to modify the context,
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this">this</a>,
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this" target="_blank" rel="noopener">this</a>,
 of a function when it is evaluated in the future.  Knowing what <code>this</code> refers to
 in various contexts is key to being a professional JavaScript developer; don&rsquo;t
 show up to an interview without knowing all about it.</p>
-
 <p>Here&rsquo;s a common use case that developers need to watch for.  Can you spot the
 mistake?</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">person</span> <span class="o">=</span> <span class="s2">&quot;Bill&quot;</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">person</span><span class="o">:</span> <span class="s2">&quot;Nick&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">hi</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Hi &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">person</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;DOMContentLoaded&quot;</span><span class="p">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">hi</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Ooops!!! Turns out that since we added the event listener to the window object,
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">var</span> person <span style="color:#719e07">=</span> <span style="color:#2aa198">&#34;Bill&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#268bd2">var</span> obj <span style="color:#719e07">=</span> {
+</span></span><span style="display:flex;"><span>  person<span style="color:#719e07">:</span> <span style="color:#2aa198">&#34;Nick&#34;</span>,
+</span></span><span style="display:flex;"><span>  hi<span style="color:#719e07">:</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>    console.log(<span style="color:#2aa198">&#34;Hi &#34;</span> <span style="color:#719e07">+</span> <span style="color:#719e07">this</span>.person);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#b58900">window</span>.addEventListener(<span style="color:#2aa198">&#34;DOMContentLoaded&#34;</span>, obj.hi);
+</span></span></code></pre></div><p>Ooops!!! Turns out that since we added the event listener to the window object,
 <code>this</code> in the event handler or callback refers to <code>window</code>.  So this code prints
-<code>"Hi Bill"</code> instead of <code>"Hi Nick"</code>.  We could wrap <code>obj.hi</code> in an anonymous function:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;DOMContentLoaded&quot;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">obj</span><span class="p">.</span><span class="nx">hi</span><span class="p">();</span>
-</span><span class='line'><span class="p">});</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>But that is so needlessly verbose and what we were trying to avoid in the first
+<code>&quot;Hi Bill&quot;</code> instead of <code>&quot;Hi Nick&quot;</code>.  We could wrap <code>obj.hi</code> in an anonymous function:</p>
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#b58900">window</span>.addEventListener(<span style="color:#2aa198">&#34;DOMContentLoaded&#34;</span>, <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>  obj.hi();
+</span></span><span style="display:flex;"><span>});
+</span></span></code></pre></div><p>But that is so needlessly verbose and what we were trying to avoid in the first
 place.  The three functions you should know for modifying <code>this</code> (a question I
 ask all
 my interview candidates) are
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call">Function.prototype.call</a>,
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply">Function.prototype.apply</a>,
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call" target="_blank" rel="noopener">Function.prototype.call</a>,
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply" target="_blank" rel="noopener">Function.prototype.apply</a>,
 and
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind">Function.prototype.bind</a>.
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" target="_blank" rel="noopener">Function.prototype.bind</a>.
 <code>call</code> is variadic, while <code>apply</code> takes an array of
 arguments, but the two both immediately invoke the function.  We don&rsquo;t want to
 do that just yet.  The fix we need is <code>Function.prototype.bind</code>.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;DOMContentLoaded&quot;</span><span class="p">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">hi</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">obj</span><span class="p">));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>There, now isn&rsquo;t that nice and short?  Instead of saving <code>this</code> as another
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#b58900">window</span>.addEventListener(<span style="color:#2aa198">&#34;DOMContentLoaded&#34;</span>, obj.hi.bind(obj));
+</span></span></code></pre></div><p>There, now isn&rsquo;t that nice and short?  Instead of saving <code>this</code> as another
 variable then closing over it, you can instead use <code>bind</code>!</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">person</span><span class="o">:</span> <span class="s2">&quot;Nick&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">wait</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kd">var</span> <span class="nx">self</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
-</span><span class='line'>    <span class="nx">someButton</span><span class="p">.</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">person</span> <span class="o">+</span> <span class="s2">&quot; clicked!&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">};</span>
-</span><span class='line'>  <span class="p">},</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>becomes</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">person</span><span class="o">:</span> <span class="s2">&quot;Nick&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">wait</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nx">someButton</span><span class="p">.</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">person</span> <span class="o">+</span> <span class="s2">&quot; clicked!&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">},</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>No need to store <code>this</code> into <code>self</code>, then close over it.  One great shortcut I
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">var</span> obj <span style="color:#719e07">=</span> {
+</span></span><span style="display:flex;"><span>  person<span style="color:#719e07">:</span> <span style="color:#2aa198">&#34;Nick&#34;</span>,
+</span></span><span style="display:flex;"><span>  wait<span style="color:#719e07">:</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">var</span> self <span style="color:#719e07">=</span> <span style="color:#719e07">this</span>;
+</span></span><span style="display:flex;"><span>    someButton.onclick <span style="color:#719e07">=</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>      console.log(self.person <span style="color:#719e07">+</span> <span style="color:#2aa198">&#34; clicked!&#34;</span>);
+</span></span><span style="display:flex;"><span>    };
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>becomes</p>
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">var</span> obj <span style="color:#719e07">=</span> {
+</span></span><span style="display:flex;"><span>  person<span style="color:#719e07">:</span> <span style="color:#2aa198">&#34;Nick&#34;</span>,
+</span></span><span style="display:flex;"><span>  wait<span style="color:#719e07">:</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>    someButton.onclick <span style="color:#719e07">=</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>      console.log(<span style="color:#719e07">this</span>.person <span style="color:#719e07">+</span> <span style="color:#2aa198">&#34; clicked!&#34;</span>);
+</span></span><span style="display:flex;"><span>    }.bind(<span style="color:#719e07">this</span>);
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>No need to store <code>this</code> into <code>self</code>, then close over it.  One great shortcut I
 use all the time is creating an alias for <code>document.getElementById</code>.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">$</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nb">document</span><span class="p">);</span>
-</span><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;someElementsId&#39;</span><span class="p">).</span><span class="nx">doSomething</span><span class="p">();</span>
-</span><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;anotherElement&#39;</span><span class="p">).</span><span class="nx">doSomethingElse</span><span class="p">();</span>
-</span><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;aThirdElement&#39;</span><span class="p">).</span><span class="nx">doSomethingDifferent</span><span class="p">();</span>
-</span><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;theFifthElementOops&#39;</span><span class="p">).</span><span class="nx">doSomethingFun</span><span class="p">();</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Why did I bind <code>getElementById</code> back to <code>document</code>?  Try it without the call to
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">var</span> $ <span style="color:#719e07">=</span> <span style="color:#b58900">document</span>.getElementById.bind(<span style="color:#b58900">document</span>);
+</span></span><span style="display:flex;"><span>$(<span style="color:#2aa198">&#39;someElementsId&#39;</span>).doSomething();
+</span></span><span style="display:flex;"><span>$(<span style="color:#2aa198">&#39;anotherElement&#39;</span>).doSomethingElse();
+</span></span><span style="display:flex;"><span>$(<span style="color:#2aa198">&#39;aThirdElement&#39;</span>).doSomethingDifferent();
+</span></span><span style="display:flex;"><span>$(<span style="color:#2aa198">&#39;theFifthElementOops&#39;</span>).doSomethingFun();
+</span></span></code></pre></div><p>Why did I bind <code>getElementById</code> back to <code>document</code>?  Try it without the call to
 bind.  Any luck?</p>
-
 <p><code>bind</code> can also be great for partially applying functions, too.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">add</span> <span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;a: &quot;</span> <span class="o">+</span> <span class="nx">a</span><span class="p">);</span>
-</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;b: &quot;</span> <span class="o">+</span> <span class="nx">b</span><span class="p">);</span>
-</span><span class='line'>  <span class="k">return</span> <span class="nx">a</span> <span class="o">+</span> <span class="nx">b</span><span class="p">;</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="kd">var</span> <span class="nx">todo</span> <span class="o">=</span> <span class="nx">add</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
-</span><span class='line'><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">todo</span><span class="p">(</span><span class="mi">7</span><span class="p">));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>will print</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">a</span><span class="o">:</span> <span class="mi">4</span>
-</span><span class='line'><span class="nx">b</span><span class="o">:</span> <span class="mi">7</span>
-</span><span class='line'><span class="mi">11</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>What <code>Function.prototype.bind</code> is essentially doing is wrapping <code>add</code> in a
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">function</span> add (a, b) {
+</span></span><span style="display:flex;"><span>  console.log(<span style="color:#2aa198">&#34;a: &#34;</span> <span style="color:#719e07">+</span> a);
+</span></span><span style="display:flex;"><span>  console.log(<span style="color:#2aa198">&#34;b: &#34;</span> <span style="color:#719e07">+</span> b);
+</span></span><span style="display:flex;"><span>  <span style="color:#719e07">return</span> a <span style="color:#719e07">+</span> b;
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span><span style="color:#268bd2">var</span> todo <span style="color:#719e07">=</span> add.bind(<span style="color:#cb4b16">null</span>, <span style="color:#2aa198">4</span>);
+</span></span><span style="display:flex;"><span>console.log(todo(<span style="color:#2aa198">7</span>));
+</span></span></code></pre></div><p>will print</p>
+<pre tabindex="0"><code>a: 4
+b: 7
+11
+</code></pre><p>What <code>Function.prototype.bind</code> is essentially doing is wrapping <code>add</code> in a
 function that essentially looks like:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">todo</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">add</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">].</span><span class="nx">concat</span><span class="p">(</span><span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">slice</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">arguments</span><span class="p">)));</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The array has the captured arguments (just <code>4</code>), and is converting <code>todo</code>&rsquo;s
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">var</span> todo <span style="color:#719e07">=</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>  add.apply(<span style="color:#cb4b16">null</span>, [<span style="color:#2aa198">4</span>].concat(<span style="color:#b58900">Array</span>.prototype.slice.call(arguments)));
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>The array has the captured arguments (just <code>4</code>), and is converting <code>todo</code>&rsquo;s
 <code>arguments</code> into an array (a common idiom for converting &ldquo;Array-like&rdquo; objects
 into
 Arrays), then joining (<code>concat</code>) them and invoking the bound function (<code>apply</code>)
 with
 the value for <code>this</code> (in this case, <code>null</code>).</p>
-
 <p>In fact, if you look at
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Compatibility">the compatibility section of the MDN page for bind</a>,
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Compatibility" target="_blank" rel="noopener">the compatibility section of the MDN page for bind</a>,
 you&rsquo;ll see a function that returns a function that is essentially the above.
 One caveat is that this approach only allows you to partially apply variables in
 order.</p>
-
 <p>So <code>bind</code> is a great addition to the language.  Now to the point I wanted to
 make;
 there are edge cases when <code>bind</code> doesn&rsquo;t work or might trip you up.  The first
@@ -308,27 +271,15 @@ function, always.  And the final is to be careful binding to variadic functions
 when you don&rsquo;t intend to use all of the passed in variables.  Um, duh right?
 Well, let me show you three examples that have bitten me (recently).  The first
 is with ajax calls.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">crunch</span> <span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="c1">// operate on data</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">var</span> <span class="nx">xhr</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">XMLHttpRequest</span><span class="p">;</span>
-</span><span class='line'><span class="nx">xhr</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;data.json&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="nx">xhr</span><span class="p">.</span><span class="nx">onload</span> <span class="o">=</span> <span class="nx">crunch</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">response</span><span class="p">);</span>
-</span><span class='line'><span class="nx">xhr</span><span class="p">.</span><span class="nx">send</span><span class="p">();</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Oops, while I do want to operate on <code>this.result</code> within <code>crunch</code> with <code>this</code>
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">function</span> crunch (data) {
+</span></span><span style="display:flex;"><span>  <span style="color:#586e75">// operate on data
+</span></span></span><span style="display:flex;"><span><span style="color:#586e75"></span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#268bd2">var</span> xhr <span style="color:#719e07">=</span> <span style="color:#719e07">new</span> XMLHttpRequest;
+</span></span><span style="display:flex;"><span>xhr.open(<span style="color:#2aa198">&#34;GET&#34;</span>, <span style="color:#2aa198">&#34;data.json&#34;</span>);
+</span></span><span style="display:flex;"><span>xhr.onload <span style="color:#719e07">=</span> crunch.bind(<span style="color:#719e07">this</span>.response);
+</span></span><span style="display:flex;"><span>xhr.send();
+</span></span></code></pre></div><p>Oops, while I do want to operate on <code>this.result</code> within <code>crunch</code> with <code>this</code>
 referring to <code>xhr</code>, <code>this</code> at the time of binding was referring to <code>window</code>!
 Let&rsquo;s
 hope <code>window.results</code> is <code>undefined</code>!  What if we changed <code>this.result</code> with
@@ -339,120 +290,65 @@ is <code>null</code>), so we&rsquo;ve bound <code>null</code> as the first argum
 handling
 of <code>xhr.onload</code>; either use an anonymous function inline or named function to
 control nesting depth.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">xhr</span><span class="p">.</span><span class="nx">onload</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">crunch</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">result</span><span class="p">);</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The next is that <code>bind</code> always returns a new function.  Dude, it says that in
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span>xhr.onload <span style="color:#719e07">=</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>  crunch(<span style="color:#719e07">this</span>.result);
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>The next is that <code>bind</code> always returns a new function.  Dude, it says that in
 the docs,
-<a href="http://xkcd.com/293/">RTFM</a>.
+
+<a href="http://xkcd.com/293/" target="_blank" rel="noopener">RTFM</a>.
 Yeah I know, but this case still caught me.  When removing an event
 listener, you need to supply the <strong>same</strong> handler function.  Example, a <code>once</code>
 function:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">function</span> <span class="nx">todo</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nb">document</span><span class="p">.</span><span class="nx">removeEventListener</span><span class="p">(</span><span class="s2">&quot;myCustomEvent&quot;</span><span class="p">,</span> <span class="nx">todo</span><span class="p">);</span>
-</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">person</span><span class="p">);</span>
-</span><span class='line'><span class="p">});</span>
-</span><span class='line'>
-</span><span class='line'><span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;myCustomEvent&quot;</span><span class="p">,</span> <span class="nx">todo</span><span class="p">.</span><span class="nx">bind</span><span class="p">({</span> <span class="nx">person</span><span class="o">:</span> <span class="s2">&quot;Nick&quot;</span> <span class="p">}));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Try firing <code>myCustomEvent</code> twice, see what happens!  <code>"Nick"</code> is logged twice.
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">function</span> todo () {
+</span></span><span style="display:flex;"><span>  <span style="color:#b58900">document</span>.removeEventListener(<span style="color:#2aa198">&#34;myCustomEvent&#34;</span>, todo);
+</span></span><span style="display:flex;"><span>  console.log(<span style="color:#719e07">this</span>.person);
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#b58900">document</span>.addEventListener(<span style="color:#2aa198">&#34;myCustomEvent&#34;</span>, todo.bind({ person<span style="color:#719e07">:</span> <span style="color:#2aa198">&#34;Nick&#34;</span> }));
+</span></span></code></pre></div><p>Try firing <code>myCustomEvent</code> twice, see what happens!  <code>&quot;Nick&quot;</code> is logged twice.
 A <code>once</code> function that handles two separate events is not very good.  In fact,
 it will continue
 to handle events, since <code>document</code> does not have <code>todo</code> as an event handler for
 <code>myCustomEvent</code>
 events.  The event listener you bound was a new function; <code>bind</code> always returns
 a new function.  The solution:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">todo</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">person</span><span class="p">);</span>
-</span><span class='line'>  <span class="nb">document</span><span class="p">.</span><span class="nx">removeEventListener</span><span class="p">(</span><span class="s2">&quot;myCustomEvent&quot;</span><span class="p">,</span> <span class="nx">todo</span><span class="p">);</span>
-</span><span class='line'><span class="p">}.</span><span class="nx">bind</span><span class="p">({</span> <span class="nx">person</span><span class="o">:</span> <span class="s2">&quot;Nick&quot;</span> <span class="p">});</span>
-</span><span class='line'><span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;myCustomEvent&quot;</span><span class="p">,</span> <span class="nx">todo</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>That would be a good interview question.  The final gotcha is with functions
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">var</span> todo <span style="color:#719e07">=</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>  console.log(<span style="color:#719e07">this</span>.person);
+</span></span><span style="display:flex;"><span>  <span style="color:#b58900">document</span>.removeEventListener(<span style="color:#2aa198">&#34;myCustomEvent&#34;</span>, todo);
+</span></span><span style="display:flex;"><span>}.bind({ person<span style="color:#719e07">:</span> <span style="color:#2aa198">&#34;Nick&#34;</span> });
+</span></span><span style="display:flex;"><span><span style="color:#b58900">document</span>.addEventListener(<span style="color:#2aa198">&#34;myCustomEvent&#34;</span>, todo);
+</span></span></code></pre></div><p>That would be a good interview question.  The final gotcha is with functions
 that are variadic.  Extending one of my earlier examples:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">person</span><span class="o">:</span> <span class="s2">&quot;Nick&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">wait</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kd">var</span> <span class="nx">someButton</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="nx">someButton</span><span class="p">.</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">person</span> <span class="o">+</span> <span class="s2">&quot; clicked!&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
-</span><span class='line'>    <span class="nx">someButton</span><span class="p">.</span><span class="nx">click</span><span class="p">();</span>
-</span><span class='line'>  <span class="p">},</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="nx">obj</span><span class="p">.</span><span class="nx">wait</span><span class="p">();</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Let&rsquo;s say I thought I could use bind to simplify the <code>onclick</code> using the trick I
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">var</span> obj <span style="color:#719e07">=</span> {
+</span></span><span style="display:flex;"><span>  person<span style="color:#719e07">:</span> <span style="color:#2aa198">&#34;Nick&#34;</span>,
+</span></span><span style="display:flex;"><span>  wait<span style="color:#719e07">:</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">var</span> someButton <span style="color:#719e07">=</span> <span style="color:#b58900">document</span>.createElement(<span style="color:#2aa198">&#34;button&#34;</span>);
+</span></span><span style="display:flex;"><span>    someButton.onclick <span style="color:#719e07">=</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>      console.log(<span style="color:#719e07">this</span>.person <span style="color:#719e07">+</span> <span style="color:#2aa198">&#34; clicked!&#34;</span>);
+</span></span><span style="display:flex;"><span>    }.bind(<span style="color:#719e07">this</span>);
+</span></span><span style="display:flex;"><span>    someButton.click();
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>obj.wait();
+</span></span></code></pre></div><p>Let&rsquo;s say I thought I could use bind to simplify the <code>onclick</code> using the trick I
 did with <code>document.getElementById</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">person</span><span class="o">:</span> <span class="s2">&quot;Nick&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nx">wait</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kd">var</span> <span class="nx">someButton</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="nx">someButton</span><span class="p">.</span><span class="nx">onclick</span> <span class="o">=</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">console</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">person</span> <span class="o">+</span> <span class="s2">&quot; clicked!&quot;</span><span class="p">);</span>
-</span><span class='line'>    <span class="nx">someButton</span><span class="p">.</span><span class="nx">click</span><span class="p">();</span>
-</span><span class='line'>  <span class="p">},</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'><span class="nx">obj</span><span class="p">.</span><span class="nx">wait</span><span class="p">();</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Can you guess what this prints?  It does prints the expected, but with an
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#268bd2">var</span> obj <span style="color:#719e07">=</span> {
+</span></span><span style="display:flex;"><span>  person<span style="color:#719e07">:</span> <span style="color:#2aa198">&#34;Nick&#34;</span>,
+</span></span><span style="display:flex;"><span>  wait<span style="color:#719e07">:</span> <span style="color:#268bd2">function</span> () {
+</span></span><span style="display:flex;"><span>    <span style="color:#268bd2">var</span> someButton <span style="color:#719e07">=</span> <span style="color:#b58900">document</span>.createElement(<span style="color:#2aa198">&#34;button&#34;</span>);
+</span></span><span style="display:flex;"><span>    someButton.onclick <span style="color:#719e07">=</span> console.log.bind(console, <span style="color:#719e07">this</span>.person <span style="color:#719e07">+</span> <span style="color:#2aa198">&#34; clicked!&#34;</span>);
+</span></span><span style="display:flex;"><span>    someButton.click();
+</span></span><span style="display:flex;"><span>  },
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>obj.wait();
+</span></span></code></pre></div><p>Can you guess what this prints?  It does prints the expected, but with an
 unexpected addition.  Think about what I said about variadic functions.  What
 might be wrong here?</p>
-
 <p>Turns out this prints
-<code>"Nick clicked! [object MouseEvent]"</code>  This one took me a while to think
+<code>&quot;Nick clicked! [object MouseEvent]&quot;</code>  This one took me a while to think
 through, but luckily I had other experiences with <code>bind</code> that helped me understand
 why this occurred.</p>
-
 <p><code>console.log</code> is variadic, so it prints all of its arguments.  When we called
 <code>bind</code>
 on <code>console.log</code>, we set the <code>onclick</code> handler to be a new function that applied
@@ -460,204 +356,173 @@ that expected output with any additional arguments.  Well, <code>onclick</code> 
 passed a <code>MouseEvent</code> object (think <code>e.target</code>), which winds up being passed as
 the second
 argument to <code>console.log</code>.  If this was the example with <code>add</code> from earlier,
-<code>this.person + " clicked!"</code> would be the <code>4</code> and the <code>MouseEvent</code> would be the
+<code>this.person + &quot; clicked!&quot;</code> would be the <code>4</code> and the <code>MouseEvent</code> would be the
 <code>7</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">someButton</span><span class="p">.</span><span class="nx">onclick</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">console</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Nick clicked!&quot;</span><span class="p">].</span><span class="nx">concat</span><span class="p">([</span><span class="nx">e</span><span class="p">]));</span>
-</span><span class='line'><span class="p">};</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I love <code>bind</code>, but sometimes, it will get you.  What are some examples of times
+<div class="highlight"><pre tabindex="0" style="color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span>someButton.onclick <span style="color:#719e07">=</span> <span style="color:#268bd2">function</span> (e) {
+</span></span><span style="display:flex;"><span>  console.log.apply(console, [<span style="color:#2aa198">&#34;Nick clicked!&#34;</span>].concat([e]));
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>I love <code>bind</code>, but sometimes, it will get you.  What are some examples of times
 when you&rsquo;ve been bitten by <code>bind</code>?</p>
-</div>
 
+        </div>
+        
 
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
-
-      
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-26T21:00:00-07:00" pubdate data-updated="true">Sep 26<span>th</span>, 2013</time>
-      
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/function-dot-prototype-dot-bind/'>Function.prototype.bind</a>, <a class='category' href='/blog/categories/bind/'>bind</a>, <a class='category' href='/blog/categories/context/'>context</a>, <a class='category' href='/blog/categories/function/'>function</a>, <a class='category' href='/blog/categories/javascript/'>javascript</a>, <a class='category' href='/blog/categories/prototype/'>prototype</a>, <a class='category' href='/blog/categories/this/'>this</a>
-  
-</span>
-
-
-    </p>
+<footer>
+  <p class="meta">
+    <span class="byline author vcard">Posted by <span class="fn">Nick Desaulniers</span></span>
     
-      <div class="sharing">
+    <time>Sep 26, 2013</time>
+    
+    </span>
+  </p>
+
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/" data-via="" data-counturl="http://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/" >Tweet</a>
-  
-  
-  
-    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
-  
-</div>
+
+  <p class="meta">
+    
+        <a class="basic-alignment left" href="https://nickdesaulniers.github.io/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript/" title="Making Great Node.js Modules With Coffeescript">Making Great Node.js Modules With Coffeescript</a>
+    
 
     
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2013/08/28/making-great-node-dot-js-modules-with-coffeescript/" title="Previous Post: Making great Node.js modules with CoffeeScript">&laquo; Making great Node.js modules with CoffeeScript</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2014/03/01/write-a-test-case/" title="Next Post: Write a Test Case">Write a Test Case &raquo;</a>
+      <a class="basic-alignment right" href="https://nickdesaulniers.github.io/blog/2014/03/01/write-a-test-case/" title="Write a Test Case">Write a Test Case</a>
+    
+  </p>
+  
+    
+      <div id="disqus_thread"></div>
+<script type="application/javascript">
+    window.disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wangstabill" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+    
+  
+</footer>
+
+      </article>
+    </div>
+    
+
+<aside class="sidebar thirds">
+  <section class="first odd">
+
+    
+
+    <p>
       
     </p>
-  </footer>
-</article>
-
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
   </section>
 
-</div>
-
-<aside class="sidebar">
   
-    <section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">F() vs F(void) in C vs C++</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2018/06/02/speeding-up-linux-kernel-builds-with-ccache/">Speeding Up Linux Kernel Builds With Ccache</a>
-      </li>
-    
-  </ul>
-</section>
-
-<section>
-  <h1>GitHub Repos</h1>
-  <ul id="gh_repos">
-    <li class="loading">Status updating...</li>
-  </ul>
   
-  <a href="https://github.com/nickdesaulniers">@nickdesaulniers</a> on GitHub
+
+
+
+<ul class="sidebar-nav">
+  <li class="sidebar-nav-item">
+    <a target="_blank" rel="noopener noreferrer" href="https://github.com/nickdesaulniers" title="https://github.com/nickdesaulniers"><i class="fa fa-github fa-3x"></i></a>
+    
+    
+    
+    <a target="_blank" rel="me noopener noreferrer" href="https://fosstodon.org/@llvm" title="https://fosstodon.org/@llvm"><i class="fa fa-mastodon fa-3x"></i></a>
+    
+    <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/nick-desaulniers-75520334" title="https://www.linkedin.com/in/nick-desaulniers-75520334"><i class="fa fa-linkedin fa-3x"></i></a>
+    
+    
+    <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ" title="https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ"><i class="fa fa-youtube fa-3x"></i></a>
+    
+    
+
   
-  <script type="text/javascript">
-    $(document).ready(function(){
-        if (!window.jXHR){
-            var jxhr = document.createElement('script');
-            jxhr.type = 'text/javascript';
-            jxhr.src = '/javascripts/libs/jXHR.js';
-            var s = document.getElementsByTagName('script')[0];
-            s.parentNode.insertBefore(jxhr, s);
-        }
+  
+  </li>
+</ul>
 
-        github.showRepos({
-            user: 'nickdesaulniers',
-            count: 20,
-            skip_forks: true,
-            target: '#gh_repos'
-        });
-    });
-  </script>
-  <script src="/javascripts/github.js" type="text/javascript"> </script>
-</section>
+  
 
+  
 
-
-
-
+  
+  
+  
+    
+      <section class="even">
+        <h1>Recent Posts</h1>
+        <ul id="recent_posts">
+          
+          
+            
+              <li class="post">
+                <a href="/blog/2020/04/06/off-by-two/">Off by Two</a>
+              </li>
+            
+          
+            
+          
+            
+              <li class="post">
+                <a href="/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/">f() vs f(void) in C vs C&#43;&#43;</a>
+              </li>
+            
+          
+            
+              <li class="post">
+                <a href="/blog/2019/01/18/finding-compiler-bugs-with-c-reduce/">Finding Compiler Bugs With C-Reduce</a>
+              </li>
+            
+          
+            
+              <li class="post">
+                <a href="/blog/2018/10/24/booting-a-custom-linux-kernel-in-qemu-and-debugging-it-with-gdb/">Booting a Custom Linux Kernel in QEMU and Debugging It With GDB</a>
+              </li>
+            
+          
+        </ul>
+      </section>
+    
   
 </aside>
 
-
-    </div>
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2020 - Nick Desaulniers -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
-</p>
+</div>
 
-</footer>
-  
+    <footer role="contentinfo">
+      <p>Copyright &copy; 2023 Nick Desaulniers - <a href="https://nickdesaulniers.github.io/license/">License</a> -
+        <span class="credit">Powered by <a target="_blank" href="https://gohugo.io" rel="noopener noreferrer">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/" rel="noopener noreferrer">Hugo-Octopress</a> theme.
+      </p>
+    </footer>
 
-<script type="text/javascript">
-      var disqus_shortname = 'wangstabill';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/';
-        var disqus_url = 'http://nickdesaulniers.github.io/blog/2013/09/26/function-dot-prototype-dot-bind-edge-cases/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+    
+    
 
 
 
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) {return;}
-  js = d.createElement(s); js.id = id; js.async = true;
-  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+    
+    
+    
 
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = '//platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
-</body>
+    
+      <script>
+        var _gaq=[['_setAccount','UA-36993986-1'],['_trackPageview']];
+        (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+        g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+        s.parentNode.insertBefore(g,s)}(document,'script'));
+      </script>
+    
+  </body>
 </html>
+
