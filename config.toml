@@ -29,7 +29,7 @@ post="/blog/:year/:month/:day/:title/"
   weight = -10
 [[menu.main]]
   Name = "Archives"
-  URL = "/"
+  URL = "/blog/archives/"
   weight = -10
 [[menu.main]]
   Name = "Blog"

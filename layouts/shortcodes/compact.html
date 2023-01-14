@@ -1,0 +1,44 @@
+<!-- Partial for compact index -->
+
+<style>
+table.allposts, td.allposts-date, td.allposts-title {
+  border:none;
+}
+
+td.allposts-date {
+    padding: 0 0.5em 0 0;
+    white-space: nowrap;
+}
+
+td.allposts-title {
+    font-size: 110%;
+}
+#content {
+  margin-right: 0px;
+}
+@media only screen and (min-width: 768px) {
+    aside.sidebar {
+      margin-left: -320px;
+    }
+}
+
+</style>
+<div id="main">
+  <div id="content">
+    <div>
+      <article role="article">
+          <table class="allposts">
+            {{ range (where site.RegularPages "Type" "in" site.Params.mainSections) }}
+              {{ if .IsPage }}
+                <tr>
+                  <td class="allposts-date"><strong>{{ .Date | dateFormat "2006"}} {{ .Date | dateFormat "Jan" }} {{ .Date | dateFormat "2" }}</strong></td>
+                  <td class="allposts-title"><a href="{{ .Permalink }}" title="{{ .Title }}">{{ .Title }}</a></td>
+                </tr>
+              {{ end }}
+            {{ end }}
+          </table>
+      </article>
+    </div>
+  </div>
+</div>
+{{ partial "footer.html" . }}
