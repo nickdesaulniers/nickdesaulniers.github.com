@@ -1,5 +1,5 @@
 +++
-title = "Finding Compiler Bugs With C Reduce"
+title = "Finding Compiler Bugs With C-Reduce"
 date = "2019-01-18"
 slug = "2019/01/18/finding-compiler-bugs-with-c-reduce"
 Categories = ["C", "C++", "debugging", "c-reduce", "linux", "llvm"]

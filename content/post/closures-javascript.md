@@ -1,7 +1,7 @@
 +++
 title = "Closures: JavaScript, Ruby, and Rust"
 date = "2013-01-14"
-slug = "2013/01/14/closures-javascript"
+url = "blog/2013/01/14/closures-javascript"
 Categories = ["closure", "javascript", "ruby", "rust"]
 +++
 
