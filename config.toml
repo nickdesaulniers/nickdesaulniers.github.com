@@ -15,6 +15,7 @@ post="/blog/:year/:month/:day/:title/"
   googleAnalytics="UA-36993986-1"
   sidebarRecentLimit=5
   generateTaxonomyList=true
+  customCSS=["css/custom.css"]
 
   github="https://github.com/nickdesaulniers"
   gitlab="https://gitlab.com/nickdesaulniers"

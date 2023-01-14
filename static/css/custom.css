@@ -1,0 +1,21 @@
+html {
+  background: #1ba85f url(/images/line-tile.png);
+}
+body > header {
+  background: #262626;
+}
+body > nav {
+  background: url(/images/noise.png?1494914961),linear-gradient(#21cb73,#1ba85f,#137844);;
+  border-bottom: 1px solid #093a21;
+  border-top: 1px solid #32de85;
+}
+body > nav a {
+  color: #f8f8f8;
+  text-shadow: #24dc7d 0 1px;
+}
+body > nav a:visited {
+  color: #f8f8f8;
+}
+body > nav a:hover {
+  color: #b8b8b8;
+}
