@@ -17,6 +17,7 @@ post="/blog/:year/:month/:day/:title/"
   sidebarRecentLimit=5
   generateTaxonomyList=true
   customCSS=["css/custom.css"]
+  favicon="favicon.ico"
 
   github="https://github.com/nickdesaulniers"
   #gitlab="https://gitlab.com/nickdesaulniers"
