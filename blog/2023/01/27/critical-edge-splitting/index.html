@@ -1,0 +1,149 @@
+<!doctype html><html xmlns=http://www.w3.org/1999/xhtml xml:lang=en lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,minimum-scale=1,maximum-scale=1"><link href=/css/fonts.css rel=stylesheet type=text/css><title>Critical Edge Splitting</title><link rel=stylesheet href=/css/hugo-octopress.css><link rel=stylesheet href=https://nickdesaulniers.github.io/css/custom.css><link rel=stylesheet href=/css/fork-awesome.min.css><link href=https://nickdesaulniers.github.io/favicon.ico rel=icon><meta name=description content><meta name=keywords content><meta name=author content="Nick Desaulniers"><meta name=generator content="Hugo 0.109.0"></head><body><header role=banner><hgroup><h1><a href=https://nickdesaulniers.github.io/>Nick Desaulniers</a></h1><h2>The enemy's gate is down</h2></hgroup></header><nav role=navigation><fieldset class=mobile-nav><select onchange="location=this.value"><option value>Navigate…</option><option value=https://nickdesaulniers.github.io/about/>» About</option><option value=https://nickdesaulniers.github.io/blog/archives/>» Archives</option><option value=https://nickdesaulniers.github.io/>» Blog</option><option value=https://nickdesaulniers.github.io/publications/>» Publications</option><option value=https://nickdesaulniers.github.io/talks/>» Talks</option></select></fieldset><ul class=main-navigation><li><a href=https://nickdesaulniers.github.io/about/ title=About rel="noopener noreferrer">About</a></li><li><a href=https://nickdesaulniers.github.io/blog/archives/ title=Archives rel="noopener noreferrer">Archives</a></li><li><a href=https://nickdesaulniers.github.io/ title=Blog>Blog</a></li><li><a href=https://nickdesaulniers.github.io/publications/ title=Publications rel="noopener noreferrer">Publications</a></li><li><a href=https://nickdesaulniers.github.io/talks/ title=Talks rel="noopener noreferrer">Talks</a></li></ul><ul class=subscription><a href=https://nickdesaulniers.github.io/index.xml target=_blank type=application/rss+xml title=RSS rel="noopener noreferrer"><i class="fa fa-rss-square fa-lg"></i></a></ul><form action=https://www.google.com/search method=get target=_blank rel="noopener noreferrer"><fieldset role=search><input class=search type=text name=q results=0 placeholder=Search>
+<input type=hidden name=q value=site:https://nickdesaulniers.github.io/></fieldset></form></nav><div id=main><div id=content><div><article class=hentry role=article><header><p class=meta>Jan 27, 2023
+- 8 minute read
+- <a href=https://nickdesaulniers.github.io/blog/2023/01/27/critical-edge-splitting/#disqus_thread>Comments</a>
+- <a class=label href=https://nickdesaulniers.github.io/categories/compilers/>compilers </a><a class=label href=https://nickdesaulniers.github.io/categories/llvm/>llvm</a></p><h1 class=entry-title>Critical Edge Splitting</h1></header><div class=entry-content><p><em>A maximal length sequence of branch-free code that terminates with a branch or
+jump is referred to as a <strong>basic block</strong>.</em></p><p><em>A basic block that branches to another forms an <strong>edge</strong> in the Control Flow
+Graph (CFG).</em></p><p><em>The initial basic block starting an edge is the <strong>predecessor</strong>; it precedes
+and is succeeded by the <strong>successor</strong> basic block.</em></p><p><em>An edge between basic blocks is considered a <strong>critical edge</strong> if the
+predecessor has multiple successors, and the successor has multiple
+predecessors.</em></p><p>Given the below control flow graph, can you spot any critical edges?</p><h2 id=control-flow-graphimagescfgcfgsvg><img src=/images/cfg/cfg.svg alt="control flow graph"></h2><p><img src=/images/cfg/cfg2.svg alt="critical edge"></p><p>Given the above control flow graph, we have one critical edge between BB0 and
+BB3. (BB0 has multiple successors, but BB2 only has only one predecessor so the
+edge between them is not critical. BB3 has multiple predecessors, but BB1 has
+only one successor so the edge between them is also not critical).</p><p>Say we need to insert new code to execute along the critical edge. Do we put it
+at the end of BB0 or the beginning of BB3?</p><p>Because BB0 has multiple successors, it might not be correct for such code to
+execute at the end of BB0 when the branch to BB2 is taken. Because BB3 has
+multiple predecessors, it would also not be correct to insert the new code at
+the beginning of BB3 since it would execute should the incoming branch from BB1
+be taken.</p><p>A common solution is to split the critical edge.
+<img src=/images/cfg/critical_edge_splitting.svg alt="critical edge splitting"></p><p>So when would we need to insert code along such an edge?</p><p>Let&rsquo;s say you&rsquo;d like to add instrumentation to existing code to track whether a
+branch is taken or not (to ascertain whether execution paths are covered by
+testing). That&rsquo;s a boolean decision; taken or not. Sometimes a count is more
+helpful for the purposes of profiling, which let&rsquo;s you calculate how hot or
+cold an edge is relative to another. Such information might influence the
+relative ordering of basic blocks when linearizing the control flow graph or
+making decisions about whether to inline or even outline the contents of those
+basic blocks. Think about the control flow graph above. Where would you insert
+the counter update if you hadn&rsquo;t split the critical edge?</p><p>Another important case of critical edge splitting involves translation out of
+Static Single Assignment (SSA) form. Cooper and Torczon&rsquo;s <em>Engineering a
+Compiler</em> puts it pretty succinctly: <em>because modern processors do not
+implement phi functions, the compiler needs to translate SSA form back into
+executable code</em>.</p><p>Phi (Φ) functions are a common occurrence in SSA form Intermediate
+Representations (IR). Here&rsquo;s a quick example in LLVM IR:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-llvm data-lang=llvm><span style=display:flex><span><span style=color:#719e07>define</span> <span style=color:#719e07>i32</span> @foo (<span style=color:#719e07>i1</span> <span style=color:#268bd2>%x</span>) {
+</span></span><span style=display:flex><span>entry:
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> <span style=color:#268bd2>%x</span>, <span style=color:#dc322f>label</span> <span style=color:#268bd2>%bar</span>, <span style=color:#dc322f>label</span> <span style=color:#268bd2>%baz</span>
+</span></span><span style=display:flex><span>bar:
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> <span style=color:#268bd2>%quux</span>
+</span></span><span style=display:flex><span>baz:
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> <span style=color:#268bd2>%quux</span>
+</span></span><span style=display:flex><span>quux:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>%ret</span> = <span style=color:#719e07>phi</span> <span style=color:#719e07>i32</span> [<span style=color:#2aa198>0</span>, <span style=color:#268bd2>%bar</span>], [<span style=color:#2aa198>1</span>, <span style=color:#268bd2>%baz</span>]
+</span></span><span style=display:flex><span>  <span style=color:#719e07>ret</span> <span style=color:#719e07>i32</span> <span style=color:#268bd2>%ret</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><code>@foo</code> is a simple identity function (never mind that the return type is wider
+than the input, example chosen for brevity). But let&rsquo;s look at that <code>phi</code>
+instruction. Check out LLVM&rsquo;s
+<a href=https://llvm.org/docs/LangRef.html#phi-instruction target=_blank rel=noopener>Language Reference</a>
+(aka &ldquo;LangRef&rdquo;) for precise semantics of phi instructions, but in our example
+we can see the type, followed by one-to-many tuples of value for a given
+predecessor. So if we enter basic block <code>%quux</code> from <code>%bar</code>, the value of
+<code>%ret</code> is <code>0</code>. Conversely, if we enter <code>%quux</code> from <code>%baz</code> then <code>%ret</code> gets the
+value <code>1</code>.</p><p>As mentioned earlier, a phi is kind of a virtual operation. If there&rsquo;s only two
+branches, we might be able to lower that to some kind of conditional move or
+select operation (or a nest of such operations for multiple inputs). That can
+quickly get out of hand though as the number of incoming edges to a phi grows,
+particularly when the target Instruction Set Architecture (ISA) doesn&rsquo;t have
+cmov/csel.</p><p>One of the seminal papers on SSA form proposed:</p><blockquote><p>Naively, a k-input @-function at entrance to a node X can be replaced by k
+ordinary assignments, one at the end of each control flow predecessor of X.</p><footer><strong>Cytron, et al.</strong>
+<cite><a href=https://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf title=https://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf rel="noopener noreferrer">Efficiently Computing Static Single Assignment Form and the Control Dependence Graph</a></cite></footer></blockquote><p>That might look like the following unoptimized aarch64 assembly (remember,
+we&rsquo;re leaving SSA form for concrete machine instructions):</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span>foo:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>tbz</span> <span style=color:#cb4b16>w0</span>, <span style=color:#586e75>#0, .Lbaz
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>b</span>   <span style=color:#cb4b16>.Lbar</span>
+</span></span><span style=display:flex><span>.Lbar:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>mov</span> <span style=color:#cb4b16>w0</span>, <span style=color:#586e75>#1
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>b</span>   <span style=color:#cb4b16>.Lquux</span>
+</span></span><span style=display:flex><span>.Lbaz:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>mov</span> <span style=color:#cb4b16>w0</span>, <span style=color:#586e75>#0
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>b</span>   <span style=color:#cb4b16>.Lquux</span>
+</span></span><span style=display:flex><span>.Lquux
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>ret</span>
+</span></span></code></pre></div><p>So no phi, and we&rsquo;ve inserted <code>mov</code> assignments into the predecessors of the
+block that previously contained the phi.</p><p>Later research would later point to problems with this approach. The simple IR
+example above doesn&rsquo;t contain a critical edge, but if it did, <em>where would you
+place the copies</em> becomes a problem which can be solved via critical edge
+splitting.</p><p>A modification of the above example demonstrates the problem:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-llvm data-lang=llvm><span style=display:flex><span><span style=color:#719e07>define</span> <span style=color:#719e07>i32</span> @foo (<span style=color:#719e07>i1</span> <span style=color:#268bd2>%x</span>) {
+</span></span><span style=display:flex><span>entry:
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> <span style=color:#268bd2>%x</span>, <span style=color:#dc322f>label</span> <span style=color:#268bd2>%bar</span>, <span style=color:#dc322f>label</span> <span style=color:#268bd2>%baz</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>bar:
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> <span style=color:#268bd2>%baz</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>baz:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>%ret</span> = <span style=color:#719e07>phi</span> <span style=color:#719e07>i32</span> [ <span style=color:#2aa198>0</span>, <span style=color:#268bd2>%entry</span> ], [ <span style=color:#2aa198>1</span>, <span style=color:#268bd2>%bar</span> ]
+</span></span><span style=display:flex><span>  <span style=color:#719e07>ret</span> <span style=color:#719e07>i32</span> <span style=color:#268bd2>%ret</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>After naively putting copies in the predecessors <em>before</em> terminating
+instructions (If you&rsquo;re curious <em>why can&rsquo;t we put them after</em>, consider whether
+they would be executed as you&rsquo;d expect):</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span>foo:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>tbz</span> <span style=color:#cb4b16>w0</span>, <span style=color:#586e75>#0, .Lbaz
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>mov</span> <span style=color:#cb4b16>w0</span>, <span style=color:#586e75>#0        // oops!
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>b</span>   <span style=color:#cb4b16>.Lbar</span>
+</span></span><span style=display:flex><span>.Lbar:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>mov</span> <span style=color:#cb4b16>w0</span>, <span style=color:#586e75>#1
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>b</span>   <span style=color:#cb4b16>.Lbaz</span>
+</span></span><span style=display:flex><span>.Lbaz
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>ret</span>
+</span></span></code></pre></div><p>Where the edge from <code>%entry</code> to <code>%baz</code> is critical. If we split that first, we
+get correct results.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span>foo:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>tbz</span> <span style=color:#cb4b16>w0</span>, <span style=color:#586e75>#0, .Lbaz_crit_edge
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>b</span>   <span style=color:#cb4b16>w0</span>, <span style=color:#cb4b16>.Lbar</span>
+</span></span><span style=display:flex><span>.Lbar:
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>mov</span> <span style=color:#cb4b16>w0</span>, <span style=color:#586e75>#1
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>b</span>  <span style=color:#cb4b16>.Lbaz</span>
+</span></span><span style=display:flex><span>.Lbaz_crit_edge
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>mov</span> <span style=color:#cb4b16>w0</span>, <span style=color:#586e75>#0
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>b</span> <span style=color:#cb4b16>.Lbaz</span>
+</span></span><span style=display:flex><span>.Lbaz
+</span></span><span style=display:flex><span>  <span style=color:#268bd2>ret</span>
+</span></span></code></pre></div><p>Critical edge splitting alone still has issues, but is still used in final
+solutions for phi elimination. You can search for more information on &ldquo;the
+lost-copy problem,&rdquo; &ldquo;the swap problem,&rdquo; &ldquo;Brigg&rsquo;s method,&rdquo; and &ldquo;Sridhar&rsquo;s
+method&rdquo; for more information. I found Maarten Faddegon&rsquo;s 2011 Master&rsquo;s Thesis
+<em><a href="https://repository.tudelft.nl/islandora/object/uuid:a3bea0c0-fc6d-47a1-9b94-bf39df4aff8f?collection=education" target=_blank rel=noopener>SSA Back-Translation: Faster Results with Edge Splitting and Post Optimization</a></em>
+to be an excellent and accessible read on the matter.</p><p>Some IR&rsquo;s like
+<a href=https://apple-swift.readthedocs.io/en/latest/SIL.html#basic-blocks target=_blank rel=noopener>Swift&rsquo;s Intermediate Language</a>
+(SIL) and
+<a href=https://github.com/bytecodealliance/wasmtime/blob/main/cranelift/docs/ir.md#static-single-assignment-form target=_blank rel=noopener>Cranelift</a>
+avoid complications with phi nodes entirely by using basic blocks that accept
+arguments. Contrasting the two (phis vs basic block parameters) is something
+I&rsquo;d like to understand better.</p><p>Cooper and Torczon suggest that maybe you wouldn&rsquo;t want to split critical edges
+when you have a backward edge, for example a hot loop, since you&rsquo;d be inserting
+branches that previously didn&rsquo;t exist. Though, Faddegon&rsquo;s paper states:</p><p><blockquote><p>As far as known by the author, there is no work about the effects of phiblocks
+on the performance of the end result produced by the compiler.</p><footer><strong>Maarten Faddegon</strong>
+<cite><a href="https://repository.tudelft.nl/islandora/object/uuid:a3bea0c0-fc6d-47a1-9b94-bf39df4aff8f?collection=education" title="https://repository.tudelft.nl/islandora/object/uuid:a3bea0c0-fc6d-47a1-9b94-bf39df4aff8f?collection=education" rel="noopener noreferrer">4.2 Previous Work Mentioning Phi Blocks</a></cite></footer></blockquote>(By phiblocks they are referring to the basic block that is inserted or
+synthesized by critical edge splitting.) The author then demonstrates how critical edge splitting can improve performance of the prior two best approaches to SSA back translation by 3-5%.</p><p>For further real world uses of critical edge splitting, I recommend taking a
+look at callers of <code>llvm::SplitCriticalEdge</code>, <code>llvm::SplitKnownCriticalEdge</code>,
+and <code>MachineBasicBlock::SplitCriticalEdge</code>. General edge splitting makes use
+of <code>llvm::SplitKnownCriticalEdge</code>, so the number of references quickly grows
+too large to enumerate reasonably here. That critical edge splitting is a
+fallible operation in LLVM is perhaps a story for another day.</p><p><a href="https://discourse.llvm.org/t/rfc-syncing-asm-goto-with-outputs-with-gcc/65453/6?u=nickdesaulniers" target=_blank rel=noopener>A recent feature I&rsquo;ve been working on in LLVM</a>
+also requires critical edge splitting. Had I done
+any research before starting on the project, I might have found that Faddegon&rsquo;s
+paper references &ldquo;Boissinot&rsquo;s <em>Exotic Terminator Problem</em>.&rdquo;</p><p>Turns out, in 2008 Boissinot, et al. published a paper,
+<a href=https://hal.inria.fr/inria-00349925v1/document target=_blank rel=noopener>Revisiting Out-of-SSA Translation for Correctness, Code Quality, and Efficiency</a>,
+detailing control flow instructions which also modify variables. Modeling this
+in SSA is not easy. One approach suggested was critical edge splitting (you can
+read the paper which I will link to below for the other approach).</p><p>That&rsquo;s pretty much
+<a href="https://discourse.llvm.org/t/rfc-syncing-asm-goto-with-outputs-with-gcc/65453/6?u=nickdesaulniers" target=_blank rel=noopener>the same problem I was trying to solve</a>,
+and ultimately
+<a href=https://reviews.llvm.org/D139872 target=_blank rel=noopener>the same solution I pursued</a>.
+I just wish I had had all of the above information researched BEFORE having had
+started pursuing multiple different solutions which resulted in many dead ends.
+I found previous search results related to <em>critical edge splitting</em> to be
+unsatisfactory. Hopefully this post was more informative and relatively
+concise.</p><p>If you&rsquo;re curious to learn more, here are the references I recommend:</p><ul><li><em><a href=https://classes.engineering.wustl.edu/~cytron/cs531/Resources/Papers/valnum.pdf target=_blank rel=noopener>Global Value Numbers and Redundant Computations</a></em> - Rosen, et al. - 1988</li><li><em><a href=https://www.cs.utexas.edu/~pingali/CS380C/2010/papers/ssaCytron.pdf target=_blank rel=noopener>Efficiently Computing Static Single Assignment Form and the Control Dependence Graph</a></em> - Cytron, et al. - 1991</li><li><em><a href=https://people.cs.umass.edu/~emery/classes/cmpsci710-spring2004/lecture12-pre.pdf target=_blank rel=noopener>Partial Redundancy Elimination</a></em> - Berger - 2003</li><li><em><a href=https://hal.inria.fr/inria-00349925v1/document target=_blank rel=noopener>Revisiting Out-of-SSA Translation for Correctness, Code Quality, and Efficiency</a></em> - Boissinot, et al. - 2008</li><li><em><a href=https://compilers.cs.uni-saarland.de/ssasem/talks/Alain.Darte.pdf target=_blank rel=noopener>Revisiting Out-of-SSA Translation for Correctness, Code Quality, and Efficiency For both Static and JIT Compilation</a></em> - Boissinot, et al. - 2009</li><li><em><a href="https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=88c847191bb6241f66eef02ae0d54a00cfbbdb61" target=_blank rel=noopener>Comparison and Evaluation of Back Translation Algorithms for Static Single Assignment Form</a></em> - Sassa, et al. - 2009</li><li><em><a href=https://repository.tudelft.nl/islandora/object/uuid:a3bea0c0-fc6d-47a1-9b94-bf39df4aff8f/datastream/OBJ/download target=_blank rel=noopener>SSA Back-Translation: Faster Results with Edge Splitting and Post Optimization</a></em> - Faddegon - 2011</li><li><em>Engineering a Compiler 2nd ed.</em> - Cooper & Torczon - 2012 (Note to self: buy 3rd ed. when they make a hardcover!)</li><li><em><a href=https://www.inf.ed.ac.uk/teaching/courses/copt/lecture-4-from-ssa.pdf target=_blank rel=noopener>Conversion from SSA</a></em> - Leather - 2019</li><li><em><a href=https://www.cs.cmu.edu/afs/cs/academic/class/15411-f20/www/lec/17-pre.pdf target=_blank rel=noopener>Partial Redundancy Elimination</a></em> - Goldstein - 2020</li><li><em><a href=https://homepages.dcc.ufmg.br/~fernando/classes/dcc888/ementa/slides/StaticSingleAssignment.pptx target=_blank rel=noopener>Static Single Assignment Form</a></em> - Pereira</li><li><em><a href=https://piazza.com/class_profile/get_resource/hzkq9i9o1ec222/i1jophwv6ovlu target=_blank rel=noopener>Introduction to PRE</a></em></li></ul></div><footer><p class=meta><span class="byline author vcard">Posted by <span class=fn>Nick Desaulniers</span></span>
+<time>Jan 27, 2023</time></span></p><p class=meta><a class="basic-alignment left" href=https://nickdesaulniers.github.io/blog/2023/01/20/debugging-wframe-larger-than/ title="Debugging -Wframe-larger-than=">Debugging -Wframe-larger-than=</a></p><div id=disqus_thread></div><script type=application/javascript>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//wangstabill.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></footer></article></div><aside class="sidebar thirds"><section class="first odd"><p></p></section><ul class=sidebar-nav><li class=sidebar-nav-item><a target=_blank rel="noopener noreferrer" href=https://github.com/nickdesaulniers title=https://github.com/nickdesaulniers><i class="fa fa-github fa-3x"></i></a>
+<a target=_blank rel="me noopener noreferrer" href=https://fosstodon.org/@llvm title=https://fosstodon.org/@llvm><i class="fa fa-mastodon fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.linkedin.com/in/nick-desaulniers-75520334 title=https://www.linkedin.com/in/nick-desaulniers-75520334><i class="fa fa-linkedin fa-3x"></i></a>
+<a target=_blank rel="noopener noreferrer" href=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ title=https://www.youtube.com/channel/UC68vgKSuS1Xjg9wpdvShfSQ><i class="fa fa-youtube fa-3x"></i></a></li></ul><section class=even><h1>Recent Posts</h1><ul id=recent_posts><li class=post><a href=/blog/2023/01/27/critical-edge-splitting/>Critical Edge Splitting</a></li><li class=post><a href=/blog/2023/01/20/debugging-wframe-larger-than/>Debugging -Wframe-larger-than=</a></li><li class=post><a href=/blog/2020/04/06/off-by-two/>Off by Two</a></li><li class=post><a href=/blog/2019/05/12/f-vs-f-void-in-c-vs-c-plus-plus/>f() vs f(void) in C vs C++</a></li></ul></section></aside></div></div><footer role=contentinfo><p>Copyright &copy; 2023 Nick Desaulniers - <a href=https://nickdesaulniers.github.io/license/>License</a> -
+<span class=credit>Powered by <a target=_blank href=https://gohugo.io rel="noopener noreferrer">Hugo</a> and <a target=_blank href=https://github.com/parsiya/hugo-octopress/ rel="noopener noreferrer">Hugo-Octopress</a> theme.</p></footer><script>var _gaq=[["_setAccount","UA-36993986-1"],["_trackPageview"]];(function(e,t){var n=e.createElement(t),s=e.getElementsByTagName(t)[0];n.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js",s.parentNode.insertBefore(n,s)})(document,"script")</script></body></html>
