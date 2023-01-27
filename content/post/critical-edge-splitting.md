@@ -47,7 +47,7 @@ So when would we need to insert code along such an edge?
 Let's say you'd like to add instrumentation to existing code to track whether a
 branch is taken or not (to ascertain whether execution paths are covered by
 testing). That's a boolean decision; taken or not. Sometimes a count is more
-helpful for the purposes of profiling, which let's you calculate how hot or
+helpful for the purposes of profiling, which lets you calculate how hot or
 cold an edge is relative to another. Such information might influence the
 relative ordering of basic blocks when linearizing the control flow graph or
 making decisions about whether to inline or even outline the contents of those
