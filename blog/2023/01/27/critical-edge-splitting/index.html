@@ -19,7 +19,7 @@ be taken.</p><p>A common solution is to split the critical edge.
 <img src=/images/cfg/critical_edge_splitting.svg alt="critical edge splitting"></p><p>So when would we need to insert code along such an edge?</p><p>Let&rsquo;s say you&rsquo;d like to add instrumentation to existing code to track whether a
 branch is taken or not (to ascertain whether execution paths are covered by
 testing). That&rsquo;s a boolean decision; taken or not. Sometimes a count is more
-helpful for the purposes of profiling, which let&rsquo;s you calculate how hot or
+helpful for the purposes of profiling, which lets you calculate how hot or
 cold an edge is relative to another. Such information might influence the
 relative ordering of basic blocks when linearizing the control flow graph or
 making decisions about whether to inline or even outline the contents of those
