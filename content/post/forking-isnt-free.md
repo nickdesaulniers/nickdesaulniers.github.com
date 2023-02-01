@@ -82,8 +82,10 @@ so I imagine there's some constant factor between common lines modified.
 Sometimes code rebases cleanly, but behaviors have changed.  That can result in
 time consuming and surprising bugs or test failures that need to be resolved.
 If the number of upstream changes is zero, there's nothing to rebase onto. If
-the number of downstream changes is zero, you're simply updating your snapshot
-(zero cost).
+the number of downstream changes is zero, you're simply updating your snapshot.
+I'd like to think that such a case would be zero cost, but validation costs are
+something I omitted from the above model. Validation costs can add
+significantly to rebases where no downstream changes are involved!
 
 Something that's not a large factor, but something I've definitely experienced
 before is when the authors of downstream changes aren't active in the project
