@@ -1,5 +1,5 @@
 ---
-title: "Disambiguating Arm, Arm ARM, ARMv9, ARM9, ARM64, Aarch64, A64, A78, ..."
+title: "Disambiguating Arm, Arm ARM, Armv9, ARM9, ARM64, Aarch64, A64, A78, ..."
 url: "blog/2023/03/10/disambiguating-arm"
 date: 2023-03-10T11:39:11-08:00
 categories:
@@ -26,17 +26,17 @@ affectionately referred to as the **Arm ARM**, is *the* programming manual for
 the architecture. If you're doing anything with Arm assembly, you probably have
 this reference nearby.
 
-**[ARMv9](https://www.anandtech.com/show/16584/arm-announces-armv9-architecture)**
+**[Armv9](https://www.anandtech.com/show/16584/arm-announces-armv9-architecture)**
 is the latest (as of this writing) in the family of architectures,
 featuring additions such as newer scalable SIMD vector (SVE2) and matrix
 (SME/SME2) operations and tracing functionality.
 
-**ARMv9.4-A** is the latest batch of extensions to ARMv9. These extensions are
+**Armv9.4-A** is the latest batch of extensions to Armv9. These extensions are
 documented in the Arm ARM.  Some extensions are optional when introduced and
 many become mandatory in future revisions if they weren't  already when
 introduced.
 
-The *A* in **ARMv9-A** denotes the "Application Profile." These support virtual
+The *A* in **Armv9-A** denotes the "Application Profile." These support virtual
 memory via memory management units, and are what you're likely to find on any
 Arm systems such as a phone, laptop, or server. There's also the "R" profile
 for applications with real time system requirements, and "M" profiles which
@@ -135,7 +135,7 @@ you can't run an AArch32 program on a core that doesn't support it!
 Below are some more legacy terms. They might still be relevant, depending on
 how old some systems you still support are.
 
-**ARM9** (not to be confused with *ARMv9*, the version of the architecture) is
+**ARM9** (not to be confused with *Armv9*, the version of the architecture) is
 a family of cores, some implementing ARMv4t, some ARMv5.
 
 *[StrongARM](https://en.wikipedia.org/wiki/StrongARM)*
