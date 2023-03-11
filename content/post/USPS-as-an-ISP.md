@@ -164,11 +164,11 @@ BROADBANDNOW
 [disputes](https://broadbandnow.com/research/fcc-broadband-overreporting-by-state)
 this claim stating this number may be closer to 42 million Americans. I am
 concerned that the FCC report from 2021 cites measurements from 2019; the
-dissenting statements from FCC commissioners at the end of the report. Also,
-where are the latest reports for 2022? I'm guessing they were discontinued
-because they were pretty lame; the latest international report from 2018 uses
-data from 2014 and uses the measure of 256 kbps as the definition for
-broadband...
+dissenting statements from FCC commissioners at the end of the report are also
+well worth a read. Also, where are the latest reports for 2022? I'm guessing
+they were discontinued because they were pretty lame; the latest international
+report from 2018 uses data from 2014 and uses the measure of 256 kbps as the
+definition for broadband...
 [Other](https://www.broadbandchoices.co.uk/features/internet-accessibility-index)
 [reports](https://datareportal.com/reports/digital-2023-global-overview-report)
 may be more reliable for international comparisons.
