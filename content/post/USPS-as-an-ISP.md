@@ -190,12 +190,12 @@ Even with public funding, private ISPs
 to meet milestones laid out by the FCC in terms of minimum bandwidth
 requirements.
 
-The Internet gives everyone accessible to the world's knowledge. My parent's
+The Internet gives everyone access to the world's knowledge. My parent's
 generation grew up with having physical encyclopedias (if they were lucky). I
 grew up with Wikipedia.  Given two students, one with Internet access and one
 without, do they have equal chances of being successful? Or how about two
 households, one that can afford broadband and one that can't, were their
-children equally successful during COVID when many students needing access to
+children equally successful during COVID when many students needed access to
 video streaming to participate in daily classes from home?
 
 Should the government be responsible for such infrastructure, or private
