@@ -193,7 +193,7 @@ though those identifiers don't appear in
 [ELF for the Arm {64-bit} Architecture](https://github.com/ARM-software/abi-aa/releases).
 
 That's a quick glossary over common terms related to the Arm ecosystem.
-Hopefully in a follow up post we can review terms like VFP, NEON, OABI, and
+Hopefully in a follow up post we can review terms like VFP, Neon, OABI, and
 EABI, but these are enough for now.
 
 Many thanks to my friends Peter Smith, Kristof Beyls, and Mark Brown of Arm,
