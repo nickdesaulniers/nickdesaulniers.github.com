@@ -1,5 +1,5 @@
 ---
-title: "Disambiguating Arm, Arm ARM, Armv9, ARM9, ARM64, Aarch64, A64, A78, ..."
+title: "Disambiguating Arm, Arm ARM, Armv9, ARM9, ARM64, AArch64, A64, A78, ..."
 url: "blog/2023/03/10/disambiguating-arm"
 date: 2023-03-10T11:39:11-08:00
 categories:
