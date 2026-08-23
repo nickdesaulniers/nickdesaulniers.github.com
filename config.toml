@@ -13,7 +13,6 @@ post="/blog/:year/:month/:day/:title/"
   subtitle="The enemy's gate is down"
   rss=true
   searchEngineURL="https://www.google.com/search"
-  googleAnalytics="UA-36993986-1"
   sidebarRecentLimit=5
   generateTaxonomyList=true
   customCSS=["css/custom.css"]
@@ -52,3 +51,6 @@ post="/blog/:year/:month/:day/:title/"
     style="solarized-dark"
   [markup.goldmark.renderer]
     unsafe=true
+
+[services.googleAnalytics]
+  id = "G-50L3QKZZG0"
