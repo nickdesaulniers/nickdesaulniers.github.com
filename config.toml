@@ -2,7 +2,6 @@ baseURL = 'https://nickdesaulniers.github.io/'
 locale = 'en-us'
 title = 'Nick Desaulniers'
 theme="Hugo-Octopress"
-disqusShortname="wangstabill"
 
 [permalinks]
 # Configures post URLs
@@ -54,3 +53,6 @@ post="/blog/:year/:month/:day/:title/"
 
 [services.googleAnalytics]
   id = "G-50L3QKZZG0"
+
+[services.disqus]
+  shortname = "wangstabill"
